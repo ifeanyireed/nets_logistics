@@ -52,9 +52,9 @@ export function Footer() {
 
             {/* Contact quick */}
             {[
-              { label: 'Phone',    value: '+234 800 000 0000' },
-              { label: 'Email',    value: 'info@netsnigeria.com' },
-              { label: 'Location', value: 'Lagos, Nigeria' },
+              { label: 'Phone',    value: '+234 916 791 9439  |  +234 803 300 6805' },
+              { label: 'Email',    value: 'info@neweratransports.com' },
+              { label: 'Location', value: 'No. 2 Raji Rasaki, before linked bridge, Amuwo-Odofin, Lagos, Nigeria' },
             ].map(c => (
               <div key={c.label} style={{ display: 'flex', gap: '1rem', marginBottom: '0.625rem', alignItems: 'flex-start' }}>
                 <span style={{
@@ -134,14 +134,12 @@ export function Footer() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
-            {['LinkedIn', 'Twitter', 'Instagram'].map(s => (
-              <a key={s} href="#" aria-label={`NETS on ${s}`}
-                style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.3)', transition: 'color 0.15s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}>
-                {s}
-              </a>
-            ))}
+            <a href="https://www.instagram.com/nets_logistics/" target="_blank" rel="noopener noreferrer" aria-label="NETS on Instagram"
+              style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.3)', transition: 'color 0.15s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}>
+              Instagram
+            </a>
           </div>
         </div>
       </div>

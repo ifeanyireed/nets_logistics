@@ -75,8 +75,8 @@ export function Navigation() {
 
           {/* Desktop actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }} className="hidden lg:flex">
-            <a href="tel:+2348000000000" style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
-              +234 800 000 0000
+            <a href="tel:+2349167919439" style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
+              +234 916 791 9439
             </a>
             <a href="#quote" className="btn btn-red btn-sm">Get a Quote</a>
           </div>
@@ -155,23 +155,21 @@ export function Navigation() {
 
                 {/* Contact Info */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <a href="tel:+2348000000000" style={{ fontSize: '0.9375rem', color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{ color: 'rgba(255,255,255,0.5)' }}>Phone</span> +234 800 000 0000
+                  <a href="tel:+2349167919439" style={{ fontSize: '0.875rem', color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.5)' }}>Phone</span> +234 916 791 9439 / +234 803 300 6805
                   </a>
-                  <a href="mailto:hello@netsnigeria.com" style={{ fontSize: '0.9375rem', color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{ color: 'rgba(255,255,255,0.5)' }}>Email</span> hello@netsnigeria.com
+                  <a href="mailto:info@neweratransports.com" style={{ fontSize: '0.875rem', color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.5)' }}>Email</span> info@neweratransports.com
                   </a>
-                  <div style={{ fontSize: '0.9375rem', color: '#fff', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <div style={{ fontSize: '0.875rem', color: '#fff', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                     <span style={{ color: 'rgba(255,255,255,0.5)' }}>Office</span> 
-                    <span>12 Transport Ave, Victoria Island<br/>Lagos, Nigeria</span>
+                    <span>No. 2 Raji Rasaki, before linked bridge, Amuwo-Odofin, Lagos, Nigeria</span>
                   </div>
                 </div>
 
                 {/* Socials */}
                 <div style={{ display: 'flex', gap: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                  <a href="#" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>LinkedIn</a>
-                  <a href="#" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Instagram</a>
-                  <a href="#" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Facebook</a>
+                  <a href="https://www.instagram.com/nets_logistics/" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Instagram</a>
                 </div>
               </motion.div>
             </motion.div>
