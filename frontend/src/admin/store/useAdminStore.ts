@@ -222,7 +222,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
   vehicles: [],
   drivers: [...mockDrivers],
   users: [...mockUsers],
-  activityLog: [...mockActivityLog],
+  activityLog: [],
   promotions: [...mockPromotions],
   settings: { ...defaultSettings },
 

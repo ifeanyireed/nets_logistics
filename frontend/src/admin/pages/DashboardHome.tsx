@@ -5,15 +5,17 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileText, CalendarCheck, Truck, AlertTriangle, Plus, DollarSign, Clock, TrendingUp } from 'lucide-react'
 import { useAdminStore } from '../store/useAdminStore'
-import { adminService, AdminStats, AdminLead } from '../services/adminService'
+import { adminService, AdminStats, AdminLead, AdminBookingDB } from '../services/adminService'
 
 const fmt = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 const fmtTime = (iso: string) => {
-  const d = new Date(iso); const now = new Date()
+  if (!iso) return 'Just now'
+  const d = new Date(iso)
+  const now = new Date()
   const diff = now.getTime() - d.getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 60) return `${Math.max(1, mins)}m ago`
   const hrs = Math.floor(mins / 60)
   if (hrs < 24) return `${hrs}h ago`
   return `${Math.floor(hrs / 24)}d ago`
@@ -30,96 +32,104 @@ const statusBadge = (status: string) => {
 }
 
 export function DashboardHome() {
-  const { quotes, bookings, vehicles, activityLog } = useAdminStore()
+  const { vehicles, activityLog } = useAdminStore()
   const navigate = useNavigate()
   const [liveStats, setLiveStats] = useState<AdminStats | null>(null)
   const [liveLeads, setLiveLeads] = useState<AdminLead[]>([])
+  const [liveBookings, setLiveBookings] = useState<AdminBookingDB[]>([])
 
   useEffect(() => {
     adminService.getStats().then(setLiveStats)
     adminService.getLeads().then(setLiveLeads)
+    adminService.getBookings().then(setLiveBookings)
   }, [])
 
-  // KPIs
-  const today = new Date().toISOString().slice(0, 10)
-  const todayBookings = bookings.filter(b => b.travelDate.slice(0, 10) === today).length
-  const pendingQuotes = liveStats ? liveStats.pendingLeads : quotes.filter(q => q.status === 'new').length
-  const confirmedBookings = bookings.filter(b => b.operationalStatus === 'confirmed').length
+  // KPIs derived from MySQL database
+  const pendingQuotes = liveStats ? liveStats.pendingLeads : liveLeads.filter(q => q.status === 'pending').length
+  const confirmedBookings = liveBookings.filter(b => b.operationalStatus === 'confirmed').length
   const fleetActive = liveStats ? liveStats.activeFleet : vehicles.filter(v => v.available).length
-  const revenueTotal = liveStats ? liveStats.totalPipelineValue : bookings.filter(b => b.paymentStatus === 'paid').reduce((s, b) => s + b.totalAmount, 0)
-  const upcoming = bookings.filter(b => new Date(b.travelDate) > new Date() && b.operationalStatus !== 'cancelled')
-    .sort((a, b) => new Date(a.travelDate).getTime() - new Date(b.travelDate).getTime()).slice(0, 5)
+  const revenueTotal = liveStats ? liveStats.totalPipelineValue : liveLeads.reduce((s, l) => s + (l.estimatedInvestmentMax || 0), 0)
 
-  // Alerts
-  const maintenanceDue = vehicles.filter(v => v.maintenanceStatus === 'service-due')
-  const insuranceExpiring = vehicles.filter(v => {
-    const days = (new Date(v.insuranceExpiry).getTime() - Date.now()) / 86400000
-    return days < 60 && days > 0
-  })
+  const upcoming = liveBookings
+    .filter(b => b.operationalStatus !== 'cancelled')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+
+  // Generate live activity entries directly from MySQL leads & bookings
+  const leadActivities = liveLeads.map(l => ({
+    id: `act-lead-${l.id}`,
+    description: `Quote request ${l.leadReference} submitted by ${l.customerName}`,
+    userName: l.customerName || 'Customer',
+    timestamp: l.createdAt,
+    action: l.status === 'pending' ? 'Lead Created' : `Status ${l.status}`,
+  }))
+
+  const bookingActivities = liveBookings.map(b => ({
+    id: `act-bk-${b.id}`,
+    description: `Booking ${b.reference} for ${b.customerName} (${b.vehicleName})`,
+    userName: b.customerName || 'Operations',
+    timestamp: b.createdAt,
+    action: b.operationalStatus,
+  }))
+
+  const combinedActivities = [...leadActivities, ...bookingActivities]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 8)
+
+  const displayActivities = combinedActivities.length > 0 ? combinedActivities : activityLog
 
   return (
-    <>
-      {/* Alerts */}
-      {(maintenanceDue.length > 0 || insuranceExpiring.length > 0) && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          {maintenanceDue.map(v => (
-            <div key={v.id} className="admin-alert admin-alert-warning">
-              <AlertTriangle size={14} />
-              <strong>{v.name}</strong> is due for maintenance — schedule service soon.
-            </div>
-          ))}
-          {insuranceExpiring.map(v => (
-            <div key={v.id} className="admin-alert admin-alert-danger">
-              <AlertTriangle size={14} />
-              <strong>{v.name}</strong> insurance expires {fmtDate(v.insuranceExpiry)} — renew immediately.
-            </div>
-          ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Page Header */}
+      <div className="admin-page-header">
+        <div>
+          <div className="admin-page-title">Executive Dashboard</div>
+          <div className="admin-page-desc">Real-time overview of NETS transport operations and customer demand</div>
         </div>
-      )}
-
-      {/* KPIs */}
-      <div className="admin-stat-grid">
-        <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-accent)' }}>
-          <div className="admin-stat-label">Today's Bookings</div>
-          <div className="admin-stat-value">{todayBookings}</div>
-          <div className="admin-stat-sub">Scheduled for today</div>
-        </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">Pending Quotes</div>
-          <div className="admin-stat-value" style={{ color: pendingQuotes > 0 ? 'var(--adm-warning)' : undefined }}>{pendingQuotes}</div>
-          <div className="admin-stat-sub admin-stat-trend-up">Awaiting review</div>
-        </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">Confirmed Bookings</div>
-          <div className="admin-stat-value">{confirmedBookings}</div>
-          <div className="admin-stat-sub">Across all vehicles</div>
-        </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">Fleet Available</div>
-          <div className="admin-stat-value">{fleetActive}<span style={{ fontSize: 14, color: 'var(--adm-text-3)', fontWeight: 400 }}>/{vehicles.length}</span></div>
-          <div className="admin-stat-sub">Vehicles ready</div>
-        </div>
-        <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-success)' }}>
-          <div className="admin-stat-label">Revenue (Paid)</div>
-          <div className="admin-stat-value" style={{ fontSize: '1.25rem' }}>{fmt(revenueTotal)}</div>
-          <div className="admin-stat-sub admin-stat-trend-up">Confirmed payments</div>
+        <div className="admin-page-actions">
+          <button className="admin-btn admin-btn-primary" onClick={() => navigate('/admin/quotes')}>
+            <Plus size={14} /> View Leads
+          </button>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="admin-quick-actions">
-        <button className="admin-btn admin-btn-primary" onClick={() => navigate('/admin/quotes')}>
-          <Plus size={14} /> New Quote
-        </button>
-        <button className="admin-btn admin-btn-ghost" onClick={() => navigate('/admin/bookings')}>
-          <CalendarCheck size={14} /> Create Booking
-        </button>
-        <button className="admin-btn admin-btn-ghost" onClick={() => navigate('/admin/fleet')}>
-          <Truck size={14} /> Manage Fleet
-        </button>
-        <button className="admin-btn admin-btn-ghost" onClick={() => navigate('/admin/pricing')}>
-          <DollarSign size={14} /> Update Pricing
-        </button>
+      {/* KPI Cards Grid */}
+      <div className="admin-grid-4">
+        <div className="admin-kpi-card">
+          <div className="admin-kpi-header">
+            <span className="admin-kpi-title">Pending Quotes</span>
+            <div className="admin-kpi-icon admin-kpi-icon-accent"><FileText size={16} /></div>
+          </div>
+          <div className="admin-kpi-value">{pendingQuotes}</div>
+          <div className="admin-kpi-sub admin-text-muted">Awaiting pricing review</div>
+        </div>
+
+        <div className="admin-kpi-card">
+          <div className="admin-kpi-header">
+            <span className="admin-kpi-title">Confirmed Trips</span>
+            <div className="admin-kpi-icon admin-kpi-icon-green"><CalendarCheck size={16} /></div>
+          </div>
+          <div className="admin-kpi-value">{confirmedBookings}</div>
+          <div className="admin-kpi-sub admin-text-muted">Scheduled for dispatch</div>
+        </div>
+
+        <div className="admin-kpi-card">
+          <div className="admin-kpi-header">
+            <span className="admin-kpi-title">Active Fleet</span>
+            <div className="admin-kpi-icon admin-kpi-icon-blue"><Truck size={16} /></div>
+          </div>
+          <div className="admin-kpi-value">{fleetActive}</div>
+          <div className="admin-kpi-sub admin-text-muted">Available in fleet catalog</div>
+        </div>
+
+        <div className="admin-kpi-card">
+          <div className="admin-kpi-header">
+            <span className="admin-kpi-title">Pipeline Revenue</span>
+            <div className="admin-kpi-icon admin-kpi-icon-yellow"><DollarSign size={16} /></div>
+          </div>
+          <div className="admin-kpi-value">{fmt(revenueTotal)}</div>
+          <div className="admin-kpi-sub admin-text-muted">Estimated quote value</div>
+        </div>
       </div>
 
       <div className="admin-grid-2" style={{ gap: '1.5rem' }}>
@@ -130,7 +140,7 @@ export function DashboardHome() {
             <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => navigate('/admin/bookings')}>View All</button>
           </div>
           {upcoming.length === 0 ? (
-            <div className="admin-table-empty">No upcoming trips scheduled</div>
+            <div className="admin-table-empty">No upcoming trips scheduled in database</div>
           ) : (
             <table className="admin-table">
               <thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Date</th><th>Status</th></tr></thead>
@@ -138,9 +148,9 @@ export function DashboardHome() {
                 {upcoming.map(b => (
                   <tr key={b.id} style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/bookings')}>
                     <td><span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--adm-text-2)' }}>{b.reference}</span></td>
-                    <td>{b.customerName.split(' ').slice(-1)[0]}</td>
+                    <td>{b.customerName ? b.customerName.split(' ').slice(-1)[0] : 'Customer'}</td>
                     <td style={{ color: 'var(--adm-text-2)', fontSize: 12 }}>{b.vehicleName}</td>
-                    <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>{fmtDate(b.travelDate)}</td>
+                    <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>{fmtDate(b.travelDate || b.createdAt)}</td>
                     <td><span className={statusBadge(b.operationalStatus)}>{b.operationalStatus}</span></td>
                   </tr>
                 ))}
@@ -153,18 +163,22 @@ export function DashboardHome() {
         <div className="admin-card" style={{ padding: 0 }}>
           <div className="admin-card-title" style={{ padding: '1rem 1.25rem', marginBottom: 0, borderBottom: '1px solid var(--adm-border)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><TrendingUp size={14} /> Recent Activity</span>
-            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => navigate('/admin/activity')}>View Log</button>
+            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => navigate('/admin/quotes')}>View Log</button>
           </div>
           <div style={{ padding: '0 1.25rem' }}>
-            {activityLog.slice(0, 8).map(entry => (
-              <div key={entry.id} className="admin-activity-item">
-                <div className={`admin-activity-dot ${entry.action.includes('Approved') || entry.action.includes('Paid') ? 'admin-activity-dot-accent' : ''}`} />
-                <div>
-                  <div className="admin-activity-title">{entry.description}</div>
-                  <div className="admin-activity-meta">{entry.userName} · {fmtTime(entry.timestamp)}</div>
+            {displayActivities.length === 0 ? (
+              <div className="admin-table-empty">No activity recorded yet</div>
+            ) : (
+              displayActivities.map(entry => (
+                <div key={entry.id} className="admin-activity-item">
+                  <div className={`admin-activity-dot ${entry.action.includes('Approved') || entry.action.includes('Created') || entry.action.includes('confirmed') ? 'admin-activity-dot-accent' : ''}`} />
+                  <div>
+                    <div className="admin-activity-title">{entry.description}</div>
+                    <div className="admin-activity-meta">{entry.userName} · {fmtTime(entry.timestamp)}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -175,22 +189,26 @@ export function DashboardHome() {
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FileText size={14} /> Recent CRM Leads</span>
           <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => navigate('/admin/quotes')}>View All Quotes</button>
         </div>
-        <table className="admin-table">
-          <thead><tr><th>Reference</th><th>Customer</th><th>Vehicle</th><th>Route</th><th>Estimate</th><th>Status</th></tr></thead>
-          <tbody>
-            {quotes.slice(0, 6).map(q => (
-              <tr key={q.id}>
-                <td><span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--adm-text-2)' }}>{q.reference.split('-').slice(-1)[0]}</span></td>
-                <td style={{ fontWeight: 500 }}>{q.customerName}</td>
-                <td style={{ color: 'var(--adm-text-2)', fontSize: 12 }}>{q.vehicleName}</td>
-                <td style={{ color: 'var(--adm-text-3)', fontSize: 12, maxWidth: 200 }}>{q.pickup.split(',')[0]} → {q.destination.split(',')[0]}</td>
-                <td style={{ fontWeight: 500 }}>{fmt(q.estimatedInvestment)}</td>
-                <td><span className={statusBadge(q.status)}>{q.status}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {liveLeads.length === 0 ? (
+          <div className="admin-table-empty">No quote requests recorded in database</div>
+        ) : (
+          <table className="admin-table">
+            <thead><tr><th>Reference</th><th>Customer</th><th>Vehicle</th><th>Route</th><th>Estimate</th><th>Status</th></tr></thead>
+            <tbody>
+              {liveLeads.slice(0, 5).map(q => (
+                <tr key={q.id} style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/quotes')}>
+                  <td><span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--adm-accent)', fontWeight: 600 }}>{q.leadReference}</span></td>
+                  <td>{q.customerName}</td>
+                  <td style={{ color: 'var(--adm-text-2)', fontSize: 12 }}>{q.journeyType || 'Standard'}</td>
+                  <td style={{ color: 'var(--adm-text-2)', fontSize: 12 }}>{q.origin || 'N/A'} → {q.destination || 'N/A'}</td>
+                  <td style={{ fontWeight: 600 }}>{fmt(q.estimatedInvestmentMax || q.estimatedInvestmentMin || 0)}</td>
+                  <td><span className={statusBadge(q.status)}>{q.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
-    </>
+    </div>
   )
 }
