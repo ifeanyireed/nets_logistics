@@ -30,26 +30,34 @@ func main() {
 	contactHandler := handlers.NewContactHandler()
 	vehicleHandler := handlers.NewVehicleHandler()
 
-	// Root Route
+	// Root Route & Dynamic Sub-routes
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			if strings.HasPrefix(r.URL.Path, "/api/v1/leads/") {
-				leadHandler.Show(w, r)
-				return
-			}
-			response.Error(w, http.StatusNotFound, "Requested endpoint not found.")
+		path := r.URL.Path
+		if path == "/" {
+			response.JSON(w, http.StatusOK, map[string]interface{}{
+				"message":       "Welcome to NETS Logistics REST API (Go Backend)",
+				"documentation": "/api/v1/health",
+				"version":       "1.0.0",
+			})
 			return
 		}
-		response.JSON(w, http.StatusOK, map[string]interface{}{
-			"message":       "Welcome to NETS Logistics REST API (Go Backend)",
-			"documentation": "/api/v1/health",
-			"version":       "1.0.0",
-		})
+
+		if strings.HasPrefix(path, "/api/v1/leads/") {
+			leadHandler.Show(w, r)
+			return
+		}
+
+		if strings.HasPrefix(path, "/api/v1/vehicles/") {
+			vehicleHandler.Show(w, r)
+			return
+		}
+
+		response.Error(w, http.StatusNotFound, "Requested endpoint not found.")
 	})
 
 	// API v1 Routes
 	mux.HandleFunc("/api/v1/health", healthHandler.HealthCheck)
-	
+
 	mux.HandleFunc("/api/v1/leads", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
@@ -73,9 +81,12 @@ func main() {
 	})
 
 	mux.HandleFunc("/api/v1/vehicles", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
+		switch r.Method {
+		case http.MethodGet:
 			vehicleHandler.Index(w, r)
-		} else {
+		case http.MethodPost:
+			vehicleHandler.Store(w, r)
+		default:
 			response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
 		}
 	})

@@ -1,34 +1,43 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { vehicles } from '../data/vehicles'
+import { vehicleService } from '../services/vehicleService'
+import { Vehicle } from '../types'
 import { VehicleCard } from '../components/fleet/VehicleCard'
 import { VehicleFilter } from '../components/fleet/VehicleFilter'
 import { CompareDrawer } from '../components/fleet/CompareDrawer'
 import { staggerContainer, staggerItem } from '../lib/motion'
 
 export function FleetPage() {
+  const [vehicleList, setVehicleList] = useState<Vehicle[]>([])
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [compareIds, setCompareIds] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const categories = useMemo(() => {
-    const cats = new Set(vehicles.map(v => v.category))
-    return Array.from(cats).sort()
+  useEffect(() => {
+    vehicleService.getVehicles().then((data) => {
+      setVehicleList(data)
+      setIsLoading(false)
+    })
   }, [])
 
+  const categories = useMemo(() => {
+    const cats = new Set(vehicleList.map(v => v.category))
+    return Array.from(cats).sort()
+  }, [vehicleList])
+
   const filteredVehicles = useMemo(() => {
-    if (!activeCategory) return vehicles
-    return vehicles.filter(v => v.category === activeCategory)
-  }, [activeCategory])
+    if (!activeCategory) return vehicleList
+    return vehicleList.filter(v => v.category === activeCategory)
+  }, [activeCategory, vehicleList])
 
   const selectedVehicles = useMemo(() => {
-    return vehicles.filter(v => compareIds.includes(v.id))
-  }, [compareIds])
+    return vehicleList.filter(v => compareIds.includes(v.id))
+  }, [compareIds, vehicleList])
 
   const handleToggleCompare = (id: string) => {
     setCompareIds(prev => {
       if (prev.includes(id)) return prev.filter(x => x !== id)
       if (prev.length >= 3) {
-        // Can only compare 3 max, replace the oldest one
         return [...prev.slice(1), id]
       }
       return [...prev, id]
@@ -97,16 +106,22 @@ export function FleetPage() {
       {/* Vehicle Grid */}
       <section style={{ padding: '6rem 0', background: 'var(--color-nets-white)', minHeight: '50vh' }}>
         <div className="container-nets">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '2rem' }}>
-            {filteredVehicles.map(vehicle => (
-              <VehicleCard
-                key={vehicle.id}
-                vehicle={vehicle}
-                isCompared={compareIds.includes(vehicle.id)}
-                onToggleCompare={handleToggleCompare}
-              />
-            ))}
-          </div>
+          {isLoading ? (
+            <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-nets-navy)' }}>
+              Loading Fleet Catalog...
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '2rem' }}>
+              {filteredVehicles.map(vehicle => (
+                <VehicleCard
+                  key={vehicle.id}
+                  vehicle={vehicle}
+                  isCompared={compareIds.includes(vehicle.id)}
+                  onToggleCompare={handleToggleCompare}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

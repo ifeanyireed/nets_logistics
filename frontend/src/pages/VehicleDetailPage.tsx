@@ -1,12 +1,32 @@
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Users, Briefcase, Wind, ShieldCheck, Check } from 'lucide-react'
-import { vehicles } from '../data/vehicles'
+import { vehicleService } from '../services/vehicleService'
+import { Vehicle } from '../types'
 import { fadeUp, staggerContainer, staggerItem } from '../lib/motion'
 
 export function VehicleDetailPage() {
   const { vehicleSlug } = useParams()
-  const vehicle = vehicles.find(v => v.slug === vehicleSlug)
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    if (vehicleSlug) {
+      vehicleService.getVehicleBySlug(vehicleSlug).then((v) => {
+        setVehicle(v || null)
+        setIsLoading(false)
+      })
+    }
+  }, [vehicleSlug])
+
+  if (isLoading) {
+    return (
+      <div style={{ paddingTop: '200px', minHeight: '100vh', textAlign: 'center', background: 'var(--color-nets-navy)', color: '#fff' }}>
+        <h2>Loading Vehicle Details...</h2>
+      </div>
+    )
+  }
 
   if (!vehicle) {
     return (
