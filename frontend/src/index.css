@@ -415,3 +415,25 @@ select.input-dark {
 .bg-navy     { background: var(--color-nets-navy); }
 .bg-dark     { background: var(--color-nets-navy-dark); }
 .bg-red      { background: var(--color-nets-red); }
+
+/* ─── Responsive Navigation ───────────────────────────── */
+@media (max-width: 1023px) {
+  .nav-desktop,
+  .nav-desktop-actions {
+    display: none !important;
+  }
+  .nav-mobile-toggle {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nav-desktop,
+  .nav-desktop-actions {
+    display: flex !important;
+  }
+  .nav-mobile-toggle {
+    display: none !important;
+  }
+}
+

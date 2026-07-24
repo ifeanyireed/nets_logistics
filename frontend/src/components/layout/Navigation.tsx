@@ -62,7 +62,7 @@ export function Navigation() {
           </Link>
 
           {/* Desktop nav */}
-          <nav aria-label="Primary Desktop" style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }} className="hidden lg:flex">
+          <nav aria-label="Primary Desktop" style={{ gap: '2.5rem', alignItems: 'center' }} className="nav-desktop">
             {desktopNavLinks.map(l => (
               l.isHash ? 
                 <a key={l.label} href={l.href} className="nav-link">{l.label}</a> :
@@ -74,7 +74,7 @@ export function Navigation() {
           </nav>
 
           {/* Desktop actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }} className="hidden lg:flex">
+          <div style={{ alignItems: 'center', gap: '1.25rem' }} className="nav-desktop-actions">
             <a href="tel:+2349167919439" style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
               +234 916 791 9439
             </a>
@@ -83,13 +83,13 @@ export function Navigation() {
 
           {/* Mobile hamburger */}
           <button
-            className="lg:hidden"
+            className="nav-mobile-toggle"
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
-            style={{ background: 'none', border: 'none', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}
+            style={{ background: 'none', border: 'none', padding: '0.5rem', flexDirection: 'column', gap: '5px', flexShrink: 0 }}
           >
             {[0,1,2].map(i => (
-              <span key={i} style={{ display: 'block', width: '22px', height: '1.5px', background: '#fff' }} />
+              <span key={i} style={{ display: 'block', width: '24px', height: '2px', background: '#fff', borderRadius: '1px' }} />
             ))}
           </button>
         </div>
