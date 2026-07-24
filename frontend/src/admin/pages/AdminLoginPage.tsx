@@ -27,8 +27,8 @@ export function AdminLoginPage() {
     <div className="admin-shell">
       <div className="admin-login-wrap">
         <div className="admin-login-box">
-          <div className="admin-login-logo" style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
-            <img src="/logo-white-final.png" alt="NETS Admin" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
+          <div className="admin-login-logo" style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem', background: '#0A3041', padding: '0.875rem', borderRadius: '6px' }}>
+            <img src="/logo-white-final.png" alt="NETS Admin" style={{ height: '44px', width: 'auto', objectFit: 'contain' }} />
           </div>
 
           <div className="admin-login-title">Sign in to your account</div>

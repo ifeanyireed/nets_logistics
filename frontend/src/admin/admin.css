@@ -4,25 +4,25 @@
    ============================================================================ */
 
 .admin-shell {
-  --adm-bg: #0A0A0B;
-  --adm-surface: #111113;
-  --adm-surface-2: #18181B;
-  --adm-surface-3: #1F1F23;
-  --adm-border: #27272A;
-  --adm-border-subtle: #1F1F23;
-  --adm-text-1: #FAFAFA;
-  --adm-text-2: #A1A1AA;
-  --adm-text-3: #52525B;
-  --adm-accent: #E11D48;
-  --adm-accent-subtle: rgba(225, 29, 72, 0.1);
-  --adm-accent-hover: #BE123C;
-  --adm-navy: #0D1060;
-  --adm-success: #22C55E;
-  --adm-success-subtle: rgba(34, 197, 94, 0.1);
-  --adm-warning: #F59E0B;
-  --adm-warning-subtle: rgba(245, 158, 11, 0.1);
-  --adm-danger: #EF4444;
-  --adm-danger-subtle: rgba(239, 68, 68, 0.1);
+  --adm-bg: #F8FAFC;
+  --adm-surface: #FFFFFF;
+  --adm-surface-2: #F1F5F9;
+  --adm-surface-3: #E2E8F0;
+  --adm-border: #E2E8F0;
+  --adm-border-subtle: #F1F5F9;
+  --adm-text-1: #0F172A;
+  --adm-text-2: #475569;
+  --adm-text-3: #94A3B8;
+  --adm-accent: #C40000;
+  --adm-accent-subtle: rgba(196, 0, 0, 0.08);
+  --adm-accent-hover: #990000;
+  --adm-navy: #0A3041;
+  --adm-success: #16A34A;
+  --adm-success-subtle: rgba(22, 163, 74, 0.1);
+  --adm-warning: #D97706;
+  --adm-warning-subtle: rgba(217, 119, 6, 0.1);
+  --adm-danger: #DC2626;
+  --adm-danger-subtle: rgba(220, 38, 38, 0.1);
   --adm-sidebar-w: 240px;
   --adm-topbar-h: 56px;
   --adm-radius: 6px;

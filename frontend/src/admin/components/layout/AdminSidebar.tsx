@@ -54,8 +54,8 @@ export function AdminSidebar() {
 
   return (
     <nav className="admin-sidebar">
-      <div className="admin-sidebar-logo" style={{ padding: '0 0.5rem' }}>
-        <img src="/logo-white-final.png" alt="NETS Admin" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
+      <div className="admin-sidebar-logo" style={{ padding: '0 1rem', background: '#0A3041', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <img src="/logo-white-final.png" alt="NETS Admin" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
       </div>
 
       <div className="admin-nav">
