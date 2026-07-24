@@ -9,18 +9,28 @@ import '../admin.css'
 export function AdminLoginPage() {
   const { login } = useAdminStore()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('admin@netsnigeria.com')
+  const [password, setPassword] = useState('nets2026')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true); setError('')
-    await new Promise(r => setTimeout(r, 600))
+    await new Promise(r => setTimeout(r, 400))
     const ok = login(email, password)
     if (ok) { navigate('/admin', { replace: true }) }
     else { setError('Invalid email address or password. Please try again.'); setLoading(false) }
+  }
+
+  const handleQuickLogin = () => {
+    setEmail('admin@netsnigeria.com')
+    setPassword('nets2026')
+    setLoading(true)
+    setTimeout(() => {
+      login('admin@netsnigeria.com', 'nets2026')
+      navigate('/admin', { replace: true })
+    }, 300)
   }
 
   return (
@@ -54,15 +64,24 @@ export function AdminLoginPage() {
                 value={password} onChange={e => setPassword(e.target.value)} />
             </div>
             <button className="admin-btn admin-btn-primary" type="submit" disabled={loading}
-              style={{ marginTop: '0.5rem', height: 40, fontSize: 14 }}>
+              style={{ marginTop: '0.5rem', height: 40, fontSize: 14, justifyContent: 'center' }}>
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
 
-          <div style={{ marginTop: '1.75rem', padding: '1rem', background: 'var(--adm-surface-2)', borderRadius: 'var(--adm-radius-sm)', fontSize: 12, color: 'var(--adm-text-3)' }}>
-            <strong style={{ color: 'var(--adm-text-2)' }}>Demo credentials</strong><br />
-            Email: <code style={{ color: 'var(--adm-accent)' }}>admin@netsnigeria.com</code><br />
-            Password: <code style={{ color: 'var(--adm-accent)' }}>nets2026</code>
+          <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--adm-surface-2)', border: '1px solid var(--adm-border)', borderRadius: 'var(--adm-radius-sm)', fontSize: 12, color: 'var(--adm-text-2)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div>
+              <strong style={{ color: 'var(--adm-text-1)' }}>Demo credentials:</strong><br />
+              Email: <code style={{ color: 'var(--adm-accent)', fontWeight: 600 }}>admin@netsnigeria.com</code><br />
+              Password: <code style={{ color: 'var(--adm-accent)', fontWeight: 600 }}>nets2026</code>
+            </div>
+            <button
+              onClick={handleQuickLogin}
+              className="admin-btn admin-btn-ghost admin-btn-sm"
+              style={{ marginTop: '0.25rem', width: '100%', justifyContent: 'center' }}
+            >
+              ⚡ Auto-Fill & Sign In
+            </button>
           </div>
         </div>
       </div>
