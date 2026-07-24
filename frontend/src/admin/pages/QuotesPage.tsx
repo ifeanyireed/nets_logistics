@@ -1,9 +1,10 @@
 // ============================================================================
 // NETS Admin — Quote Management
 // ============================================================================
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Filter, Eye, Check, X, RefreshCw } from 'lucide-react'
 import { useAdminStore, type AdminQuote } from '../store/useAdminStore'
+import { adminService, AdminLead } from '../services/adminService'
 import { pdfService } from '../../services/pdfService'
 import { emailService } from '../../services/emailService'
 
@@ -11,7 +12,7 @@ const fmt = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 
 const statusColors: Record<string, string> = {
-  new: 'admin-badge-accent', reviewed: 'admin-badge-yellow',
+  new: 'admin-badge-accent', pending: 'admin-badge-yellow', reviewed: 'admin-badge-yellow',
   approved: 'admin-badge-green', rejected: 'admin-badge-red', converted: 'admin-badge-gray',
 }
 
@@ -21,11 +22,47 @@ export function QuotesPage() {
   const [filter, setFilter] = useState<string>('all')
   const [selected, setSelected] = useState<AdminQuote | null>(null)
   const [noteInput, setNoteInput] = useState('')
+  const [liveLeads, setLiveLeads] = useState<AdminLead[]>([])
+
+  const loadLeads = () => {
+    adminService.getLeads().then(setLiveLeads)
+  }
+
+  useEffect(() => {
+    loadLeads()
+  }, [])
 
   const userId = session.user?.id ?? 'usr-001'
   const userName = session.user?.fullName ?? 'Admin'
 
-  const filtered = quotes.filter(q => {
+  // Combine store quotes with MySQL live leads
+  const allQuotes: AdminQuote[] = [
+    ...liveLeads.map((l) => ({
+      id: String(l.id),
+      reference: l.leadReference,
+      customerName: l.customerName,
+      customerEmail: l.customerEmail,
+      customerPhone: l.customerPhone || 'N/A',
+      customerId: 'cust-gen',
+      vehicleId: 'veh-gen',
+      vehicleName: l.journeyType || 'Standard Vehicle',
+      tripType: (l.journeyType || 'One-Way') as any,
+      pickup: l.origin || 'N/A',
+      destination: l.destination || 'N/A',
+      distanceKm: 0,
+      durationMins: 0,
+      travelDate: l.createdAt,
+      passengerCount: 1,
+      estimatedInvestment: l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0,
+      status: (l.status === 'pending' ? 'new' : l.status) as any,
+      createdAt: l.createdAt,
+      updatedAt: l.createdAt,
+      notes: '',
+    })),
+    ...quotes,
+  ]
+
+  const filtered = allQuotes.filter(q => {
     const matchSearch = !search || q.reference.toLowerCase().includes(search.toLowerCase()) ||
       q.customerName.toLowerCase().includes(search.toLowerCase()) ||
       q.pickup.toLowerCase().includes(search.toLowerCase())
@@ -33,8 +70,10 @@ export function QuotesPage() {
     return matchSearch && matchFilter
   })
 
-  const handleAction = (id: string, status: AdminQuote['status']) => {
+  const handleAction = async (id: string, status: AdminQuote['status']) => {
     updateQuoteStatus(id, status, userId, userName)
+    await adminService.updateLeadStatus(id, status)
+    loadLeads()
     if (selected?.id === id) setSelected(q => q ? { ...q, status } : q)
   }
 

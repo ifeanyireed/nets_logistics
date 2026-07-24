@@ -106,3 +106,58 @@ func (h *VehicleHandler) Store(w http.ResponseWriter, r *http.Request) {
 		"vehicle": v,
 	})
 }
+
+// Update PUT /api/v1/vehicles/{id}
+func (h *VehicleHandler) Update(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/vehicles/")
+
+	db := database.DB
+	if db == nil || id == "" {
+		response.Error(w, http.StatusNotFound, "Vehicle not found.")
+		return
+	}
+
+	var existing models.Vehicle
+	if err := db.Where("id = ?", id).First(&existing).Error; err != nil {
+		response.Error(w, http.StatusNotFound, "Vehicle not found.")
+		return
+	}
+
+	var input models.Vehicle
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid JSON payload")
+		return
+	}
+
+	if len(input.Features) > 0 {
+		b, _ := json.Marshal(input.Features)
+		input.FeaturesJSON = string(b)
+	}
+
+	db.Model(&existing).Updates(input)
+
+	response.JSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Vehicle updated successfully",
+		"vehicle": existing,
+	})
+}
+
+// Delete DELETE /api/v1/vehicles/{id}
+func (h *VehicleHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/vehicles/")
+
+	db := database.DB
+	if db == nil || id == "" {
+		response.Error(w, http.StatusNotFound, "Vehicle not found.")
+		return
+	}
+
+	if err := db.Where("id = ?", id).Delete(&models.Vehicle{}).Error; err != nil {
+		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to delete vehicle: %v", err))
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Vehicle deleted successfully",
+	})
+}

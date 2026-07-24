@@ -29,6 +29,7 @@ func main() {
 	leadHandler := handlers.NewLeadHandler()
 	contactHandler := handlers.NewContactHandler()
 	vehicleHandler := handlers.NewVehicleHandler()
+	adminHandler := handlers.NewAdminHandler()
 
 	// Root Route & Dynamic Sub-routes
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -43,12 +44,28 @@ func main() {
 		}
 
 		if strings.HasPrefix(path, "/api/v1/leads/") {
-			leadHandler.Show(w, r)
+			switch r.Method {
+			case http.MethodGet:
+				leadHandler.Show(w, r)
+			case http.MethodPut, http.MethodPatch:
+				leadHandler.Update(w, r)
+			default:
+				response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+			}
 			return
 		}
 
 		if strings.HasPrefix(path, "/api/v1/vehicles/") {
-			vehicleHandler.Show(w, r)
+			switch r.Method {
+			case http.MethodGet:
+				vehicleHandler.Show(w, r)
+			case http.MethodPut, http.MethodPatch:
+				vehicleHandler.Update(w, r)
+			case http.MethodDelete:
+				vehicleHandler.Delete(w, r)
+			default:
+				response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+			}
 			return
 		}
 
@@ -57,6 +74,7 @@ func main() {
 
 	// API v1 Routes
 	mux.HandleFunc("/api/v1/health", healthHandler.HealthCheck)
+	mux.HandleFunc("/api/v1/admin/stats", adminHandler.GetStats)
 
 	mux.HandleFunc("/api/v1/leads", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {

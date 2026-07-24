@@ -1,9 +1,12 @@
 // ============================================================================
 // NETS Admin — Fleet Management
 // ============================================================================
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Edit2, Archive, AlertTriangle, CheckCircle, Clock, X, Save } from 'lucide-react'
 import { useAdminStore, type AdminVehicle } from '../store/useAdminStore'
+import { vehicleService } from '../../services/vehicleService'
+import { adminService } from '../services/adminService'
+import { Vehicle } from '../../types'
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 const daysUntil = (iso: string) => Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000)
@@ -15,18 +18,42 @@ const maintenanceBadge = (s: string) => ({
 
 export function FleetManagementPage() {
   const { vehicles, updateVehicle, archiveVehicle, addVehicle, session } = useAdminStore()
+  const [liveVehicles, setLiveVehicles] = useState<Vehicle[]>([])
   const [selected, setSelected] = useState<AdminVehicle | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editForm, setEditForm] = useState<Partial<AdminVehicle>>({})
 
+  const loadFleet = () => {
+    vehicleService.getVehicles().then(setLiveVehicles)
+  }
+
+  useEffect(() => {
+    loadFleet()
+  }, [])
+
   const userId = session.user?.id ?? 'usr-001'
   const userName = session.user?.fullName ?? 'Admin'
 
   const startEdit = (v: AdminVehicle) => { setEditForm({ ...v }); setEditing(true) }
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!selected) return
     updateVehicle(selected.id, editForm)
+    await adminService.saveVehicle({
+      id: selected.id,
+      name: editForm.name || selected.name,
+      slug: editForm.name ? editForm.name.toLowerCase().replace(/\s+/g, '-') : selected.id,
+      category: editForm.category || selected.category,
+      capacity: editForm.capacity || selected.capacity,
+      bestFor: 'Corporate & VIP Travel',
+      imageUrl: editForm.imageUrl || selected.imageUrl || '/images/vehicles/sedan.jpg',
+      features: selected.features || [],
+      available: editForm.available ?? selected.available,
+      comfortRating: '5 Stars',
+      luggageSpace: '2 Suitcases',
+      airConditioning: 'Automatic AC',
+    }, true)
+    loadFleet()
     setSelected(v => v ? { ...v, ...editForm } : v)
     setEditing(false)
   }

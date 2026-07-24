@@ -1,9 +1,11 @@
 // ============================================================================
 // NETS Admin — Dashboard Home
 // ============================================================================
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileText, CalendarCheck, Truck, AlertTriangle, Plus, DollarSign, Clock, TrendingUp } from 'lucide-react'
 import { useAdminStore } from '../store/useAdminStore'
+import { adminService, AdminStats, AdminLead } from '../services/adminService'
 
 const fmt = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -30,14 +32,21 @@ const statusBadge = (status: string) => {
 export function DashboardHome() {
   const { quotes, bookings, vehicles, activityLog } = useAdminStore()
   const navigate = useNavigate()
+  const [liveStats, setLiveStats] = useState<AdminStats | null>(null)
+  const [liveLeads, setLiveLeads] = useState<AdminLead[]>([])
+
+  useEffect(() => {
+    adminService.getStats().then(setLiveStats)
+    adminService.getLeads().then(setLiveLeads)
+  }, [])
 
   // KPIs
   const today = new Date().toISOString().slice(0, 10)
   const todayBookings = bookings.filter(b => b.travelDate.slice(0, 10) === today).length
-  const pendingQuotes = quotes.filter(q => q.status === 'new').length
+  const pendingQuotes = liveStats ? liveStats.pendingLeads : quotes.filter(q => q.status === 'new').length
   const confirmedBookings = bookings.filter(b => b.operationalStatus === 'confirmed').length
-  const fleetActive = vehicles.filter(v => v.available).length
-  const revenueTotal = bookings.filter(b => b.paymentStatus === 'paid').reduce((s, b) => s + b.totalAmount, 0)
+  const fleetActive = liveStats ? liveStats.activeFleet : vehicles.filter(v => v.available).length
+  const revenueTotal = liveStats ? liveStats.totalPipelineValue : bookings.filter(b => b.paymentStatus === 'paid').reduce((s, b) => s + b.totalAmount, 0)
   const upcoming = bookings.filter(b => new Date(b.travelDate) > new Date() && b.operationalStatus !== 'cancelled')
     .sort((a, b) => new Date(a.travelDate).getTime() - new Date(b.travelDate).getTime()).slice(0, 5)
 

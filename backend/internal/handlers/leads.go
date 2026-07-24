@@ -156,3 +156,38 @@ func (h *LeadHandler) Show(w http.ResponseWriter, r *http.Request) {
 		"lead": lead,
 	})
 }
+
+// Update PUT /api/v1/leads/{id}
+func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/v1/leads/")
+
+	db := database.DB
+	if db == nil || idStr == "" {
+		response.Error(w, http.StatusNotFound, "Lead not found.")
+		return
+	}
+
+	var body struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		response.Error(w, http.StatusBadRequest, "Invalid JSON payload")
+		return
+	}
+
+	var lead models.Lead
+	if err := db.Where("id = ? OR lead_reference = ?", idStr, idStr).First(&lead).Error; err != nil {
+		response.Error(w, http.StatusNotFound, "Lead not found.")
+		return
+	}
+
+	if body.Status != "" {
+		lead.Status = body.Status
+		db.Model(&lead).Update("status", body.Status)
+	}
+
+	response.JSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Lead status updated successfully",
+		"lead":    lead,
+	})
+}
