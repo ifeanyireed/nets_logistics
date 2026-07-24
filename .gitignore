@@ -27,4 +27,6 @@ pnpm-debug.log*
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+
+# Backend (Temporarily ignored)
+backend/
