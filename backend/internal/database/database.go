@@ -55,77 +55,80 @@ func AutoMigrate(db *gorm.DB) error {
 }
 
 func SeedVehicles(db *gorm.DB) {
-	var count int64
-	db.Model(&models.Vehicle{}).Count(&count)
-	if count == 0 {
-		defaultVehicles := []models.Vehicle{
-			{
-				ID:              "sedan-executive",
-				Name:            "Executive Sedan",
-				Slug:            "executive-sedan",
-				Category:        "Executive & VIP Transport",
-				Capacity:        4,
-				BestFor:         "Corporate VIPs, airport transfers, executive city travel",
-				ImageURL:        "/vehicles/suv.png",
-				FeaturesJSON:    mustJSON([]string{"Leather Interior", "Climate Control AC", "Privacy Glass", "WiFi"}),
-				Available:       true,
-				ComfortRating:   "5 Stars",
-				LuggageSpace:    "2 Large Suitcases",
-				AirConditioning: "Dual-Zone Automatic",
-			},
-			{
-				ID:              "suv-premium",
-				Name:            "Premium SUV",
-				Slug:            "executive-suv",
-				Category:        "Executive & VIP Transport",
-				Capacity:        4,
-				BestFor:         "Executive travel, diplomatic missions, high-security escort",
-				ImageURL:        "/vehicles/suv.png",
-				FeaturesJSON:    mustJSON([]string{"All-Wheel Drive", "Bulletproof Option", "Leather Recliners", "Satellite Comm"}),
-				Available:       true,
-				ComfortRating:   "5 Stars",
-				LuggageSpace:    "4 Large Suitcases",
-				AirConditioning: "Multi-Zone Executive AC",
-			},
-			{
-				ID:              "coaster-bus",
-				Name:            "Toyota Coaster Bus",
-				Slug:            "toyota-coaster",
-				Category:        "Group & Intercity Logistics",
-				Capacity:        30,
-				BestFor:         "Corporate team transit, event shuttles, intercity group delegation",
-				ImageURL:        "/vehicles/coaster.jpg",
-				FeaturesJSON:    mustJSON([]string{"High Capacity AC", "Reclining Seats", "Public Address System", "Luggage Compartment"}),
-				Available:       true,
-				ComfortRating:   "4 Stars",
-				LuggageSpace:    "30 Overhead & Rear Luggage Space",
-				AirConditioning: "Dual Roof-Mounted AC Units",
-			},
-			{
-				ID:              "truck-heavy",
-				Name:            "Toyota HiAce Bus",
-				Slug:            "toyota-hiace",
-				Category:        "Standard Transport",
-				Capacity:        14,
-				BestFor:         "Airport Transfers, Executive Teams, Short Routes",
-				ImageURL:        "/vehicles/hiace.jpg",
-				FeaturesJSON:    mustJSON([]string{"Air Conditioning", "Tinted Windows", "Professional Driver", "GPS Tracked"}),
-				Available:       true,
-				ComfortRating:   "Standard",
-				LuggageSpace:    "Moderate Luggage Capacity",
-				AirConditioning: "Dual-Zone Air Conditioning",
-			},
-		}
+	defaultVehicles := []models.Vehicle{
+		{
+			ID:              "suv",
+			Name:            "Executive SUV",
+			Slug:            "executive-suv",
+			Category:        "Luxury",
+			Capacity:        4,
+			BestFor:         "VIP Transport · Executive Travel · Airport Pickups",
+			ImageURL:        "/vehicles/suv.png",
+			FeaturesJSON:    mustJSON([]string{"Leather Interior", "Air Conditioning", "Professional Driver", "Privacy Glass"}),
+			Available:       true,
+			ComfortRating:   "Ultra Luxury",
+			LuggageSpace:    "Standard (Large boot for multiple suitcases)",
+			AirConditioning: "Multi-Zone Automatic Climate Control",
+		},
+		{
+			ID:              "hiace",
+			Name:            "Toyota HiAce",
+			Slug:            "toyota-hiace",
+			Category:        "Standard",
+			Capacity:        14,
+			BestFor:         "Airport Transfers · Executive Teams · Short Routes",
+			ImageURL:        "/vehicles/hiace.jpg",
+			FeaturesJSON:    mustJSON([]string{"Air Conditioning", "Tinted Windows", "Professional Driver", "GPS Tracked"}),
+			Available:       true,
+			ComfortRating:   "Standard",
+			LuggageSpace:    "Moderate (Suitable for day trips and cabin baggage)",
+			AirConditioning: "Dual-Zone Air Conditioning",
+		},
+		{
+			ID:              "coaster",
+			Name:            "Toyota Coaster",
+			Slug:            "toyota-coaster",
+			Category:        "Executive",
+			Capacity:        30,
+			BestFor:         "Corporate Events · School Runs · Group Travel",
+			ImageURL:        "/vehicles/coaster.jpg",
+			FeaturesJSON:    mustJSON([]string{"Air Conditioning", "Reclining Seats", "Professional Driver", "GPS Tracked"}),
+			Available:       true,
+			ComfortRating:   "Executive",
+			LuggageSpace:    "Generous (Rear compartment + overhead parcel racks)",
+			AirConditioning: "High-Capacity Climate Control",
+		},
+	}
 
-		for _, v := range defaultVehicles {
+	for _, v := range defaultVehicles {
+		var existing models.Vehicle
+		if db.Where("id = ? OR slug = ?", v.ID, v.Slug).First(&existing).Error == nil {
+			// Update existing record
+			db.Model(&existing).Updates(map[string]interface{}{
+				"id":               v.ID,
+				"name":             v.Name,
+				"slug":             v.Slug,
+				"category":         v.Category,
+				"capacity":         v.Capacity,
+				"best_for":         v.BestFor,
+				"image_url":        v.ImageURL,
+				"features_json":    v.FeaturesJSON,
+				"available":        v.Available,
+				"comfort_rating":   v.ComfortRating,
+				"luggage_space":    v.LuggageSpace,
+				"air_conditioning": v.AirConditioning,
+			})
+		} else {
+			// Insert missing vehicle
 			db.Create(&v)
 		}
-		log.Println("🚗 Seeded initial vehicle catalog into MySQL database.")
-	} else {
-		// Update existing image URLs in MySQL database to ensure valid image paths
-		db.Model(&models.Vehicle{}).Where("image_url LIKE ?", "%suv.jpg").Update("image_url", "/vehicles/suv.png")
-		db.Model(&models.Vehicle{}).Where("image_url LIKE ?", "%/images/%").Update("image_url", gorm.Expr("REPLACE(image_url, '/images/vehicles/', '/vehicles/')"))
 	}
+
+	// Legacy image path cleanup
+	db.Model(&models.Vehicle{}).Where("image_url LIKE ?", "%suv.jpg").Update("image_url", "/vehicles/suv.png")
+	db.Model(&models.Vehicle{}).Where("image_url LIKE ?", "%/images/%").Update("image_url", gorm.Expr("REPLACE(image_url, '/images/vehicles/', '/vehicles/')"))
+
+	log.Println("🚗 Verified & synchronized vehicle catalog in MySQL database.")
 }
 
 func mustJSON(v interface{}) string {

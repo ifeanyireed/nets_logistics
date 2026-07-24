@@ -14,9 +14,17 @@ export class VehicleService {
     if (img.startsWith('/images/')) {
       img = img.replace('/images/', '/')
     }
+
+    const fallback = fallbackVehicles.find(
+      (fb) => fb.slug === v.slug || fb.id === v.id || fb.slug.toLowerCase() === (v.slug || '').toLowerCase()
+    )
+
     return {
       ...v,
-      imageUrl: img,
+      imageUrl: img || (fallback ? fallback.imageUrl : '/vehicles/suv.png'),
+      editorialStory: v.editorialStory || (fallback ? fallback.editorialStory : ''),
+      recommendedFor: v.recommendedFor || (fallback ? fallback.recommendedFor : []),
+      gallery: v.gallery || (fallback ? fallback.gallery : [img]),
     }
   }
 
@@ -42,6 +50,7 @@ export class VehicleService {
    * Fetch single vehicle by slug.
    */
   public async getVehicleBySlug(slug: string): Promise<Vehicle | undefined> {
+    const targetSlug = slug.toLowerCase()
     try {
       const res = await fetch(`${API_URL}/vehicles/${slug}`)
       if (res.ok) {
@@ -53,8 +62,15 @@ export class VehicleService {
     } catch (err) {
       console.warn('⚠️ [VEHICLE SERVICE] Could not fetch vehicle detail from backend:', err)
     }
+
     const all = await this.getVehicles()
-    return all.find((v) => v.slug === slug || v.id === slug)
+    return all.find(
+      (v) =>
+        v.slug.toLowerCase() === targetSlug ||
+        v.id.toLowerCase() === targetSlug ||
+        targetSlug.includes(v.slug.toLowerCase()) ||
+        v.slug.toLowerCase().includes(targetSlug)
+    )
   }
 }
 
