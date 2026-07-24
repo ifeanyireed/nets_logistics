@@ -160,32 +160,60 @@ const defaultSettings: SystemSettings = {
 
 let entryCounter = 1000
 
+const loadInitialSession = (): AdminSession => {
+  try {
+    const stored = localStorage.getItem('nets_admin_session')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (parsed && parsed.isAuthenticated && parsed.user) return parsed
+    }
+  } catch (err) {
+    console.warn('Could not load stored admin session', err)
+  }
+  return { isAuthenticated: false, user: null }
+}
+
 export const useAdminStore = create<AdminStore>((set, get) => ({
   // ── Auth ──
-  session: { isAuthenticated: false, user: null },
+  session: loadInitialSession(),
 
   login: (email, password) => {
     const cleanEmail = (email || '').trim().toLowerCase()
     const cleanPass = (password || '').trim()
 
+    const saveSession = (user: any) => {
+      const sessionObj = { isAuthenticated: true, user }
+      try {
+        localStorage.setItem('nets_admin_session', JSON.stringify(sessionObj))
+      } catch (err) {
+        console.warn('Could not save admin session', err)
+      }
+      set({ session: sessionObj })
+    }
+
     const cred = MOCK_CREDENTIALS.find(c => c.email.toLowerCase() === cleanEmail && c.password === cleanPass)
     if (cred) {
       const user = mockUsers.find(u => u.id === cred.userId) ?? mockUsers[0]
-      set({ session: { isAuthenticated: true, user } })
+      saveSession(user)
       return true
     }
 
     // Flexible demo fallback: allow any admin email if password matches common demo variants
     if (['nets2026', 'admin', 'nets', '*reedb4b4'].includes(cleanPass.toLowerCase()) || cleanEmail.includes('admin') || cleanEmail.includes('nets')) {
       const user = mockUsers[0]
-      set({ session: { isAuthenticated: true, user } })
+      saveSession(user)
       return true
     }
 
     return false
   },
 
-  logout: () => set({ session: { isAuthenticated: false, user: null } }),
+  logout: () => {
+    try {
+      localStorage.removeItem('nets_admin_session')
+    } catch (err) {}
+    set({ session: { isAuthenticated: false, user: null } })
+  },
 
   // ── Data ──
   quotes: [],
