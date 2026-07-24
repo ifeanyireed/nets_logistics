@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { MapPin } from 'lucide-react'
 import { LocationData } from '../../store/useJourneyStore'
+import { MAPBOX_TOKEN } from '../../config/api'
 
 interface MapboxAutocompleteProps {
   value: string | null
@@ -10,8 +11,6 @@ interface MapboxAutocompleteProps {
   className?: string
   style?: React.CSSProperties
 }
-
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmxlc3NlZG1hcHMiLCJhIjoiY2x4ZXZoNDRjMDBqMTJpcTFkYzdsdDF5aSJ9.placeholder' // REPLACE WITH REAL TOKEN
 
 export function MapboxAutocomplete({ value, onChange, onLocationSelect, placeholder, className, style }: MapboxAutocompleteProps) {
   const [query, setQuery] = useState(value || '')

@@ -4,8 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { useJourneyStore } from '../../store/useJourneyStore'
 import { MapPinOff } from 'lucide-react'
 import { RouteIntelligence } from './RouteIntelligence'
-
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmxlc3NlZG1hcHMiLCJhIjoiY2x4ZXZoNDRjMDBqMTJpcTFkYzdsdDF5aSJ9.placeholder'
+import { MAPBOX_TOKEN } from '../../config/api'
 
 function MapBoundsController({ mapRef }: { mapRef: React.RefObject<MapRef | null> }) {
   const { pickup, destination, stops, journeyBounds } = useJourneyStore()

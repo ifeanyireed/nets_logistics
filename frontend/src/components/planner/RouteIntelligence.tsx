@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useJourneyStore, LocationData } from '../../store/useJourneyStore'
-
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmxlc3NlZG1hcHMiLCJhIjoiY2x4ZXZoNDRjMDBqMTJpcTFkYzdsdDF5aSJ9.placeholder'
+import { MAPBOX_TOKEN } from '../../config/api'
 
 function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371
