@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"nets-logistics-backend/internal/database"
 	"nets-logistics-backend/internal/models"
@@ -51,42 +49,26 @@ func (h *ContactHandler) Store(w http.ResponseWriter, r *http.Request) {
 		payload.Subject = "General Inquiry"
 	}
 
+	contact := models.Contact{
+		Name:    payload.Name,
+		Email:   payload.Email,
+		Phone:   payload.Phone,
+		Subject: payload.Subject,
+		Message: payload.Message,
+		Status:  "unread",
+	}
+
 	db := database.DB
-	if db == nil {
-		response.JSON(w, http.StatusCreated, map[string]interface{}{
-			"message": "Your message has been received. Our team will get back to you shortly.",
-			"contact": map[string]interface{}{
-				"name":      payload.Name,
-				"email":     payload.Email,
-				"subject":   payload.Subject,
-				"status":    "unread",
-				"createdAt": time.Now().Format(time.RFC3339),
-			},
-		})
-		return
-	}
-
-	query := `INSERT INTO contacts (name, email, phone, subject, message, created_at) VALUES (?, ?, ?, ?, ?, NOW())`
-	res, err := db.Exec(query, payload.Name, payload.Email, payload.Phone, payload.Subject, payload.Message)
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to store contact: %v", err))
-		return
-	}
-
-	id, _ := res.LastInsertId()
-
-	contactData := map[string]interface{}{
-		"id":        id,
-		"name":      payload.Name,
-		"email":     payload.Email,
-		"subject":   payload.Subject,
-		"status":    "unread",
-		"createdAt": time.Now().Format(time.RFC3339),
+	if db != nil {
+		if err := db.Create(&contact).Error; err != nil {
+			response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to store contact inquiry: %v", err))
+			return
+		}
 	}
 
 	response.JSON(w, http.StatusCreated, map[string]interface{}{
 		"message": "Your message has been received. Our team will get back to you shortly.",
-		"contact": contactData,
+		"contact": contact,
 	})
 }
 
@@ -98,26 +80,10 @@ func (h *ContactHandler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.Query(`SELECT id, name, email, phone, subject, message, status, created_at FROM contacts ORDER BY id DESC LIMIT 50`)
-	if err != nil {
+	var contacts []models.Contact
+	if err := db.Order("id desc").Limit(50).Find(&contacts).Error; err != nil {
 		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to fetch contact messages: %v", err))
 		return
-	}
-	defer rows.Close()
-
-	var contacts []models.Contact
-	for rows.Next() {
-		var c models.Contact
-		var phone, subject sql.NullString
-		var createdAtStr sql.NullString
-
-		if err := rows.Scan(&c.ID, &c.Name, &c.Email, &phone, &subject, &c.Message, &c.Status, &createdAtStr); err != nil {
-			continue
-		}
-
-		c.Phone = phone.String
-		c.Subject = subject.String
-		contacts = append(contacts, c)
 	}
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{

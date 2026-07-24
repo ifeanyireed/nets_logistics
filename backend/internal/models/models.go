@@ -3,47 +3,48 @@ package models
 import "time"
 
 type Lead struct {
-	ID                     int64     `json:"id" db:"id"`
-	LeadReference          string    `json:"leadReference" db:"lead_reference"`
-	CustomerName           string    `json:"customerName" db:"customer_name"`
-	CustomerEmail          string    `json:"customerEmail" db:"customer_email"`
-	CustomerPhone          string    `json:"customerPhone" db:"customer_phone"`
-	Company                string    `json:"company" db:"company"`
-	JourneyType            string    `json:"journeyType" db:"journey_type"`
-	Origin                 string    `json:"origin" db:"origin"`
-	Destination            string    `json:"destination" db:"destination"`
-	EstimatedInvestmentMin float64   `json:"estimatedInvestmentMin" db:"estimated_investment_min"`
-	EstimatedInvestmentMax float64   `json:"estimatedInvestmentMax" db:"estimated_investment_max"`
-	Status                 string    `json:"status" db:"status"`
-	PayloadJSON            string    `json:"-" db:"payload_json"`
-	Payload                any       `json:"payload,omitempty" db:"-"`
-	CreatedAt              time.Time `json:"createdAt" db:"created_at"`
-	UpdatedAt              time.Time `json:"updatedAt" db:"updated_at"`
+	ID                     uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+	LeadReference          string    `json:"leadReference" gorm:"uniqueIndex;type:varchar(64);not null"`
+	CustomerName           string    `json:"customerName" gorm:"type:varchar(255)"`
+	CustomerEmail          string    `json:"customerEmail" gorm:"type:varchar(255)"`
+	CustomerPhone          string    `json:"customerPhone" gorm:"type:varchar(64)"`
+	Company                string    `json:"company" gorm:"type:varchar(255)"`
+	JourneyType            string    `json:"journeyType" gorm:"type:varchar(64)"`
+	Origin                 string    `json:"origin" gorm:"type:varchar(255)"`
+	Destination            string    `json:"destination" gorm:"type:varchar(255)"`
+	EstimatedInvestmentMin float64   `json:"estimatedInvestmentMin" gorm:"default:0"`
+	EstimatedInvestmentMax float64   `json:"estimatedInvestmentMax" gorm:"default:0"`
+	Status                 string    `json:"status" gorm:"type:varchar(64);default:'pending'"`
+	PayloadJSON            string    `json:"-" gorm:"type:longtext"`
+	Payload                any       `json:"payload,omitempty" gorm:"-"`
+	CreatedAt              time.Time `json:"createdAt"`
+	UpdatedAt              time.Time `json:"updatedAt"`
 }
 
 type Contact struct {
-	ID        int64     `json:"id" db:"id"`
-	Name      string    `json:"name" db:"name"`
-	Email     string    `json:"email" db:"email"`
-	Phone     string    `json:"phone" db:"phone"`
-	Subject   string    `json:"subject" db:"subject"`
-	Message   string    `json:"message" db:"message"`
-	Status    string    `json:"status" db:"status"`
-	CreatedAt time.Time `json:"createdAt" db:"created_at"`
+	ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+	Name      string    `json:"name" gorm:"type:varchar(255);not null"`
+	Email     string    `json:"email" gorm:"type:varchar(255);not null"`
+	Phone     string    `json:"phone" gorm:"type:varchar(64)"`
+	Subject   string    `json:"subject" gorm:"type:varchar(255)"`
+	Message   string    `json:"message" gorm:"type:text;not null"`
+	Status    string    `json:"status" gorm:"type:varchar(64);default:'unread'"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type Vehicle struct {
-	ID              string   `json:"id" db:"id"`
-	Name            string   `json:"name" db:"name"`
-	Slug            string   `json:"slug" db:"slug"`
-	Category        string   `json:"category" db:"category"`
-	Capacity        int      `json:"capacity" db:"capacity"`
-	BestFor         string   `json:"bestFor" db:"best_for"`
-	ImageURL        string   `json:"imageUrl" db:"image_url"`
-	Features        []string `json:"features" db:"-"`
-	FeaturesJSON    string   `json:"-" db:"features_json"`
-	Available       bool     `json:"available" db:"available"`
-	ComfortRating   string   `json:"comfortRating" db:"comfort_rating"`
-	LuggageSpace    string   `json:"luggageSpace" db:"luggage_space"`
-	AirConditioning string   `json:"airConditioning" db:"air_conditioning"`
+	ID              string    `json:"id" gorm:"primaryKey;type:varchar(64)"`
+	Name            string    `json:"name" gorm:"type:varchar(255);not null"`
+	Slug            string    `json:"slug" gorm:"uniqueIndex;type:varchar(255);not null"`
+	Category        string    `json:"category" gorm:"type:varchar(255)"`
+	Capacity        int       `json:"capacity"`
+	BestFor         string    `json:"bestFor" gorm:"type:text"`
+	ImageURL        string    `json:"imageUrl" gorm:"type:varchar(255)"`
+	Features        []string  `json:"features" gorm:"-"`
+	FeaturesJSON    string    `json:"-" gorm:"type:text"`
+	Available       bool      `json:"available" gorm:"default:true"`
+	ComfortRating   string    `json:"comfortRating" gorm:"type:varchar(64)"`
+	LuggageSpace    string    `json:"luggageSpace" gorm:"type:varchar(255)"`
+	AirConditioning string    `json:"airConditioning" gorm:"type:varchar(255)"`
+	CreatedAt       time.Time `json:"createdAt"`
 }

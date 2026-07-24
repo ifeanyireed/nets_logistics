@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"crypto/rand"
-	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -72,38 +71,31 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 
 	payloadBytes, _ := json.Marshal(payload)
 
+	lead := models.Lead{
+		LeadReference:          ref,
+		CustomerName:           customerName,
+		CustomerEmail:          customerEmail,
+		CustomerPhone:          customerPhone,
+		Company:                company,
+		JourneyType:            journeyType,
+		Origin:                 origin,
+		Destination:            destination,
+		EstimatedInvestmentMin: minEst,
+		EstimatedInvestmentMax: maxEst,
+		Status:                 "pending",
+		PayloadJSON:            string(payloadBytes),
+	}
+
 	db := database.DB
-	if db == nil {
-		// Fallback response if DB is offline
-		response.JSON(w, http.StatusCreated, map[string]interface{}{
-			"message":       "Lead created successfully (queue mode)",
-			"leadId":        ref,
-			"leadReference": ref,
-			"status":        "pending",
-			"customerName":  customerName,
-			"customerEmail": customerEmail,
-			"createdAt":     time.Now().Format(time.RFC3339),
-		})
-		return
+	if db != nil {
+		if err := db.Create(&lead).Error; err != nil {
+			response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to store lead in DB: %v", err))
+			return
+		}
 	}
-
-	query := `
-		INSERT INTO leads (
-			lead_reference, customer_name, customer_email, customer_phone,
-			company, journey_type, origin, destination,
-			estimated_investment_min, estimated_investment_max, payload_json, created_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`
-
-	res, err := db.Exec(query, ref, customerName, customerEmail, customerPhone, company, journeyType, origin, destination, minEst, maxEst, string(payloadBytes))
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to store lead: %v", err))
-		return
-	}
-
-	id, _ := res.LastInsertId()
 
 	leadData := map[string]interface{}{
-		"id":            id,
+		"id":            lead.ID,
 		"leadId":        ref,
 		"leadReference": ref,
 		"status":        "pending",
@@ -126,43 +118,10 @@ func (h *LeadHandler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.Query(`
-		SELECT id, lead_reference, customer_name, customer_email, customer_phone,
-		       company, journey_type, origin, destination, estimated_investment_min,
-		       estimated_investment_max, status, created_at
-		FROM leads ORDER BY id DESC LIMIT 50`)
-	if err != nil {
+	var leads []models.Lead
+	if err := db.Order("id desc").Limit(50).Find(&leads).Error; err != nil {
 		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to fetch leads: %v", err))
 		return
-	}
-	defer rows.Close()
-
-	var leads []models.Lead
-	for rows.Next() {
-		var l models.Lead
-		var name, email, phone, company, jtype, orig, dest sql.NullString
-		var minEst, maxEst sql.NullFloat64
-		var createdAtStr sql.NullString
-
-		if err := rows.Scan(
-			&l.ID, &l.LeadReference, &name, &email, &phone,
-			&company, &jtype, &orig, &dest, &minEst,
-			&maxEst, &l.Status, &createdAtStr,
-		); err != nil {
-			continue
-		}
-
-		l.CustomerName = name.String
-		l.CustomerEmail = email.String
-		l.CustomerPhone = phone.String
-		l.Company = company.String
-		l.JourneyType = jtype.String
-		l.Origin = orig.String
-		l.Destination = dest.String
-		l.EstimatedInvestmentMin = minEst.Float64
-		l.EstimatedInvestmentMax = maxEst.Float64
-
-		leads = append(leads, l)
 	}
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{
@@ -180,41 +139,20 @@ func (h *LeadHandler) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var l models.Lead
-	var payloadJSON string
-	var name, email, phone, company, jtype, orig, dest sql.NullString
-
-	err := db.QueryRow(`
-		SELECT id, lead_reference, customer_name, customer_email, customer_phone,
-		       company, journey_type, origin, destination, estimated_investment_min,
-		       estimated_investment_max, status, payload_json, created_at
-		FROM leads WHERE id = ? OR lead_reference = ?`, idStr, idStr).Scan(
-		&l.ID, &l.LeadReference, &name, &email, &phone,
-		&company, &jtype, &orig, &dest, &l.EstimatedInvestmentMin,
-		&l.EstimatedInvestmentMax, &l.Status, &payloadJSON, &l.CreatedAt,
-	)
-
-	if err != nil {
+	var lead models.Lead
+	if err := db.Where("id = ? OR lead_reference = ?", idStr, idStr).First(&lead).Error; err != nil {
 		response.Error(w, http.StatusNotFound, "Lead not found.")
 		return
 	}
 
-	l.CustomerName = name.String
-	l.CustomerEmail = email.String
-	l.CustomerPhone = phone.String
-	l.Company = company.String
-	l.JourneyType = jtype.String
-	l.Origin = orig.String
-	l.Destination = dest.String
-
-	if payloadJSON != "" {
+	if lead.PayloadJSON != "" {
 		var payloadData interface{}
-		if json.Unmarshal([]byte(payloadJSON), &payloadData) == nil {
-			l.Payload = payloadData
+		if json.Unmarshal([]byte(lead.PayloadJSON), &payloadData) == nil {
+			lead.Payload = payloadData
 		}
 	}
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{
-		"lead": l,
+		"lead": lead,
 	})
 }
