@@ -9,14 +9,11 @@ import { emailService } from '../../../services/emailService'
 
 export function Step9Estimate() {
   const state = useJourneyStore()
-  const vehicle = vehicles.find(v => v.id === state.recommendedVehicleId)
+  const vehicle = vehicles.find(v => v.id === (state.selectedVehicleId || state.recommendedVehicleId))
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Dummy logic for estimate range based on distance/vehicle
-  const baseRate = vehicle ? vehicle.capacity * 10000 : 150000
-  const estLow = Math.round((baseRate + (state.distanceKm * 250)) / 1000) * 1000
-  const estHigh = Math.round(estLow * 1.3 / 1000) * 1000
-  const formattedEstimate = `₦${estLow.toLocaleString()} – ₦${estHigh.toLocaleString()}`
+  // Use real pricing engine output — single Estimated Investment
+  const formattedEstimate = state.customerPricingView?.estimatedInvestment ?? 'Calculating...'
 
   const handleChange = (field: string, value: string | boolean) => {
     state.setCustomerDetails({ [field]: value })

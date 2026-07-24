@@ -298,7 +298,8 @@ button { font-family: inherit; cursor: pointer; }
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 .input-dark::placeholder { color: rgba(255,255,255,0.35); }
-.input-dark:focus { border-color: var(--color-nets-navy); background: rgba(255,255,255,0.12); }
+.input-dark:focus { border-color: #fff; background: rgba(255,255,255,0.12); }
+.input-dark option { background: var(--color-nets-navy-dark); color: #fff; }
 
 select.input, select.input-dark {
   cursor: pointer;

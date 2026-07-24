@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
-import { Building2, Plane, PartyPopper, GraduationCap, Church, Presentation, Map, Users, RefreshCw } from 'lucide-react'
+import { Building2, Plane, PartyPopper, GraduationCap, Church, Presentation, Map, Users, RefreshCw, Navigation } from 'lucide-react'
 import { useJourneyStore, JourneyIntent } from '../../../store/useJourneyStore'
 import { fadeUp, staggerContainer, staggerItem } from '../../../lib/motion'
 
 const INTENTS: { id: JourneyIntent, title: string, desc: string, icon: any }[] = [
+  { id: 'General Transport', title: 'General Transport', desc: "Flexible transport for journeys that don't fall into a specific category.", icon: Navigation },
   { id: 'Corporate Staff Transport', title: 'Corporate Staff', desc: 'Executive teams and employee shuttles', icon: Building2 },
   { id: 'Airport Transfer', title: 'Airport Transfer', desc: 'Reliable pickup and drop-off', icon: Plane },
   { id: 'Wedding & Events', title: 'Weddings & Events', desc: 'Seamless guest transportation', icon: PartyPopper },

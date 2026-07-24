@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useLocation } from 'react-router-dom'
 
-const navLinks = [
+const desktopNavLinks = [
   { label: 'Services',   href: '/#services', isHash: true },
   { label: 'Fleet',      href: '/fleet',     isHash: false },
   { label: 'About',      href: '/#about',    isHash: true },
@@ -10,9 +10,20 @@ const navLinks = [
   { label: 'Contact',    href: '/#contact',  isHash: true },
 ]
 
+const mobileNavLinks = [
+  { label: 'Services',          href: '/#services', isHash: true },
+  { label: 'Fleet',             href: '/fleet',     isHash: false },
+  { label: 'Industries',        href: '/#industries', isHash: true },
+  { label: 'About Us',          href: '/#about',    isHash: true },
+  { label: 'Contact',           href: '/#contact',  isHash: true },
+  { label: 'Plan Your Journey', href: '/plan',      isHash: false },
+  { label: 'Request a Quote',   href: '/#quote',    isHash: true },
+]
+
 export function Navigation() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const location = useLocation()
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60)
@@ -24,6 +35,11 @@ export function Navigation() {
     document.body.style.overflow = mobileOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [mobileOpen])
+
+  const isActive = (href: string, isHash: boolean) => {
+    if (isHash) return location.hash === href.replace('/', '')
+    return location.pathname === href
+  }
 
   return (
     <>
@@ -41,18 +57,13 @@ export function Navigation() {
         <div className="container-nets" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
 
           {/* Logo */}
-          <Link to="/" aria-label="New Era Transport Services" style={{ display: 'flex', flexDirection: 'column', lineHeight: 1, gap: '3px' }}>
-            <span style={{ fontSize: '1.125rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>
-              NEW ERA
-            </span>
-            <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.22em', color: 'var(--color-nets-red)', textTransform: 'uppercase' }}>
-              Transport Services
-            </span>
+          <Link to="/" aria-label="New Era Transport Services" style={{ display: 'flex', alignItems: 'center', flexShrink: 0, transition: 'opacity 0.2s ease' }} onMouseEnter={e => e.currentTarget.style.opacity = '0.8'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+            <img src="/logo-white-final.png" alt="New Era Transport Services Logo" style={{ height: 'clamp(40px, 5vw, 48px)', width: 'auto', objectFit: 'contain' }} />
           </Link>
 
           {/* Desktop nav */}
-          <nav aria-label="Primary" style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }} className="hidden lg:flex">
-            {navLinks.map(l => (
+          <nav aria-label="Primary Desktop" style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }} className="hidden lg:flex">
+            {desktopNavLinks.map(l => (
               l.isHash ? 
                 <a key={l.label} href={l.href} className="nav-link">{l.label}</a> :
                 <Link key={l.label} to={l.href} className="nav-link">{l.label}</Link>
@@ -75,7 +86,7 @@ export function Navigation() {
             className="lg:hidden"
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
-            style={{ background: 'none', border: 'none', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '5px' }}
+            style={{ background: 'none', border: 'none', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}
           >
             {[0,1,2].map(i => (
               <span key={i} style={{ display: 'block', width: '22px', height: '1.5px', background: '#fff' }} />
@@ -88,56 +99,81 @@ export function Navigation() {
       <AnimatePresence>
         {mobileOpen && (
           <>
-            <motion.div key="ov" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
+            <motion.div key="ov" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}
               onClick={() => setMobileOpen(false)}
-              style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(13,16,96,0.7)' }} />
+              style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }} />
 
             <motion.div key="dr" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-              transition={{ duration: 0.28, ease: [0.4,0,0.2,1] }}
+              transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
               role="dialog" aria-modal aria-label="Navigation"
               style={{
-                position: 'fixed', top: 0, right: 0, bottom: 0, width: '300px',
+                position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: '400px',
                 zIndex: 300, background: 'var(--color-nets-navy-dark)',
                 display: 'flex', flexDirection: 'column', padding: '2rem',
+                overflowY: 'auto'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-                <div>
-                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#fff' }}>NEW ERA</div>
-                  <div style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--color-nets-red)', textTransform: 'uppercase', marginTop: '3px' }}>Transport Services</div>
-                </div>
-                <button onClick={() => setMobileOpen(false)} aria-label="Close"
-                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '1.25rem' }}>✕</button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', flexShrink: 0 }}>
+                <img src="/logo-white-final.png" alt="New Era Transport Services Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
+                <button onClick={() => setMobileOpen(false)} aria-label="Close menu"
+                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: '1.5rem', padding: '0.5rem' }}>✕</button>
               </div>
 
-              <nav style={{ flex: 1 }}>
-                {navLinks.map((l, i) => {
+              <nav aria-label="Mobile Navigation" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {mobileNavLinks.map((l, i) => {
+                  const active = isActive(l.href, l.isHash)
                   const content = (
                     <motion.div
                       initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.06, duration: 0.2 }}
-                      style={{ padding: '1rem 0', fontSize: '1.125rem', fontWeight: 500, color: 'rgba(255,255,255,0.8)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                      transition={{ delay: 0.1 + (i * 0.05), duration: 0.3, ease: 'easeOut' }}
+                      style={{ 
+                        padding: '1rem', 
+                        fontSize: '1.25rem', 
+                        fontWeight: active ? 600 : 500, 
+                        color: active ? 'var(--color-nets-red)' : '#fff', 
+                        borderLeft: active ? '3px solid var(--color-nets-red)' : '3px solid transparent',
+                        background: active ? 'rgba(192, 39, 45, 0.05)' : 'transparent',
+                        transition: 'all 0.2s ease'
+                      }}
                     >
                       {l.label}
                     </motion.div>
                   )
                   return l.isHash ? 
-                    (<a key={l.label} href={l.href} onClick={() => setMobileOpen(false)} style={{ display: 'block' }}>{content}</a>) :
-                    (<Link key={l.label} to={l.href} onClick={() => setMobileOpen(false)} style={{ display: 'block' }}>{content}</Link>)
+                    (<a key={l.label} href={l.href} onClick={() => setMobileOpen(false)} style={{ display: 'block', textDecoration: 'none' }}>{content}</a>) :
+                    (<Link key={l.label} to={l.href} onClick={() => setMobileOpen(false)} style={{ display: 'block', textDecoration: 'none' }}>{content}</Link>)
                 })}
               </nav>
 
-              <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <Link to="/plan" onClick={() => setMobileOpen(false)} className="btn btn-red" style={{ width: '100%', justifyContent: 'center' }}>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.3 }}
+                style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}
+              >
+                <Link to="/plan" onClick={() => setMobileOpen(false)} className="btn btn-red" style={{ width: '100%', justifyContent: 'center', padding: '1rem' }}>
                   Plan Your Journey
                 </Link>
-                <a href="#quote" className="btn btn-outline-white" style={{ width: '100%', justifyContent: 'center' }}>
-                  Get Instant Quote
-                </a>
-                <a href="tel:+2348000000000" style={{ textAlign: 'center', fontSize: '0.875rem', color: 'rgba(255,255,255,0.45)', padding: '0.5rem' }}>
-                  +234 800 000 0000
-                </a>
-              </div>
+
+                {/* Contact Info */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <a href="tel:+2348000000000" style={{ fontSize: '0.9375rem', color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.5)' }}>Phone</span> +234 800 000 0000
+                  </a>
+                  <a href="mailto:hello@netsnigeria.com" style={{ fontSize: '0.9375rem', color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.5)' }}>Email</span> hello@netsnigeria.com
+                  </a>
+                  <div style={{ fontSize: '0.9375rem', color: '#fff', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.5)' }}>Office</span> 
+                    <span>12 Transport Ave, Victoria Island<br/>Lagos, Nigeria</span>
+                  </div>
+                </div>
+
+                {/* Socials */}
+                <div style={{ display: 'flex', gap: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                  <a href="#" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>LinkedIn</a>
+                  <a href="#" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Instagram</a>
+                  <a href="#" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Facebook</a>
+                </div>
+              </motion.div>
             </motion.div>
           </>
         )}

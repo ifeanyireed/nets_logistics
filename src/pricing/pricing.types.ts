@@ -204,9 +204,8 @@ export interface JourneyPricingInput {
  * The complete pricing result — contains both customer-safe and internal data.
  */
 export interface EstimatedInvestment {
-  /** The customer-visible estimate range */
-  minimumEstimate: number
-  maximumEstimate: number
+  /** The single customer-visible Estimated Investment — the exact engine TOTAL, no band applied */
+  estimatedInvestment: number
   /** Which rate tier was used */
   rateTier: 'daily' | 'three-day' | 'monthly'
   /** Vehicle information */
@@ -232,8 +231,8 @@ export interface EstimatedInvestment {
  * Customer-safe view — this is ALL the customer ever sees.
  */
 export interface CustomerPricingView {
-  estimatedInvestmentMin: string
-  estimatedInvestmentMax: string
+  /** Formatted single estimate — the only figure the customer ever sees */
+  estimatedInvestment: string
   pricingIncludes: string[]
   disclaimer: string
 }
@@ -268,8 +267,8 @@ export interface CRMQuotationPayload {
     engineType: PricingEngineType
   }
   estimatedInvestment: {
-    minimumEstimate: number
-    maximumEstimate: number
+    /** Single calculated total — matches what is shown to the customer */
+    total: number
     rateTier: string
     optionalServicesTotal: number
     minimumChargeApplied: boolean

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
-import { useMapsLibrary, useMap } from '@vis.gl/react-google-maps'
+import { useEffect } from 'react'
 import { useJourneyStore, LocationData } from '../../store/useJourneyStore'
 
-// Fallback Haversine for development without API Key
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiYmxlc3NlZG1hcHMiLCJhIjoiY2x4ZXZoNDRjMDBqMTJpcTFkYzdsdDF5aSJ9.placeholder'
+
 function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371
   const dLat = (lat2 - lat1) * (Math.PI / 180)
@@ -14,80 +14,54 @@ function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: n
 }
 
 export function RouteIntelligence() {
-  const map = useMap()
-  const routesLibrary = useMapsLibrary('routes')
   const { pickup, destination, stops, setRouteCalculations } = useJourneyStore()
-  const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null)
-  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null)
 
   useEffect(() => {
-    if (!routesLibrary || !map) return
-    if (!directionsService) setDirectionsService(new routesLibrary.DirectionsService())
-    if (!directionsRenderer) {
-      setDirectionsRenderer(new routesLibrary.DirectionsRenderer({
-        map,
-        suppressMarkers: true, // We use custom AdvancedMarkers
-        polylineOptions: {
-          strokeColor: '#C0272D', // var(--color-nets-red)
-          strokeOpacity: 0.8,
-          strokeWeight: 4,
-        }
-      }))
-    }
-  }, [routesLibrary, map, directionsService, directionsRenderer])
-
-  useEffect(() => {
-    // We only calculate a full route when we have both pickup and destination
     if (!pickup || !destination) {
-      if (directionsRenderer) directionsRenderer.setDirections(null)
       return
     }
 
     const calculateRoute = async () => {
       try {
-        if (!directionsService || !directionsRenderer) throw new Error('Directions Service not ready')
+        const waypoints = stops.filter((s: LocationData) => s.lat && s.lng)
+        const coords = [
+          `${pickup.lng},${pickup.lat}`,
+          ...waypoints.map((s: LocationData) => `${s.lng},${s.lat}`),
+          `${destination.lng},${destination.lat}`
+        ].join(';')
 
-        const waypoints = stops.filter((s: LocationData) => s.lat && s.lng).map((s: LocationData) => ({
-          location: new google.maps.LatLng(s.lat, s.lng),
-          stopover: true
-        }))
+        const res = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`)
+        const data = await res.json()
 
-        const request: google.maps.DirectionsRequest = {
-          origin: new google.maps.LatLng(pickup.lat, pickup.lng),
-          destination: new google.maps.LatLng(destination.lat, destination.lng),
-          waypoints: waypoints,
-          travelMode: google.maps.TravelMode.DRIVING,
-          optimizeWaypoints: false // Keep user's chosen order
+        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+          throw new Error('No route found')
         }
 
-        const result = await directionsService.route(request)
-        directionsRenderer.setDirections(result) // Draw on map
+        const route = data.routes[0]
         
-        const route = result.routes[0]
-
-        if (!route || !route.legs) throw new Error('No route legs found')
-
-        let totalDistanceMeters = 0
-        let totalDurationSeconds = 0
-
-        route.legs.forEach(leg => {
-          totalDistanceMeters += leg.distance?.value || 0
-          totalDurationSeconds += leg.duration?.value || 0
-        })
+        let totalDistanceMeters = route.distance || 0
+        let totalDurationSeconds = route.duration || 0
 
         const distanceKm = Math.round((totalDistanceMeters / 1000) * 10) / 10
         const durationMins = Math.round(totalDurationSeconds / 60)
         
-        // Generate Journey Insights
         const insights: string[] = []
         if (distanceKm > 100) insights.push('Long Distance Journey')
         if (distanceKm > 300) insights.push('Interstate Journey')
         if (distanceKm <= 50) insights.push('Urban Journey')
         
-        // Service Area Check
         if (destination.country && destination.country !== 'Nigeria') {
           insights.push('International Border Crossing - Special Request')
         }
+
+        // Calculate rudimentary bounds from the GeoJSON coordinates
+        let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90
+        route.geometry.coordinates.forEach((coord: [number, number]) => {
+          minLng = Math.min(minLng, coord[0])
+          maxLng = Math.max(maxLng, coord[0])
+          minLat = Math.min(minLat, coord[1])
+          maxLat = Math.max(maxLat, coord[1])
+        })
 
         setRouteCalculations({
           distanceKm,
@@ -95,14 +69,13 @@ export function RouteIntelligence() {
           durationMins,
           durationSeconds: totalDurationSeconds,
           durationText: `${Math.floor(durationMins / 60)}h ${durationMins % 60}m`,
-          routePolyline: route.overview_polyline,
-          journeyBounds: route.bounds.toJSON(),
+          routePolyline: route.geometry, // GeoJSON
+          journeyBounds: [[minLng, minLat], [maxLng, maxLat]], // Mapbox bounding box format
           journeyInsights: insights
         })
 
       } catch (err) {
-        console.warn('Google Maps Directions failed, using Haversine fallback', err)
-        if (directionsRenderer) directionsRenderer.setDirections(null)
+        console.warn('Mapbox Directions failed, using Haversine fallback', err)
         
         // Fallback calculation
         let totalKm = 0
@@ -131,7 +104,7 @@ export function RouteIntelligence() {
     }
 
     calculateRoute()
-  }, [pickup, destination, stops, directionsService, directionsRenderer, setRouteCalculations])
+  }, [pickup, destination, stops, setRouteCalculations])
 
-  return null // Headless intelligence component
+  return null
 }

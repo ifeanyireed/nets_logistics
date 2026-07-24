@@ -43,15 +43,10 @@ export function Footer() {
 
           {/* Brand */}
           <div style={{ gridColumn: 'span 12' }} className="lg:col-span-4">
-            {/* Wordmark */}
-            <div style={{ marginBottom: '2rem' }}>
-              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.01em', lineHeight: 1 }}>NEW ERA</div>
-              <div style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.22em', color: 'var(--color-nets-red)', textTransform: 'uppercase', marginTop: '4px' }}>
-                Transport Services
-              </div>
-            </div>
-
-            <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.8, maxWidth: '300px', marginBottom: '2rem' }}>
+            <Link to="/" style={{ display: 'inline-block', marginBottom: '1.5rem', transition: 'opacity 0.2s ease' }} onMouseEnter={e => e.currentTarget.style.opacity = '0.8'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+              <img src="/logo-white-final.png" alt="New Era Transport Services Logo" style={{ height: '56px', width: 'auto', objectFit: 'contain' }} />
+            </Link>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '2rem' }}>
               Nigeria's trusted transportation partner delivering premium bus rental, executive travel, airport transfers and mobility solutions.
             </p>
 

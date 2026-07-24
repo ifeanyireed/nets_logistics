@@ -53,8 +53,7 @@ export function formatEstimateForCustomer(
   estimate: EstimatedInvestment
 ): CustomerPricingView {
   return {
-    estimatedInvestmentMin: formatCurrency(estimate.minimumEstimate),
-    estimatedInvestmentMax: formatCurrency(estimate.maximumEstimate),
+    estimatedInvestment: formatCurrency(estimate.estimatedInvestment),
     pricingIncludes: [...PRICING_INCLUDES],
     disclaimer: PRICING_DISCLAIMER,
   }

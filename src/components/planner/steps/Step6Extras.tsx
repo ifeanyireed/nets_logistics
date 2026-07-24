@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Check, MapPin, Plus, Trash2 } from 'lucide-react'
 import { useJourneyStore, LocationData } from '../../../store/useJourneyStore'
 import { fadeUp, staggerContainer, staggerItem } from '../../../lib/motion'
-import { GoogleAutocomplete } from '../GoogleAutocomplete'
+import { MapboxAutocomplete } from '../MapboxAutocomplete'
 
 const EXTRAS = [
   'Multiple Stops',
@@ -110,7 +110,7 @@ export function Step6Extras() {
                         {i + 1}
                       </div>
                       <div style={{ flex: 1, position: 'relative' }}>
-                        <GoogleAutocomplete
+                        <MapboxAutocomplete
                           value={stop.address}
                           onChange={(val) => updateStop(i, { ...stop, address: val })}
                           onLocationSelect={(loc) => handleStopLocationSelect(i, loc, stop.address)}

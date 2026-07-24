@@ -49,7 +49,7 @@ export function FleetPage() {
       >
         <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
           <img
-            src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=80"
+            src="/vehicles/coaster.jpg"
             alt=""
             style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.2 }}
           />

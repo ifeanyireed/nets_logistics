@@ -7,7 +7,7 @@ export function JourneySummary() {
   const state = useJourneyStore()
   
   const formattedDate = state.travelDate ? state.travelDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Pending Date'
-  const vehicle = vehicles.find(v => v.id === state.recommendedVehicleId)
+  const vehicle = vehicles.find(v => v.id === (state.selectedVehicleId || state.recommendedVehicleId))
   
   // Dummy logic for estimate range based on distance/vehicle
   const baseRate = vehicle ? vehicle.capacity * 10000 : 150000

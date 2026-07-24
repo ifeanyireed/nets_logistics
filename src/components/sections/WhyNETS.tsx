@@ -36,7 +36,7 @@ export function WhyNETS() {
                 style={{ marginTop: '4rem', borderRadius: '2px', overflow: 'hidden', position: 'relative' }}
               >
                 <img
-                  src="https://images.unsplash.com/photo-1619767886558-efdc259cde1a?w=800&q=85"
+                  src="/vehicles/hiace.jpg"
                   alt="Professional corporate driver — NETS"
                   style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover' }}
                   loading="lazy"

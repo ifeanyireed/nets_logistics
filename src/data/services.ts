@@ -8,7 +8,7 @@ export const services: Service[] = [
     shortDescription: 'Premium chauffeur-driven bus hire for organisations, events and private groups. Our flagship service.',
     description: 'New Era Transport Services provides end-to-end bus rental solutions for corporate transport, airport transfers, private events, schools, and executive travel. Every booking includes a professional driver, GPS tracking, and 24/7 support.',
     isPrimary: true,
-    imageUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&q=80',
+    imageUrl: '/vehicles/coaster.jpg',
     icon: 'bus',
   },
   {
@@ -28,7 +28,7 @@ export const services: Service[] = [
     shortDescription: 'Executive vehicles and chauffeur services for corporate travellers.',
     description: 'From executive sedans to full-size SUVs, our car rental fleet serves corporate clients requiring premium, reliable transportation.',
     isPrimary: false,
-    imageUrl: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&q=80',
+    imageUrl: '/vehicles/hiace.jpg',
     icon: 'car',
   },
   {

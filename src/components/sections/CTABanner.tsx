@@ -16,7 +16,7 @@ export function CTABanner() {
       {/* Background photo at low opacity */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         <img
-          src="https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=1920&q=75"
+          src="/vehicles/hiace.jpg"
           alt=""
           style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.12 }}
           loading="lazy"

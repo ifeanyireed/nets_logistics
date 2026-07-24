@@ -85,7 +85,7 @@ export function ServicesGrid() {
             {/* Left — Image */}
             <div style={{ position: 'relative', minHeight: '420px', overflow: 'hidden' }}>
               <img
-                src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&q=85"
+                src="/vehicles/coaster.jpg"
                 alt="NETS premium bus rental fleet"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}
                 loading="lazy"

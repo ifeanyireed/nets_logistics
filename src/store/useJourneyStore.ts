@@ -5,6 +5,7 @@ import { formatEstimateForCustomer } from '../pricing/pricingFormatter'
 import { getPricingErrorMessage } from '../pricing/pricingErrors'
 
 export type JourneyIntent =
+  | 'General Transport'
   | 'Corporate Staff Transport'
   | 'Airport Transfer'
   | 'Wedding & Events'
@@ -60,10 +61,10 @@ interface JourneyState {
   durationMins: number
   durationSeconds: number
   durationText: string
-  routePolyline: string | null
-  journeyBounds: any | null // google.maps.LatLngBoundsLiteral
+  routePolyline: any | null
+  journeyBounds: any | null
   journeyInsights: string[]
-  setRouteCalculations: (calc: { distanceKm: number, distanceMeters: number, durationMins: number, durationSeconds: number, durationText: string, routePolyline: string | null, journeyBounds: any | null, journeyInsights: string[] }) => void
+  setRouteCalculations: (calc: { distanceKm: number, distanceMeters: number, durationMins: number, durationSeconds: number, durationText: string, routePolyline: any | null, journeyBounds: any | null, journeyInsights: string[] }) => void
 
   // Step 4
   passengers: string | null
@@ -92,7 +93,9 @@ interface JourneyState {
 
   // Step 7 - Smart vehicle recommendation derived from passenger count
   recommendedVehicleId: string | null
-  setRecommendedVehicleId: (id: string) => void
+  setRecommendedVehicleId: (id: string | null) => void
+  selectedVehicleId: string | null
+  setSelectedVehicleId: (id: string | null) => void
 
   // Customer Details
   customerDetails: CustomerDetails
@@ -176,6 +179,15 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
   recommendedVehicleId: null,
   setRecommendedVehicleId: (recommendedVehicleId) => set({ recommendedVehicleId }),
 
+  selectedVehicleId: null,
+  setSelectedVehicleId: (selectedVehicleId) => {
+    set({ selectedVehicleId })
+    // Recalculate pricing if they change vehicle after passing step 9
+    if (get().currentStep >= 9) {
+      get().calculatePricing()
+    }
+  },
+
   customerDetails: {
     fullName: '',
     email: '',
@@ -222,12 +234,12 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         journeyInsights: state.journeyInsights,
         passengerCount: state.passengers,
         recommendedVehicle: state.recommendedVehicleId,
+        selectedVehicle: state.selectedVehicleId,
         travelDate: state.travelDate?.toISOString(),
         tripType: state.tripType
       },
       estimatedInvestment: state.estimatedInvestment ? {
-        minimumEstimate: state.estimatedInvestment.minimumEstimate,
-        maximumEstimate: state.estimatedInvestment.maximumEstimate,
+        total: state.estimatedInvestment.estimatedInvestment,
         rateTier: state.estimatedInvestment.rateTier,
         vehicleName: state.estimatedInvestment.vehicleName,
         pricingVersion: state.estimatedInvestment.pricingVersion,
@@ -268,8 +280,10 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         numberOfDays = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)))
       }
 
+      const vehicleId = state.selectedVehicleId || state.recommendedVehicleId || 'hiace'
+
       const estimate = generateEstimate({
-        vehicleId: state.recommendedVehicleId,
+        vehicleId,
         distanceKm: state.distanceKm,
         distanceMeters: state.distanceMeters,
         durationMinutes: state.durationMins,

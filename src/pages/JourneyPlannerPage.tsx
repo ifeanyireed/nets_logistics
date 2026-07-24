@@ -11,9 +11,6 @@ import { Step8Review } from '../components/planner/steps/Step8Review'
 import { Step9Estimate } from '../components/planner/steps/Step9Estimate'
 import { Step10Success } from '../components/planner/steps/Step10Success'
 import { AnimatePresence, motion } from 'framer-motion'
-import { APIProvider } from '@vis.gl/react-google-maps'
-
-const API_KEY = '' // Placeholder
 
 export function JourneyPlannerPage() {
   const { currentStep } = useJourneyStore()
@@ -35,7 +32,6 @@ export function JourneyPlannerPage() {
   }
 
   return (
-    <APIProvider apiKey={API_KEY}>
       <PlannerLayout>
         <AnimatePresence mode="wait">
           <motion.div
@@ -49,6 +45,5 @@ export function JourneyPlannerPage() {
           </motion.div>
         </AnimatePresence>
       </PlannerLayout>
-    </APIProvider>
   )
 }

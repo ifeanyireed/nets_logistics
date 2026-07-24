@@ -105,12 +105,9 @@ export function generateEstimate(input: JourneyPricingInput): EstimatedInvestmen
   // Apply minimum charge
   const { total: finalTotal, minimumApplied } = applyMinimumCharge(totalWithOptionals)
 
-  // ── Step 10: Generate estimate range ──
-  // The minimum estimate is the exact calculated figure.
-  // The maximum estimate adds a 10% buffer for operational variability
-  // (traffic, route changes, etc.) — this is a display-only range.
-  const minimumEstimate = finalTotal
-  const maximumEstimate = finalTotal * 1.10
+  // ── Step 10: Generate single Estimated Investment ──
+  // The TOTAL produced by the engine IS the Estimated Investment — no band or spread applied.
+  const estimatedInvestment = finalTotal
 
   // ── Build pricing notes ──
   const pricingNotes: string[] = []
@@ -143,8 +140,7 @@ export function generateEstimate(input: JourneyPricingInput): EstimatedInvestmen
   }
 
   return {
-    minimumEstimate,
-    maximumEstimate,
+    estimatedInvestment,
     rateTier,
     vehicleId: config.vehicleId,
     vehicleName: config.vehicleName,

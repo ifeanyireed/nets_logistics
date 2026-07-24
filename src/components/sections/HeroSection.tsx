@@ -1,18 +1,72 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { staggerContainer, staggerItem, slideInRight } from '@/lib/motion'
+import { useJourneyStore, type LocationData } from '@/store/useJourneyStore'
+import { MapboxAutocomplete } from '@/components/planner/MapboxAutocomplete'
 
 const vehicleOptions = [
-  'Select Vehicle Type',
-  'Toyota HiAce (14 Seats)',
-  '18-Seater Shuttle',
-  'Toyota Coaster (30 Seats)',
-  '50-Seater Coach',
+  'Any Vehicle',
+  'Toyota HiAce',
+  'Toyota Coaster',
   'Executive SUV',
-  'Executive Sedan',
 ]
 
 export function HeroSection() {
+  const navigate = useNavigate()
+  const { 
+    pickup, setPickup, destination, setDestination, 
+    tripType, setTripType, travelDate, setTravelDate, 
+    passengers, setPassengers, setRecommendedVehicleId, 
+    recommendedVehicleId, generateReference, setStep
+  } = useJourneyStore()
+
+  const [errors, setErrors] = useState<string[]>([])
+
+  const vehicleLabels: Record<string, string> = {
+    'hiace': 'Toyota HiAce (14 Seats)',
+    'midibus-18': '18-Seater Shuttle',
+    'coaster': 'Toyota Coaster (30 Seats)',
+    'coach-50': '50-Seater Coach',
+    'suv': 'Executive SUV',
+    'sedan': 'Executive Sedan',
+  }
+  
+  const currentVehicleLabel = recommendedVehicleId ? (vehicleLabels[recommendedVehicleId] || 'Select Vehicle Type') : 'Select Vehicle Type'
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value) {
+      setTravelDate(new Date(e.target.value))
+    }
+  }
+
+  const handleVehicleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const label = e.target.value
+    const id = Object.keys(vehicleLabels).find(k => vehicleLabels[k] === label) || null
+    setRecommendedVehicleId(id)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const newErrors: string[] = []
+    
+    if (!pickup) newErrors.push('pickup')
+    if (!destination) newErrors.push('destination')
+    if (!travelDate) newErrors.push('travelDate')
+    if (!passengers || passengers === 'Select Passengers') newErrors.push('passengers')
+
+    if (newErrors.length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    // Generate CRM Reference
+    generateReference()
+    // Skip to passenger count/schedule if already filled
+    setStep(1)
+    navigate('/plan')
+  }
+
   return (
     <section
       id="hero"
@@ -157,17 +211,33 @@ export function HeroSection() {
               </h2>
             </div>
 
-            <form aria-label="Instant quote request" onSubmit={e => e.preventDefault()}
+            <form aria-label="Instant quote request" onSubmit={handleSubmit}
               style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
 
               <div>
                 <label htmlFor="hero-pickup" className="field-label-dark">Pickup Location</label>
-                <input id="hero-pickup" type="text" placeholder="e.g. Victoria Island, Lagos" className="input-dark" style={{ padding: '0.625rem 1rem' }} />
+                <MapboxAutocomplete 
+                  value={pickup?.address || null} 
+                  onChange={() => {}} 
+                  onLocationSelect={setPickup} 
+                  placeholder="e.g. Victoria Island, Lagos" 
+                  className={`input-dark ${errors.includes('pickup') ? 'error-border' : ''}`}
+                  style={{ padding: '0.625rem 1rem' }} 
+                />
+                {errors.includes('pickup') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Please enter a pickup location</span>}
               </div>
 
               <div>
                 <label htmlFor="hero-dest" className="field-label-dark">Destination</label>
-                <input id="hero-dest" type="text" placeholder="e.g. Abuja, FCT" className="input-dark" style={{ padding: '0.625rem 1rem' }} />
+                <MapboxAutocomplete 
+                  value={destination?.address || null} 
+                  onChange={() => {}} 
+                  onLocationSelect={setDestination} 
+                  placeholder="e.g. Abuja, FCT" 
+                  className={`input-dark ${errors.includes('destination') ? 'error-border' : ''}`}
+                  style={{ padding: '0.625rem 1rem' }} 
+                />
+                {errors.includes('destination') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Please enter a destination</span>}
               </div>
 
               {/* Trip type */}
@@ -180,10 +250,10 @@ export function HeroSection() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       padding: '0.5rem 0', fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer',
                       borderRight: i < 2 ? '1px solid rgba(255,255,255,0.12)' : 'none',
-                      color: i === 0 ? '#fff' : 'rgba(255,255,255,0.5)',
-                      background: i === 0 ? 'rgba(192,39,45,0.3)' : 'transparent',
+                      color: tripType === t ? '#fff' : 'rgba(255,255,255,0.5)',
+                      background: tripType === t ? 'rgba(192,39,45,0.3)' : 'transparent',
                     }}>
-                      <input type="radio" name="hero-trip" value={t} defaultChecked={i === 0} style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
+                      <input type="radio" name="hero-trip" value={t} checked={tripType === t} onChange={(e) => setTripType(e.target.value as any)} style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
                       {t}
                     </label>
                   ))}
@@ -193,29 +263,45 @@ export function HeroSection() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
                   <label htmlFor="hero-date" className="field-label-dark">Travel Date</label>
-                  <input id="hero-date" type="date" className="input-dark" style={{ padding: '0.625rem 1rem' }} />
+                  <input 
+                    id="hero-date" 
+                    type="date" 
+                    className={`input-dark ${errors.includes('travelDate') ? 'error-border' : ''}`}
+                    style={{ padding: '0.625rem 1rem', width: '100%' }} 
+                    value={travelDate ? travelDate.toISOString().split('T')[0] : ''}
+                    onChange={handleDateChange}
+                  />
+                  {errors.includes('travelDate') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Required</span>}
                 </div>
                 <div>
                   <label htmlFor="hero-pax" className="field-label-dark">Passengers</label>
-                  <select id="hero-pax" className="input-dark" style={{ padding: '0.625rem 1rem' }}>
-                    {['1–7','8–14','15–18','19–30','31–50','50+'].map(o => <option key={o}>{o}</option>)}
+                  <select 
+                    id="hero-pax" 
+                    className={`input-dark ${errors.includes('passengers') ? 'error-border' : ''}`}
+                    style={{ padding: '0.625rem 1rem', width: '100%' }}
+                    value={passengers || 'Select Passengers'}
+                    onChange={(e) => setPassengers(e.target.value)}
+                  >
+                    <option disabled>Select Passengers</option>
+                    {['1–7','8–14','15–18','19–30','31–50','50+'].map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  {errors.includes('passengers') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Required</span>}
                 </div>
               </div>
 
               <div>
                 <label htmlFor="hero-veh" className="field-label-dark">Preferred Vehicle</label>
-                <select id="hero-veh" className="input-dark" style={{ padding: '0.625rem 1rem' }}>
-                  {vehicleOptions.map(o => <option key={o}>{o}</option>)}
+                <select id="hero-veh" className="input-dark" style={{ padding: '0.625rem 1rem', width: '100%' }} value={currentVehicleLabel} onChange={handleVehicleChange}>
+                  {vehicleOptions.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
 
-              <Link to="/plan" className="btn btn-red btn-lg" style={{ width: '100%', justifyContent: 'center', marginTop: '0.25rem', padding: '0.75rem 1.5rem' }}>
+              <button type="submit" className="btn btn-red btn-lg" style={{ width: '100%', justifyContent: 'center', marginTop: '0.25rem', padding: '0.75rem 1.5rem', border: 'none', cursor: 'pointer' }}>
                 Get Instant Quote
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                 </svg>
-              </Link>
+              </button>
             </form>
           </div>
         </motion.div>

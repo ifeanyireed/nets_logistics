@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage'
 import { FleetPage } from './pages/FleetPage'
 import { VehicleDetailPage } from './pages/VehicleDetailPage'
 import { JourneyPlannerPage } from './pages/JourneyPlannerPage'
+import { AdminRouter } from './admin/AdminRouter'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -18,6 +19,17 @@ function ScrollToTop() {
 function AppContent() {
   const { pathname } = useLocation()
   const isPlanner = pathname.startsWith('/plan')
+  const isAdmin = pathname.startsWith('/admin')
+
+  // Admin routes render in complete isolation — no public shell
+  if (isAdmin) {
+    return (
+      <>
+        <ScrollToTop />
+        <AdminRouter />
+      </>
+    )
+  }
 
   return (
     <>
