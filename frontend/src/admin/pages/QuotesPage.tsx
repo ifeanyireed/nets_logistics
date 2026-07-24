@@ -59,7 +59,6 @@ export function QuotesPage() {
       updatedAt: l.createdAt,
       notes: '',
     })),
-    ...quotes,
   ]
 
   const filtered = allQuotes.filter(q => {

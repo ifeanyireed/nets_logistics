@@ -10,8 +10,8 @@ const fmt = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 
 export function CustomersPage() {
-  const { customers: storeCustomers, quotes, bookings, addCustomerNote } = useAdminStore()
-  const [liveCustomers, setLiveCustomers] = useState<AdminCustomer[]>([])
+  const { quotes, bookings, addCustomerNote } = useAdminStore()
+  const [customers, setCustomers] = useState<AdminCustomer[]>([])
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'all'|'corporate'|'individual'>('all')
   const [selected, setSelected] = useState<AdminCustomer | null>(null)
@@ -19,15 +19,9 @@ export function CustomersPage() {
 
   useEffect(() => {
     adminService.getCustomers().then(list => {
-      if (list && list.length > 0) {
-        setLiveCustomers(list as AdminCustomer[])
-      } else {
-        setLiveCustomers(storeCustomers)
-      }
+      setCustomers((list || []) as AdminCustomer[])
     })
   }, [])
-
-  const customers = liveCustomers.length > 0 ? liveCustomers : storeCustomers
 
   const filtered = customers.filter(c => {
     const matchSearch = !search || c.fullName.toLowerCase().includes(search.toLowerCase()) ||

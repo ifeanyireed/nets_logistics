@@ -58,12 +58,39 @@ export function FleetManagementPage() {
     setEditing(false)
   }
 
+  const fleetList: AdminVehicle[] = liveVehicles.map(v => ({
+    id: v.id,
+    slug: v.slug || v.id,
+    registrationNumber: v.id.toUpperCase(),
+    make: 'Toyota',
+    model: v.name,
+    year: 2024,
+    category: v.category as any,
+    pricingCategory: 'Executive',
+    capacity: v.capacity,
+    assignedDriverId: 'drv-001',
+    assignedDriverName: 'Emmanuel Okafor',
+    status: (v.available ? 'active' : 'maintenance') as any,
+    maintenanceStatus: 'ok',
+    lastServiceDate: '2026-01-10',
+    nextServiceDueDate: '2026-08-10',
+    currentMileageKm: 14500,
+    insuranceExpiry: '2027-01-01',
+    roadworthinessExpiry: '2027-01-01',
+    location: 'Lagos Hub',
+    imageUrl: v.imageUrl,
+    available: v.available,
+    visible: v.available,
+    name: v.name,
+    features: v.features || [],
+  }))
+
   return (
     <>
       <div className="admin-page-header">
         <div>
           <div className="admin-page-title">Fleet Management</div>
-          <div className="admin-page-desc">{vehicles.length} vehicles · {vehicles.filter(v => v.available).length} available</div>
+          <div className="admin-page-desc">{fleetList.length} vehicles in fleet · {fleetList.filter(v => v.available).length} available</div>
         </div>
         <div className="admin-page-actions">
           <button className="admin-btn admin-btn-primary" onClick={() => setShowAdd(true)}><Plus size={14} /> Add Vehicle</button>
@@ -73,7 +100,7 @@ export function FleetManagementPage() {
       <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: '1.25rem' }}>
         <div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-            {vehicles.map(v => {
+            {fleetList.map(v => {
               const insExpiry = daysUntil(v.insuranceExpiry)
               return (
                 <div key={v.id} className="admin-card"

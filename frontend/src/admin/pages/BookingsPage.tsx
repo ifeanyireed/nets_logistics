@@ -19,20 +19,19 @@ const payBadge: Record<string, string> = {
 }
 
 export function BookingsPage() {
-  const { bookings: storeBookings, updateBookingStatus, updatePaymentStatus, session, vehicles, customers } = useAdminStore()
-  const [liveBookings, setLiveBookings] = useState<AdminBooking[]>([])
+  const { session, vehicles, customers, updateBookingStatus, updatePaymentStatus } = useAdminStore()
+  const [bookings, setBookings] = useState<AdminBooking[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [opsFilter, setOpsFilter] = useState('all')
   const [selected, setSelected] = useState<AdminBooking | null>(null)
   const [showCreate, setShowCreate] = useState(false)
 
   const loadBookings = () => {
+    setLoading(true)
     adminService.getBookings().then((list) => {
-      if (list && list.length > 0) {
-        setLiveBookings(list as AdminBooking[])
-      } else {
-        setLiveBookings(storeBookings)
-      }
+      setBookings((list || []) as AdminBooking[])
+      setLoading(false)
     })
   }
 
@@ -42,8 +41,6 @@ export function BookingsPage() {
 
   const userId = session.user?.id ?? 'usr-001'
   const userName = session.user?.fullName ?? 'Admin'
-
-  const bookings = liveBookings.length > 0 ? liveBookings : storeBookings
 
   const filtered = bookings.filter(b => {
     const matchSearch = !search || b.reference.toLowerCase().includes(search.toLowerCase()) ||

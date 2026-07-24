@@ -188,10 +188,10 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
   logout: () => set({ session: { isAuthenticated: false, user: null } }),
 
   // ── Data ──
-  quotes: [...mockQuotes],
-  bookings: [...mockBookings],
-  customers: [...mockCustomers],
-  vehicles: [...mockAdminVehicles],
+  quotes: [],
+  bookings: [],
+  customers: [],
+  vehicles: [],
   drivers: [...mockDrivers],
   users: [...mockUsers],
   activityLog: [...mockActivityLog],
