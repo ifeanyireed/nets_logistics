@@ -48,3 +48,40 @@ type Vehicle struct {
 	AirConditioning string    `json:"airConditioning" gorm:"type:varchar(255)"`
 	CreatedAt       time.Time `json:"createdAt"`
 }
+
+type Booking struct {
+	ID                string    `json:"id" gorm:"primaryKey;type:varchar(64)"`
+	Reference         string    `json:"reference" gorm:"uniqueIndex;type:varchar(64);not null"`
+	QuoteReference    string    `json:"quoteReference" gorm:"type:varchar(64)"`
+	CustomerID        string    `json:"customerId" gorm:"type:varchar(64)"`
+	CustomerName      string    `json:"customerName" gorm:"type:varchar(255)"`
+	VehicleID         string    `json:"vehicleId" gorm:"type:varchar(64)"`
+	VehicleName       string    `json:"vehicleName" gorm:"type:varchar(255)"`
+	DriverID          string    `json:"driverId" gorm:"type:varchar(64)"`
+	DriverName        string    `json:"driverName" gorm:"type:varchar(255)"`
+	Pickup            string    `json:"pickup" gorm:"type:varchar(255)"`
+	Destination       string    `json:"destination" gorm:"type:varchar(255)"`
+	DistanceKM        float64   `json:"distanceKm"`
+	DurationMins      int       `json:"durationMins"`
+	TripType          string    `json:"tripType" gorm:"type:varchar(64)"`
+	PassengerCount    int       `json:"passengerCount"`
+	TravelDate        time.Time `json:"travelDate"`
+	TotalAmount       float64   `json:"totalAmount"`
+	PaymentStatus     string    `json:"paymentStatus" gorm:"type:varchar(64);default:'pending'"`
+	OperationalStatus string    `json:"operationalStatus" gorm:"type:varchar(64);default:'confirmed'"`
+	Notes             string    `json:"notes" gorm:"type:text"`
+	CreatedAt         time.Time `json:"createdAt"`
+}
+
+type Customer struct {
+	ID            string    `json:"id" gorm:"primaryKey;type:varchar(64)"`
+	FullName      string    `json:"fullName" gorm:"type:varchar(255);not null"`
+	Email         string    `json:"email" gorm:"uniqueIndex;type:varchar(255);not null"`
+	Phone         string    `json:"phone" gorm:"type:varchar(64)"`
+	Company       string    `json:"company" gorm:"type:varchar(255)"`
+	CustomerType  string    `json:"type" gorm:"type:varchar(64);default:'corporate'"`
+	TotalBookings int       `json:"totalBookings" gorm:"default:0"`
+	TotalSpend    float64   `json:"totalSpend" gorm:"default:0"`
+	Notes         string    `json:"notes" gorm:"type:text"`
+	CreatedAt     time.Time `json:"createdAt"`
+}

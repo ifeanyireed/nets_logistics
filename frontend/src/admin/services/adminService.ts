@@ -25,6 +25,43 @@ export interface AdminLead {
   payload?: any
 }
 
+export interface AdminBookingDB {
+  id: string
+  reference: string
+  quoteReference?: string
+  customerId?: string
+  customerName: string
+  vehicleId?: string
+  vehicleName: string
+  driverId?: string
+  driverName?: string
+  pickup: string
+  destination: string
+  distanceKm: number
+  durationMins: number
+  tripType: string
+  passengerCount: number
+  travelDate: string
+  totalAmount: number
+  paymentStatus: 'pending' | 'partial' | 'paid' | 'invoiced' | 'overdue'
+  operationalStatus: 'pending' | 'confirmed' | 'dispatched' | 'completed' | 'cancelled'
+  notes?: string
+  createdAt: string
+}
+
+export interface AdminCustomerDB {
+  id: string
+  fullName: string
+  email: string
+  phone?: string
+  company?: string
+  type: 'corporate' | 'individual'
+  totalBookings: number
+  totalSpend: number
+  notes?: string
+  createdAt: string
+}
+
 export class AdminService {
   /**
    * Fetch live dashboard statistics from Go REST API backend.
@@ -67,15 +104,13 @@ export class AdminService {
   }
 
   /**
-   * Update lead status (e.g. pending, approved, contracted, completed, cancelled).
+   * Update lead status.
    */
   public async updateLeadStatus(id: number | string, status: string): Promise<boolean> {
     try {
       const res = await fetch(`${API_URL}/leads/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       })
       return res.ok
@@ -86,13 +121,64 @@ export class AdminService {
   }
 
   /**
+   * Fetch all bookings from Go REST API backend.
+   */
+  public async getBookings(): Promise<AdminBookingDB[]> {
+    try {
+      const res = await fetch(`${API_URL}/bookings`)
+      if (res.ok) {
+        const json = await res.json()
+        if (json.data && Array.isArray(json.data.bookings)) {
+          return json.data.bookings
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ [ADMIN SERVICE] Could not fetch bookings from backend:', err)
+    }
+    return []
+  }
+
+  /**
+   * Update booking operational/payment status.
+   */
+  public async updateBooking(id: string, updates: Partial<AdminBookingDB>): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/bookings/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      return res.ok
+    } catch (err) {
+      console.warn('⚠️ [ADMIN SERVICE] Could not update booking:', err)
+      return false
+    }
+  }
+
+  /**
+   * Fetch all customers from Go REST API backend.
+   */
+  public async getCustomers(): Promise<AdminCustomerDB[]> {
+    try {
+      const res = await fetch(`${API_URL}/customers`)
+      if (res.ok) {
+        const json = await res.json()
+        if (json.data && Array.isArray(json.data.customers)) {
+          return json.data.customers
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ [ADMIN SERVICE] Could not fetch customers from backend:', err)
+    }
+    return []
+  }
+
+  /**
    * Delete vehicle from backend.
    */
   public async deleteVehicle(id: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_URL}/vehicles/${id}`, {
-        method: 'DELETE',
-      })
+      const res = await fetch(`${API_URL}/vehicles/${id}`, { method: 'DELETE' })
       return res.ok
     } catch (err) {
       console.warn('⚠️ [ADMIN SERVICE] Could not delete vehicle:', err)
@@ -107,12 +193,9 @@ export class AdminService {
     try {
       const url = isEdit ? `${API_URL}/vehicles/${vehicleData.id}` : `${API_URL}/vehicles`
       const method = isEdit ? 'PUT' : 'POST'
-
       const res = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(vehicleData),
       })
       return res.ok

@@ -1,9 +1,10 @@
 // ============================================================================
 // NETS Admin — Booking Management
 // ============================================================================
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Plus, X, Save } from 'lucide-react'
 import { useAdminStore, type AdminBooking } from '../store/useAdminStore'
+import { adminService } from '../services/adminService'
 
 const fmt = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -18,14 +19,31 @@ const payBadge: Record<string, string> = {
 }
 
 export function BookingsPage() {
-  const { bookings, updateBookingStatus, updatePaymentStatus, session, vehicles, customers } = useAdminStore()
+  const { bookings: storeBookings, updateBookingStatus, updatePaymentStatus, session, vehicles, customers } = useAdminStore()
+  const [liveBookings, setLiveBookings] = useState<AdminBooking[]>([])
   const [search, setSearch] = useState('')
   const [opsFilter, setOpsFilter] = useState('all')
   const [selected, setSelected] = useState<AdminBooking | null>(null)
   const [showCreate, setShowCreate] = useState(false)
 
+  const loadBookings = () => {
+    adminService.getBookings().then((list) => {
+      if (list && list.length > 0) {
+        setLiveBookings(list as AdminBooking[])
+      } else {
+        setLiveBookings(storeBookings)
+      }
+    })
+  }
+
+  useEffect(() => {
+    loadBookings()
+  }, [])
+
   const userId = session.user?.id ?? 'usr-001'
   const userName = session.user?.fullName ?? 'Admin'
+
+  const bookings = liveBookings.length > 0 ? liveBookings : storeBookings
 
   const filtered = bookings.filter(b => {
     const matchSearch = !search || b.reference.toLowerCase().includes(search.toLowerCase()) ||

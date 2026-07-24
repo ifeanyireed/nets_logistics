@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -35,7 +36,7 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 		log.Printf("⚠️ Migration warning: %v", err)
 	}
 
-	SeedVehicles(db)
+	SeedInitialData(db)
 
 	return db, nil
 }
@@ -45,13 +46,46 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.Lead{},
 		&models.Contact{},
 		&models.Vehicle{},
+		&models.Booking{},
+		&models.Customer{},
 	)
 	if err != nil {
 		return fmt.Errorf("failed GORM auto migration: %w", err)
 	}
 
-	log.Println("✅ GORM AutoMigrate completed successfully (Leads, Contacts, Vehicles tables verified).")
+	log.Println("✅ GORM AutoMigrate completed successfully (Leads, Contacts, Vehicles, Bookings, Customers tables verified).")
 	return nil
+}
+
+func SeedInitialData(db *gorm.DB) {
+	SeedVehicles(db)
+
+	var custCount int64
+	db.Model(&models.Customer{}).Count(&custCount)
+	if custCount == 0 {
+		customers := []models.Customer{
+			{ID: "cust-001", FullName: "Dr. Adaeze Okonkwo", Email: "adaeze.okonkwo@gtbankplc.com", Phone: "+234 803 100 2000", Company: "GTBank PLC", CustomerType: "corporate", TotalBookings: 12, TotalSpend: 4820000, Notes: "Prefers Coaster for exec events.", CreatedAt: time.Now()},
+			{ID: "cust-002", FullName: "Engr. Bola Afolabi", Email: "b.afolabi@dangotelng.com", Phone: "+234 807 200 3000", Company: "Dangote Group", CustomerType: "corporate", TotalBookings: 28, TotalSpend: 14200000, Notes: "Monthly staff transport contract.", CreatedAt: time.Now()},
+			{ID: "cust-003", FullName: "Mrs. Chioma Eze", Email: "chioma.eze@gmail.com", Phone: "+234 815 300 4000", Company: "Individual Client", CustomerType: "individual", TotalBookings: 3, TotalSpend: 650000, Notes: "Wedding event client.", CreatedAt: time.Now()},
+		}
+		for _, c := range customers {
+			db.Create(&c)
+		}
+		log.Println("👥 Seeded initial corporate & individual customers into MySQL.")
+	}
+
+	var bkCount int64
+	db.Model(&models.Booking{}).Count(&bkCount)
+	if bkCount == 0 {
+		bookings := []models.Booking{
+			{ID: "bk-001", Reference: "BK-20260723-001", QuoteReference: "NETS-20260720-004004", CustomerID: "cust-004", CustomerName: "Mr. Emeka Nwosu", VehicleID: "hiace", VehicleName: "Toyota HiAce", DriverID: "drv-001", DriverName: "Emmanuel Okafor", Pickup: "Yaba, Lagos", Destination: "Murtala Muhammed Airport, Lagos", DistanceKM: 22, DurationMins: 40, TripType: "Airport Transfer", PassengerCount: 8, TravelDate: time.Now().AddDate(0, 0, 1), TotalAmount: 105397.60, PaymentStatus: "paid", OperationalStatus: "confirmed", Notes: "Flight at 08:00. Pickup 05:30.", CreatedAt: time.Now()},
+			{ID: "bk-002", Reference: "BK-20260722-002", QuoteReference: "NETS-20260718-006006", CustomerID: "cust-002", CustomerName: "Engr. Bola Afolabi", VehicleID: "coaster", VehicleName: "Toyota Coaster", DriverID: "drv-002", DriverName: "Chukwuemeka Adiele", Pickup: "Dangote Refinery, Ibeju-Lekki", Destination: "AIICO Building, VI", DistanceKM: 50, DurationMins: 90, TripType: "Corporate Shuttle", PassengerCount: 28, TravelDate: time.Now().AddDate(0, 0, -1), TotalAmount: 199020, PaymentStatus: "invoiced", OperationalStatus: "completed", Notes: "Recurring daily contract.", CreatedAt: time.Now()},
+		}
+		for _, b := range bookings {
+			db.Create(&b)
+		}
+		log.Println("📅 Seeded initial bookings into MySQL.")
+	}
 }
 
 func SeedVehicles(db *gorm.DB) {
