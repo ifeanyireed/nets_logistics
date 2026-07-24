@@ -54,8 +54,12 @@ export function AdminSidebar() {
 
   return (
     <nav className="admin-sidebar">
-      <div className="admin-sidebar-logo" style={{ padding: '0 1rem', background: '#0A3041', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <img src="/logo-white-final.png" alt="NETS Admin" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+      <div className="admin-sidebar-logo" style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.625rem', borderBottom: '1px solid var(--adm-border)', background: 'var(--adm-surface)' }}>
+        <img src="/favicon.svg" alt="NETS Logo" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+          <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--adm-text-1)', letterSpacing: '-0.02em' }}>NETS</span>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--adm-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Control Center</span>
+        </div>
       </div>
 
       <div className="admin-nav">

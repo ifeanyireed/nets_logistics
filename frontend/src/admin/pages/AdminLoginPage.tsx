@@ -27,8 +27,12 @@ export function AdminLoginPage() {
     <div className="admin-shell">
       <div className="admin-login-wrap">
         <div className="admin-login-box">
-          <div className="admin-login-logo" style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem', background: '#0A3041', padding: '0.875rem', borderRadius: '6px' }}>
-            <img src="/logo-white-final.png" alt="NETS Admin" style={{ height: '44px', width: 'auto', objectFit: 'contain' }} />
+          <div className="admin-login-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+            <img src="/favicon.svg" alt="NETS Admin Logo" style={{ height: '48px', width: '48px', objectFit: 'contain' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: 1.1 }}>
+              <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--adm-text-1)', letterSpacing: '-0.02em' }}>NETS</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--adm-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Control Center</span>
+            </div>
           </div>
 
           <div className="admin-login-title">Sign in to your account</div>
