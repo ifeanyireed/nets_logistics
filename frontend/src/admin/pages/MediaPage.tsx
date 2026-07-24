@@ -1,26 +1,66 @@
 // ============================================================================
 // NETS Admin — Fleet Media Management
 // ============================================================================
-import { useState, useRef } from 'react'
-import { Upload, Eye, Trash2, Star } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Upload, Eye, Trash2, Star, Check } from 'lucide-react'
 import { useAdminStore } from '../store/useAdminStore'
+import { vehicleService } from '../../services/vehicleService'
+import { adminService } from '../services/adminService'
+import { Vehicle } from '../../types'
 
 export function MediaPage() {
-  const { vehicles, updateVehicle, addActivityEntry, session } = useAdminStore()
-  const [selectedVehicleId, setSelectedVehicleId] = useState(vehicles[0]?.id ?? '')
+  const { session } = useAdminStore()
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('')
   const [preview, setPreview] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [savedSuccess, setSavedSuccess] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  const loadVehicles = () => {
+    vehicleService.getVehicles().then((list) => {
+      setVehicles(list)
+      if (list.length > 0 && !selectedVehicleId) {
+        setSelectedVehicleId(list[0].id)
+      }
+    })
+  }
+
+  useEffect(() => {
+    loadVehicles()
+  }, [])
 
   const vehicle = vehicles.find(v => v.id === selectedVehicleId)
   const userId = session.user?.id ?? 'usr-001'
   const userName = session.user?.fullName ?? 'Admin'
 
+  const handleApplyImage = async (newUrl: string) => {
+    if (!vehicle) return
+    setSaving(true)
+    const success = await adminService.saveVehicle({
+      id: vehicle.id,
+      name: vehicle.name,
+      slug: vehicle.slug,
+      category: vehicle.category,
+      capacity: vehicle.capacity,
+      imageUrl: newUrl,
+      available: vehicle.available,
+    }, true)
+
+    if (success) {
+      setSavedSuccess(true)
+      setTimeout(() => setSavedSuccess(false), 3000)
+      loadVehicles()
+      setPreview(null)
+    }
+    setSaving(false)
+  }
+
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !vehicle) return
     const url = URL.createObjectURL(file)
-    updateVehicle(vehicle.id, { imageUrl: url })
-    addActivityEntry({ userId, userName, action: 'Image Updated', entity: 'Vehicle', entityId: vehicle.id, description: `Replaced primary image for ${vehicle.name}`, previousValue: vehicle.imageUrl, newValue: url })
+    setPreview(url)
     e.target.value = ''
   }
 
@@ -48,7 +88,7 @@ export function MediaPage() {
                 <img src={v.imageUrl} alt={v.name} style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} />
                 <div>
                   <div style={{ fontWeight: 500, fontSize: 13, color: selectedVehicleId === v.id ? 'var(--adm-accent)' : 'var(--adm-text-1)' }}>{v.name}</div>
-                  <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{v.registrationNumber}</div>
+                  <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{v.id.toUpperCase()} · {v.category}</div>
                 </div>
                 {selectedVehicleId === v.id && <Star size={12} color="var(--adm-accent)" style={{ marginLeft: 'auto' }} />}
               </div>
@@ -100,10 +140,18 @@ export function MediaPage() {
                 <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />
               </div>
 
+              {savedSuccess && (
+                <div className="admin-alert admin-alert-success" style={{ marginTop: '1rem' }}>
+                  <Check size={14} /> Primary image updated successfully in database.
+                </div>
+              )}
+
               {preview && (
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                  <button className="admin-btn admin-btn-primary" onClick={() => { updateVehicle(vehicle.id, { imageUrl: preview }); setPreview(null) }}>Apply Image</button>
-                  <button className="admin-btn admin-btn-ghost" onClick={() => setPreview(null)}>Cancel</button>
+                  <button className="admin-btn admin-btn-primary" disabled={saving} onClick={() => handleApplyImage(preview)}>
+                    {saving ? 'Saving to Database…' : 'Apply Image'}
+                  </button>
+                  <button className="admin-btn admin-btn-ghost" disabled={saving} onClick={() => setPreview(null)}>Cancel</button>
                 </div>
               )}
             </div>
