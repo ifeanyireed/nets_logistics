@@ -5,12 +5,6 @@ dist-ssr/
 *.local
 *.tsbuildinfo
 
-# PHP / Backend
-backend/vendor/
-backend/.env
-backend/.env.local
-backend/storage/logs/*.log
-
 # Logs & Debug
 logs
 *.log
