@@ -5,7 +5,7 @@
 export const API_URL = 
   import.meta.env.NEXT_PUBLIC_API_URL || 
   import.meta.env.VITE_API_URL || 
-  'http://localhost:8000/api/v1'
+  'http://localhost:8080/api/v1'
 
 export const MAPBOX_TOKEN = 
   import.meta.env.NEXT_PUBLIC_MAPBOX_TOKEN || 
