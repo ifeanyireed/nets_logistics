@@ -62,6 +62,16 @@ export interface AdminCustomerDB {
   createdAt: string
 }
 
+export interface AdminUserDB {
+  id: string
+  fullName: string
+  email: string
+  role: string
+  status: 'active' | 'inactive'
+  lastLogin?: string
+  createdAt: string
+}
+
 export class AdminService {
   /**
    * Fetch live dashboard statistics from Go REST API backend.
@@ -171,6 +181,58 @@ export class AdminService {
       console.warn('⚠️ [ADMIN SERVICE] Could not fetch customers from backend:', err)
     }
     return []
+  }
+
+  /**
+   * Fetch all admin users from Go REST API backend.
+   */
+  public async getUsers(): Promise<AdminUserDB[]> {
+    try {
+      const res = await fetch(`${API_URL}/users`)
+      if (res.ok) {
+        const json = await res.json()
+        if (json.data && Array.isArray(json.data.users)) {
+          return json.data.users
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ [ADMIN SERVICE] Could not fetch users from backend:', err)
+    }
+    return []
+  }
+
+  /**
+   * Create a new admin user in backend.
+   */
+  public async saveUser(user: Partial<AdminUserDB>): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user),
+      })
+      return res.ok
+    } catch (err) {
+      console.warn('⚠️ [ADMIN SERVICE] Could not save user:', err)
+      return false
+    }
+  }
+
+  /**
+   * Update user status (active/inactive).
+   */
+  public async updateUserStatus(id: string, status: 'active' | 'inactive'): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      return res.ok
+    } catch (err) {
+      console.warn('⚠️ [ADMIN SERVICE] Could not update user status:', err)
+      return false
+    }
   }
 
   /**

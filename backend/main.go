@@ -31,6 +31,7 @@ func main() {
 	vehicleHandler := handlers.NewVehicleHandler()
 	bookingHandler := handlers.NewBookingHandler()
 	customerHandler := handlers.NewCustomerHandler()
+	userHandler := handlers.NewUserHandler()
 	adminHandler := handlers.NewAdminHandler()
 
 	// Root Route & Dynamic Sub-routes
@@ -87,6 +88,16 @@ func main() {
 			switch r.Method {
 			case http.MethodPut, http.MethodPatch:
 				customerHandler.Update(w, r)
+			default:
+				response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+			}
+			return
+		}
+
+		if strings.HasPrefix(path, "/api/v1/users/") {
+			switch r.Method {
+			case http.MethodPut, http.MethodPatch:
+				userHandler.Update(w, r)
 			default:
 				response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
 			}
@@ -150,6 +161,17 @@ func main() {
 			customerHandler.Index(w, r)
 		case http.MethodPost:
 			customerHandler.Store(w, r)
+		default:
+			response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+		}
+	})
+
+	mux.HandleFunc("/api/v1/users", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			userHandler.Index(w, r)
+		case http.MethodPost:
+			userHandler.Store(w, r)
 		default:
 			response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
 		}

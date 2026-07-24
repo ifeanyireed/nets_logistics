@@ -48,17 +48,34 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.Vehicle{},
 		&models.Booking{},
 		&models.Customer{},
+		&models.User{},
 	)
 	if err != nil {
 		return fmt.Errorf("failed GORM auto migration: %w", err)
 	}
 
-	log.Println("✅ GORM AutoMigrate completed successfully (Leads, Contacts, Vehicles, Bookings, Customers tables verified).")
+	log.Println("✅ GORM AutoMigrate completed successfully (Leads, Contacts, Vehicles, Bookings, Customers, Users tables verified).")
 	return nil
 }
 
 func SeedInitialData(db *gorm.DB) {
 	SeedVehicles(db)
+
+	var userCount int64
+	db.Model(&models.User{}).Count(&userCount)
+	if userCount == 0 {
+		users := []models.User{
+			{ID: "usr-001", FullName: "Adebayo Ogundimu", Email: "admin@netsnigeria.com", Role: "super-admin", Status: "active", LastLogin: time.Now(), CreatedAt: time.Now()},
+			{ID: "usr-002", FullName: "Kemi Adeyinka", Email: "ops@netsnigeria.com", Role: "ops-manager", Status: "active", LastLogin: time.Now().AddDate(0, 0, -1), CreatedAt: time.Now()},
+			{ID: "usr-003", FullName: "Tolu Obi", Email: "sales@netsnigeria.com", Role: "sales-manager", Status: "active", LastLogin: time.Now(), CreatedAt: time.Now()},
+			{ID: "usr-004", FullName: "Uche Nwachukwu", Email: "finance@netsnigeria.com", Role: "finance", Status: "active", LastLogin: time.Now().AddDate(0, 0, -2), CreatedAt: time.Now()},
+			{ID: "usr-005", FullName: "Ifeanyi Reed", Email: "reedbreeddigital@gmail.com", Role: "super-admin", Status: "active", LastLogin: time.Now(), CreatedAt: time.Now()},
+		}
+		for _, u := range users {
+			db.Create(&u)
+		}
+		log.Println("👤 Seeded initial Admin Users into MySQL.")
+	}
 
 	var custCount int64
 	db.Model(&models.Customer{}).Count(&custCount)

@@ -1,9 +1,10 @@
 // ============================================================================
 // NETS Admin — User Management
 // ============================================================================
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, X, Save } from 'lucide-react'
 import { useAdminStore, type AdminUser } from '../store/useAdminStore'
+import { adminService, AdminUserDB } from '../services/adminService'
 
 const roleLabels: Record<string, string> = {
   'super-admin': 'Super Administrator', 'ops-manager': 'Operations Manager',
@@ -32,11 +33,35 @@ const permissionMatrix: { module: string; superAdmin: boolean; opsManager: boole
 ]
 
 export function UsersPage() {
-  const { users, addUser, updateUserStatus } = useAdminStore()
+  const [users, setUsers] = useState<AdminUserDB[]>([])
+  const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [showMatrix, setShowMatrix] = useState(false)
 
-  const fmtDate = (iso: string) => {
+  const loadUsers = () => {
+    setLoading(true)
+    adminService.getUsers().then(list => {
+      setUsers(list || [])
+      setLoading(false)
+    })
+  }
+
+  useEffect(() => {
+    loadUsers()
+  }, [])
+
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'active' ? 'inactive' : 'active'
+    await adminService.updateUserStatus(id, nextStatus)
+    loadUsers()
+  }
+
+  const handleAddUser = async (userForm: Partial<AdminUserDB>) => {
+    await adminService.saveUser(userForm)
+    loadUsers()
+  }
+
+  const fmtDate = (iso?: string) => {
     if (!iso) return 'Never'
     const d = new Date(iso), now = new Date()
     const diff = Math.floor((now.getTime() - d.getTime()) / 86400000)
@@ -62,30 +87,34 @@ export function UsersPage() {
         <table className="admin-table">
           <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
           <tbody>
-            {users.map(u => (
-              <tr key={u.id}>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div className="admin-avatar" style={{ width: 32, height: 32, fontSize: 12 }}>
-                      {u.fullName.split(' ').map(n => n[0]).join('').slice(0,2)}
+            {users.length === 0 ? (
+              <tr><td colSpan={5} className="admin-table-empty">No admin users found in database</td></tr>
+            ) : (
+              users.map(u => (
+                <tr key={u.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div className="admin-avatar" style={{ width: 32, height: 32, fontSize: 12 }}>
+                        {u.fullName ? u.fullName.split(' ').map(n => n[0]).join('').slice(0,2) : 'US'}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 500, fontSize: 13 }}>{u.fullName}</div>
+                        <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{u.email}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: 13 }}>{u.fullName}</div>
-                      <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{u.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td><span className={`admin-badge ${roleBadge[u.role]}`}>{roleLabels[u.role]}</span></td>
-                <td><span className={`admin-badge ${u.status === 'active' ? 'admin-badge-green' : 'admin-badge-gray'}`}>{u.status}</span></td>
-                <td style={{ fontSize: 13, color: 'var(--adm-text-2)' }}>{fmtDate(u.lastLogin)}</td>
-                <td>
-                  <button className="admin-btn admin-btn-ghost admin-btn-sm"
-                    onClick={() => updateUserStatus(u.id, u.status === 'active' ? 'inactive' : 'active')}>
-                    {u.status === 'active' ? 'Deactivate' : 'Activate'}
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td><span className={`admin-badge ${roleBadge[u.role] ?? 'admin-badge-gray'}`}>{roleLabels[u.role] ?? u.role}</span></td>
+                  <td><span className={`admin-badge ${u.status === 'active' ? 'admin-badge-green' : 'admin-badge-gray'}`}>{u.status}</span></td>
+                  <td style={{ fontSize: 13, color: 'var(--adm-text-2)' }}>{fmtDate(u.lastLogin)}</td>
+                  <td>
+                    <button className="admin-btn admin-btn-ghost admin-btn-sm"
+                      onClick={() => handleToggleStatus(u.id, u.status)}>
+                      {u.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -124,16 +153,16 @@ export function UsersPage() {
       )}
 
       {/* Add User Modal */}
-      {showAdd && <AddUserModal onClose={() => setShowAdd(false)} addUser={addUser} />}
+      {showAdd && <AddUserModal onClose={() => setShowAdd(false)} onSave={handleAddUser} />}
     </>
   )
 }
 
-function AddUserModal({ onClose, addUser }: any) {
-  const [form, setForm] = useState({ fullName: '', email: '', role: 'support', status: 'active' as AdminUser['status'] })
-  const handleSubmit = (e: React.FormEvent) => {
+function AddUserModal({ onClose, onSave }: any) {
+  const [form, setForm] = useState({ fullName: '', email: '', role: 'support', status: 'active' as const })
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    addUser(form)
+    await onSave(form)
     onClose()
   }
   return (
@@ -155,7 +184,7 @@ function AddUserModal({ onClose, addUser }: any) {
             </div>
             <div className="admin-form-group">
               <label className="admin-label">Role</label>
-              <select className="admin-select" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value as any }))}>
+              <select className="admin-select" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
                 {Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </div>
