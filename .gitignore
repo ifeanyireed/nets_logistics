@@ -1,9 +1,10 @@
 # Node / Frontend
 node_modules/
-dist/
 dist-ssr/
 *.local
 *.tsbuildinfo
+
+backend/
 
 # Secrets & Environment
 .env
