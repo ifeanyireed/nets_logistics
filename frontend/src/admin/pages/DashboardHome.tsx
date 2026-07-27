@@ -44,11 +44,21 @@ export function DashboardHome() {
     adminService.getBookings().then(setLiveBookings)
   }, [])
 
-  // KPIs derived from MySQL database
-  const pendingQuotes = liveStats ? liveStats.pendingLeads : liveLeads.filter(q => q.status === 'pending').length
+  // KPIs derived from MySQL database with local fallbacks
+  const pendingQuotes = (liveStats && liveStats.pendingLeads > 0)
+    ? liveStats.pendingLeads
+    : liveLeads.filter(q => q.status === 'pending').length
+
   const confirmedBookings = liveBookings.filter(b => b.operationalStatus === 'confirmed').length
-  const fleetActive = liveStats ? liveStats.activeFleet : vehicles.filter(v => v.available).length
-  const revenueTotal = liveStats ? liveStats.totalPipelineValue : liveLeads.reduce((s, l) => s + (l.estimatedInvestmentMax || 0), 0)
+
+  const fleetActive = (liveStats && liveStats.activeFleet > 0)
+    ? liveStats.activeFleet
+    : vehicles.filter(v => v.available).length
+
+  const leadRevenue = liveLeads.reduce((s, l) => s + (l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0), 0)
+  const revenueTotal = (liveStats && liveStats.totalPipelineValue > 0)
+    ? liveStats.totalPipelineValue
+    : leadRevenue
 
   const upcoming = liveBookings
     .filter(b => b.operationalStatus !== 'cancelled')
@@ -94,41 +104,29 @@ export function DashboardHome() {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="admin-grid-4">
-        <div className="admin-kpi-card">
-          <div className="admin-kpi-header">
-            <span className="admin-kpi-title">Pending Quotes</span>
-            <div className="admin-kpi-icon admin-kpi-icon-accent"><FileText size={16} /></div>
-          </div>
-          <div className="admin-kpi-value">{pendingQuotes}</div>
-          <div className="admin-kpi-sub admin-text-muted">Awaiting pricing review</div>
+      <div className="admin-stat-grid">
+        <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-accent)' }}>
+          <div className="admin-stat-label">Pending Quotes</div>
+          <div className="admin-stat-value" style={{ color: pendingQuotes > 0 ? 'var(--adm-warning)' : undefined }}>{pendingQuotes}</div>
+          <div className="admin-stat-sub">Awaiting pricing review</div>
         </div>
 
-        <div className="admin-kpi-card">
-          <div className="admin-kpi-header">
-            <span className="admin-kpi-title">Confirmed Trips</span>
-            <div className="admin-kpi-icon admin-kpi-icon-green"><CalendarCheck size={16} /></div>
-          </div>
-          <div className="admin-kpi-value">{confirmedBookings}</div>
-          <div className="admin-kpi-sub admin-text-muted">Scheduled for dispatch</div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-label">Confirmed Trips</div>
+          <div className="admin-stat-value">{confirmedBookings}</div>
+          <div className="admin-stat-sub">Scheduled for dispatch</div>
         </div>
 
-        <div className="admin-kpi-card">
-          <div className="admin-kpi-header">
-            <span className="admin-kpi-title">Active Fleet</span>
-            <div className="admin-kpi-icon admin-kpi-icon-blue"><Truck size={16} /></div>
-          </div>
-          <div className="admin-kpi-value">{fleetActive}</div>
-          <div className="admin-kpi-sub admin-text-muted">Available in fleet catalog</div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-label">Active Fleet</div>
+          <div className="admin-stat-value">{fleetActive}<span style={{ fontSize: 14, color: 'var(--adm-text-3)', fontWeight: 400 }}>/{vehicles.length}</span></div>
+          <div className="admin-stat-sub">Available in fleet catalog</div>
         </div>
 
-        <div className="admin-kpi-card">
-          <div className="admin-kpi-header">
-            <span className="admin-kpi-title">Pipeline Revenue</span>
-            <div className="admin-kpi-icon admin-kpi-icon-yellow"><DollarSign size={16} /></div>
-          </div>
-          <div className="admin-kpi-value">{fmt(revenueTotal)}</div>
-          <div className="admin-kpi-sub admin-text-muted">Estimated quote value</div>
+        <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-success)' }}>
+          <div className="admin-stat-label">Pipeline Revenue</div>
+          <div className="admin-stat-value" style={{ fontSize: '1.25rem' }}>{fmt(revenueTotal)}</div>
+          <div className="admin-stat-sub admin-stat-trend-up">Estimated quote value</div>
         </div>
       </div>
 

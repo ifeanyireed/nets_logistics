@@ -9,6 +9,7 @@ export function CTABanner() {
 
   return (
     <section
+      id="quote"
       ref={ref}
       aria-label="Get started with NETS"
       style={{ background: 'var(--color-nets-navy-dark)', position: 'relative', overflow: 'hidden' }}
@@ -89,9 +90,9 @@ export function CTABanner() {
                 Contact Information
               </h3>
               {[
-                { label: 'Operations Phone', value: '+234 800 000 0000', sub: 'Available 24/7' },
-                { label: 'Sales Enquiries', value: 'sales@netsnigeria.com', sub: 'Response within 2 hours' },
-                { label: 'Head Office', value: 'Lagos, Nigeria', sub: 'Serving all 36 states' },
+                { label: 'Operations Phone', value: '+234 916 791 9439', sub: 'Available 24/7' },
+                { label: 'Sales Enquiries', value: 'info@neweratransports.com', sub: 'Response within 2 hours' },
+                { label: 'Head Office', value: 'Amuwo-Odofin, Lagos', sub: 'Serving nationwide' },
               ].map((item, i) => (
                 <div key={item.label} style={{
                   paddingTop: i > 0 ? '1.5rem' : '0',

@@ -8,11 +8,27 @@ import { VehicleDetailPage } from './pages/VehicleDetailPage'
 import { JourneyPlannerPage } from './pages/JourneyPlannerPage'
 import { AdminRouter } from './admin/AdminRouter'
 
-function ScrollToTop() {
-  const { pathname } = useLocation()
+function ScrollToTopAndHash() {
+  const { pathname, hash } = useLocation()
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+    if (hash) {
+      const timer = setTimeout(() => {
+        const id = hash.replace('#', '')
+        const elem = document.getElementById(id)
+        if (elem) {
+          const navHeight = 80
+          const elementPosition = elem.getBoundingClientRect().top + window.pageYOffset
+          window.scrollTo({
+            top: Math.max(0, elementPosition - navHeight),
+            behavior: 'smooth'
+          })
+        }
+      }, 100)
+      return () => clearTimeout(timer)
+    } else {
+      window.scrollTo(0, 0)
+    }
+  }, [pathname, hash])
   return null
 }
 
@@ -25,7 +41,7 @@ function AppContent() {
   if (isAdmin) {
     return (
       <>
-        <ScrollToTop />
+        <ScrollToTopAndHash />
         <AdminRouter />
       </>
     )
@@ -33,7 +49,7 @@ function AppContent() {
 
   return (
     <>
-      <ScrollToTop />
+      <ScrollToTopAndHash />
       <a
         href="#main-content"
         style={{

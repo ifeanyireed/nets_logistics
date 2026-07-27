@@ -34,7 +34,7 @@ const footerSections = [
 
 export function Footer() {
   return (
-    <footer role="contentinfo" style={{ background: 'var(--color-nets-navy-dark)' }}>
+    <footer id="contact" role="contentinfo" style={{ background: 'var(--color-nets-navy-dark)' }}>
       {/* Top accent */}
       <div style={{ height: '3px', background: 'var(--color-nets-navy)' }} />
 
