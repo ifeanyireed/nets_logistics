@@ -97,12 +97,12 @@ export const mockBookings: AdminBooking[] = [
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 export const mockUsers: AdminUser[] = [
-  { id: 'usr-001', fullName: 'Adebayo Ogundimu', email: 'admin@netsnigeria.com', role: 'super-admin', status: 'active', lastLogin: daysAgo(0) },
-  { id: 'usr-002', fullName: 'Kemi Adeyinka', email: 'ops@netsnigeria.com', role: 'ops-manager', status: 'active', lastLogin: daysAgo(1) },
-  { id: 'usr-003', fullName: 'Tolu Obi', email: 'sales@netsnigeria.com', role: 'sales-manager', status: 'active', lastLogin: daysAgo(0) },
-  { id: 'usr-004', fullName: 'Uche Nwachukwu', email: 'finance@netsnigeria.com', role: 'finance', status: 'active', lastLogin: daysAgo(3) },
-  { id: 'usr-005', fullName: 'Amaka Okafor', email: 'support@netsnigeria.com', role: 'support', status: 'active', lastLogin: daysAgo(1) },
-  { id: 'usr-006', fullName: 'Rotimi Adesanya', email: 'marketing@netsnigeria.com', role: 'marketing', status: 'inactive', lastLogin: daysAgo(14) },
+  { id: 'usr-001', fullName: 'Adebayo Ogundimu', email: 'admin@netsnigeria.com', role: 'admin', status: 'active', lastLogin: daysAgo(0) },
+  { id: 'usr-002', fullName: 'Kemi Adeyinka', email: 'staff@netsnigeria.com', role: 'staff', status: 'active', lastLogin: daysAgo(1) },
+  { id: 'usr-003', fullName: 'Tolu Obi', email: 'sales@netsnigeria.com', role: 'staff', status: 'active', lastLogin: daysAgo(0) },
+  { id: 'usr-004', fullName: 'Uche Nwachukwu', email: 'finance@netsnigeria.com', role: 'staff', status: 'active', lastLogin: daysAgo(3) },
+  { id: 'usr-005', fullName: 'Amaka Okafor', email: 'support@netsnigeria.com', role: 'staff', status: 'active', lastLogin: daysAgo(1) },
+  { id: 'usr-006', fullName: 'Rotimi Adesanya', email: 'marketing@netsnigeria.com', role: 'staff', status: 'inactive', lastLogin: daysAgo(14) },
 ]
 
 // ── Activity Log ──────────────────────────────────────────────────────────────

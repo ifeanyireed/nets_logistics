@@ -65,11 +65,11 @@ func SeedInitialData(db *gorm.DB) {
 	db.Model(&models.User{}).Count(&userCount)
 	if userCount == 0 {
 		users := []models.User{
-			{ID: "usr-001", FullName: "Adebayo Ogundimu", Email: "admin@netsnigeria.com", Role: "super-admin", Status: "active", LastLogin: time.Now(), CreatedAt: time.Now()},
-			{ID: "usr-002", FullName: "Kemi Adeyinka", Email: "ops@netsnigeria.com", Role: "ops-manager", Status: "active", LastLogin: time.Now().AddDate(0, 0, -1), CreatedAt: time.Now()},
-			{ID: "usr-003", FullName: "Tolu Obi", Email: "sales@netsnigeria.com", Role: "sales-manager", Status: "active", LastLogin: time.Now(), CreatedAt: time.Now()},
-			{ID: "usr-004", FullName: "Uche Nwachukwu", Email: "finance@netsnigeria.com", Role: "finance", Status: "active", LastLogin: time.Now().AddDate(0, 0, -2), CreatedAt: time.Now()},
-			{ID: "usr-005", FullName: "Ifeanyi Reed", Email: "reedbreeddigital@gmail.com", Role: "super-admin", Status: "active", LastLogin: time.Now(), CreatedAt: time.Now()},
+			{ID: "usr-001", FullName: "Adebayo Ogundimu", Email: "admin@netsnigeria.com", Role: "admin", Status: "active", LastLogin: time.Now(), CreatedAt: time.Now()},
+			{ID: "usr-002", FullName: "Kemi Adeyinka", Email: "staff@netsnigeria.com", Role: "staff", Status: "active", LastLogin: time.Now().AddDate(0, 0, -1), CreatedAt: time.Now()},
+			{ID: "usr-003", FullName: "Tolu Obi", Email: "sales@netsnigeria.com", Role: "staff", Status: "active", LastLogin: time.Now(), CreatedAt: time.Now()},
+			{ID: "usr-004", FullName: "Uche Nwachukwu", Email: "finance@netsnigeria.com", Role: "staff", Status: "active", LastLogin: time.Now().AddDate(0, 0, -2), CreatedAt: time.Now()},
+			{ID: "usr-005", FullName: "Ifeanyi Reed", Email: "reedbreeddigital@gmail.com", Role: "admin", Status: "active", LastLogin: time.Now(), CreatedAt: time.Now()},
 		}
 		for _, u := range users {
 			db.Create(&u)

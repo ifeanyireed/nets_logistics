@@ -7,29 +7,30 @@ import { useAdminStore, type AdminUser } from '../store/useAdminStore'
 import { adminService, AdminUserDB } from '../services/adminService'
 
 const roleLabels: Record<string, string> = {
-  'super-admin': 'Super Administrator', 'ops-manager': 'Operations Manager',
-  'sales-manager': 'Sales Manager', 'sales-exec': 'Sales Executive',
-  'finance': 'Finance', 'support': 'Customer Support', 'marketing': 'Marketing',
+  'admin': 'Admin', 'super-admin': 'Admin',
+  'staff': 'Staff', 'ops-manager': 'Staff', 'sales-manager': 'Staff',
+  'sales-exec': 'Staff', 'finance': 'Staff', 'support': 'Staff', 'marketing': 'Staff',
 }
 const roleBadge: Record<string, string> = {
-  'super-admin': 'admin-badge-accent', 'ops-manager': 'admin-badge-green',
-  'sales-manager': 'admin-badge-green', 'sales-exec': 'admin-badge-gray',
-  'finance': 'admin-badge-yellow', 'support': 'admin-badge-gray', 'marketing': 'admin-badge-gray',
+  'admin': 'admin-badge-accent', 'super-admin': 'admin-badge-accent',
+  'staff': 'admin-badge-green', 'ops-manager': 'admin-badge-green',
+  'sales-manager': 'admin-badge-green', 'sales-exec': 'admin-badge-green',
+  'finance': 'admin-badge-green', 'support': 'admin-badge-green', 'marketing': 'admin-badge-green',
 }
 
-const permissionMatrix: { module: string; superAdmin: boolean; opsManager: boolean; salesManager: boolean; finance: boolean; support: boolean; marketing: boolean }[] = [
-  { module: 'Dashboard', superAdmin: true, opsManager: true, salesManager: true, finance: true, support: true, marketing: false },
-  { module: 'Quotes', superAdmin: true, opsManager: true, salesManager: true, finance: false, support: true, marketing: false },
-  { module: 'Bookings', superAdmin: true, opsManager: true, salesManager: true, finance: false, support: true, marketing: false },
-  { module: 'Customers', superAdmin: true, opsManager: true, salesManager: true, finance: false, support: true, marketing: false },
-  { module: 'Fleet', superAdmin: true, opsManager: true, salesManager: false, finance: false, support: false, marketing: false },
-  { module: 'Pricing', superAdmin: true, opsManager: true, salesManager: false, finance: true, support: false, marketing: false },
-  { module: 'Media', superAdmin: true, opsManager: true, salesManager: false, finance: false, support: false, marketing: true },
-  { module: 'Promotions', superAdmin: true, opsManager: false, salesManager: true, finance: false, support: false, marketing: true },
-  { module: 'Analytics', superAdmin: true, opsManager: true, salesManager: true, finance: true, support: false, marketing: true },
-  { module: 'User Management', superAdmin: true, opsManager: false, salesManager: false, finance: false, support: false, marketing: false },
-  { module: 'Activity Log', superAdmin: true, opsManager: true, salesManager: false, finance: true, support: false, marketing: false },
-  { module: 'Settings', superAdmin: true, opsManager: false, salesManager: false, finance: false, support: false, marketing: false },
+const permissionMatrix: { module: string; admin: boolean; staff: boolean }[] = [
+  { module: 'Dashboard', admin: true, staff: true },
+  { module: 'Quotes', admin: true, staff: true },
+  { module: 'Bookings', admin: true, staff: true },
+  { module: 'Customers', admin: true, staff: true },
+  { module: 'Fleet', admin: true, staff: false },
+  { module: 'Pricing', admin: true, staff: false },
+  { module: 'Media', admin: true, staff: false },
+  { module: 'Promotions', admin: true, staff: false },
+  { module: 'Analytics', admin: true, staff: false },
+  { module: 'User Management', admin: true, staff: false },
+  { module: 'Activity Log', admin: true, staff: false },
+  { module: 'Settings', admin: true, staff: false },
 ]
 
 export function UsersPage() {
@@ -75,7 +76,7 @@ export function UsersPage() {
       <div className="admin-page-header">
         <div>
           <div className="admin-page-title">User Management</div>
-          <div className="admin-page-desc">{users.filter(u => u.status === 'active').length} active users across {Object.keys(roleLabels).length} roles</div>
+          <div className="admin-page-desc">{users.filter(u => u.status === 'active').length} active users across 2 user types (Admin & Staff)</div>
         </div>
         <div className="admin-page-actions">
           <button className="admin-btn admin-btn-ghost" onClick={() => setShowMatrix(true)}>Permission Matrix</button>
@@ -122,27 +123,26 @@ export function UsersPage() {
       {/* Permission Matrix */}
       {showMatrix && (
         <div className="admin-modal-backdrop" onClick={() => setShowMatrix(false)}>
-          <div className="admin-modal" style={{ maxWidth: 800 }} onClick={e => e.stopPropagation()}>
+          <div className="admin-modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
             <div className="admin-modal-header">
               <span className="admin-modal-title">Permission Matrix</span>
               <button className="admin-btn admin-btn-icon admin-btn-ghost" onClick={() => setShowMatrix(false)}><X size={14} /></button>
             </div>
             <div style={{ padding: '1.25rem', overflowX: 'auto' }}>
-              <table className="admin-table" style={{ fontSize: 12 }}>
+              <table className="admin-table" style={{ fontSize: 13 }}>
                 <thead>
                   <tr>
                     <th>Module</th>
-                    <th>Super Admin</th><th>Ops Manager</th><th>Sales Manager</th>
-                    <th>Finance</th><th>Support</th><th>Marketing</th>
+                    <th style={{ textAlign: 'center' }}>Admin</th>
+                    <th style={{ textAlign: 'center' }}>Staff</th>
                   </tr>
                 </thead>
                 <tbody>
                   {permissionMatrix.map(row => (
                     <tr key={row.module}>
                       <td style={{ fontWeight: 500 }}>{row.module}</td>
-                      {[row.superAdmin, row.opsManager, row.salesManager, row.finance, row.support, row.marketing].map((has, i) => (
-                        <td key={i} style={{ textAlign: 'center', color: has ? 'var(--adm-success)' : 'var(--adm-border)' }}>{has ? '✓' : '✗'}</td>
-                      ))}
+                      <td style={{ textAlign: 'center', color: row.admin ? 'var(--adm-success)' : 'var(--adm-border)' }}>{row.admin ? '✓' : '✗'}</td>
+                      <td style={{ textAlign: 'center', color: row.staff ? 'var(--adm-success)' : 'var(--adm-border)' }}>{row.staff ? '✓' : '✗'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -159,7 +159,7 @@ export function UsersPage() {
 }
 
 function AddUserModal({ onClose, onSave }: any) {
-  const [form, setForm] = useState({ fullName: '', email: '', role: 'support', status: 'active' as const })
+  const [form, setForm] = useState({ fullName: '', email: '', role: 'staff', status: 'active' as const })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     await onSave(form)
@@ -185,7 +185,8 @@ function AddUserModal({ onClose, onSave }: any) {
             <div className="admin-form-group">
               <label className="admin-label">Role</label>
               <select className="admin-select" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                {Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
               </select>
             </div>
           </div>

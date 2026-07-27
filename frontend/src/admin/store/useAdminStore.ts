@@ -51,7 +51,7 @@ export interface AdminBooking {
 
 export interface AdminUser {
   id: string; fullName: string; email: string
-  role: 'super-admin' | 'ops-manager' | 'sales-manager' | 'sales-exec' | 'finance' | 'support' | 'marketing'
+  role: 'admin' | 'staff' | string
   status: 'active' | 'inactive'; lastLogin: string
 }
 
@@ -142,6 +142,7 @@ const MOCK_CREDENTIALS = [
   { email: 'admin@neweratransports.com', password: 'nets2026', userId: 'usr-001' },
   { email: 'info@neweratransports.com', password: 'nets2026', userId: 'usr-001' },
   { email: 'reedbreeddigital@gmail.com', password: 'nets2026', userId: 'usr-001' },
+  { email: 'staff@netsnigeria.com', password: 'nets2026', userId: 'usr-002' },
   { email: 'ops@netsnigeria.com', password: 'nets2026', userId: 'usr-002' },
   { email: 'sales@netsnigeria.com', password: 'nets2026', userId: 'usr-003' },
 ]

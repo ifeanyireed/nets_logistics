@@ -23,12 +23,13 @@ export function AdminLoginPage() {
     else { setError('Invalid email address or password. Please try again.'); setLoading(false) }
   }
 
-  const handleQuickLogin = () => {
-    setEmail('admin@netsnigeria.com')
+  const handleQuickLogin = (role: 'admin' | 'staff') => {
+    const targetEmail = role === 'admin' ? 'admin@netsnigeria.com' : 'staff@netsnigeria.com'
+    setEmail(targetEmail)
     setPassword('nets2026')
     setLoading(true)
     setTimeout(() => {
-      login('admin@netsnigeria.com', 'nets2026')
+      login(targetEmail, 'nets2026')
       navigate('/admin', { replace: true })
     }, 300)
   }
@@ -71,17 +72,27 @@ export function AdminLoginPage() {
 
           <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--adm-surface-2)', border: '1px solid var(--adm-border)', borderRadius: 'var(--adm-radius-sm)', fontSize: 12, color: 'var(--adm-text-2)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <div>
-              <strong style={{ color: 'var(--adm-text-1)' }}>Demo credentials:</strong><br />
-              Email: <code style={{ color: 'var(--adm-accent)', fontWeight: 600 }}>admin@netsnigeria.com</code><br />
-              Password: <code style={{ color: 'var(--adm-accent)', fontWeight: 600 }}>nets2026</code>
+              <strong style={{ color: 'var(--adm-text-1)' }}>Quick Demo Logins:</strong><br />
+              Password for all: <code style={{ color: 'var(--adm-accent)', fontWeight: 600 }}>nets2026</code>
             </div>
-            <button
-              onClick={handleQuickLogin}
-              className="admin-btn admin-btn-ghost admin-btn-sm"
-              style={{ marginTop: '0.25rem', width: '100%', justifyContent: 'center' }}
-            >
-              ⚡ Auto-Fill & Sign In
-            </button>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.25rem' }}>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('admin')}
+                className="admin-btn admin-btn-ghost admin-btn-sm"
+                style={{ justifyContent: 'center' }}
+              >
+                ⚡ Sign in (Admin)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('staff')}
+                className="admin-btn admin-btn-ghost admin-btn-sm"
+                style={{ justifyContent: 'center' }}
+              >
+                ⚡ Sign in (Staff)
+              </button>
+            </div>
           </div>
         </div>
       </div>

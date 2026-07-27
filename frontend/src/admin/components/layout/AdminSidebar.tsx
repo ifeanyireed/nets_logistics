@@ -46,11 +46,11 @@ export function AdminSidebar() {
     navigate('/admin/login')
   }
 
+  const userRole = (session.user?.role ?? 'admin').toLowerCase()
+  const isAdmin = userRole === 'admin' || userRole === 'super-admin'
+  const roleDisplay = isAdmin ? 'Admin' : 'Staff'
+
   const initials = session.user?.fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2) ?? 'AD'
-  const roleName: Record<string, string> = {
-    'super-admin': 'Super Admin', 'ops-manager': 'Operations', 'sales-manager': 'Sales Manager',
-    'finance': 'Finance', 'support': 'Support', 'marketing': 'Marketing', 'sales-exec': 'Sales Executive',
-  }
 
   return (
     <nav className="admin-sidebar">
@@ -58,7 +58,7 @@ export function AdminSidebar() {
         <img src="/favicon.svg" alt="NETS Logo" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
           <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--adm-text-1)', letterSpacing: '-0.02em' }}>NETS</span>
-          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--adm-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Control Center</span>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--adm-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleDisplay} Portal</span>
         </div>
       </div>
 
@@ -85,42 +85,46 @@ export function AdminSidebar() {
           ))}
         </div>
 
-        <div className="admin-nav-section">
-          <div className="admin-nav-label">Fleet & Pricing</div>
-          {fleetItems.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to}
-              className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
-              <Icon size={15} />{label}
-            </NavLink>
-          ))}
-        </div>
+        {isAdmin && (
+          <>
+            <div className="admin-nav-section">
+              <div className="admin-nav-label">Fleet & Pricing</div>
+              {fleetItems.map(({ to, label, icon: Icon }) => (
+                <NavLink key={to} to={to}
+                  className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
+                  <Icon size={15} />{label}
+                </NavLink>
+              ))}
+            </div>
 
-        <div className="admin-nav-section">
-          <div className="admin-nav-label">Growth</div>
-          {growthItems.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to}
-              className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
-              <Icon size={15} />{label}
-            </NavLink>
-          ))}
-        </div>
+            <div className="admin-nav-section">
+              <div className="admin-nav-label">Growth</div>
+              {growthItems.map(({ to, label, icon: Icon }) => (
+                <NavLink key={to} to={to}
+                  className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
+                  <Icon size={15} />{label}
+                </NavLink>
+              ))}
+            </div>
 
-        <div className="admin-nav-section">
-          <div className="admin-nav-label">Administration</div>
-          {adminItems.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to}
-              className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
-              <Icon size={15} />{label}
-            </NavLink>
-          ))}
-        </div>
+            <div className="admin-nav-section">
+              <div className="admin-nav-label">Administration</div>
+              {adminItems.map(({ to, label, icon: Icon }) => (
+                <NavLink key={to} to={to}
+                  className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
+                  <Icon size={15} />{label}
+                </NavLink>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="admin-sidebar-user">
         <div className="admin-avatar" style={{ width: 32, height: 32, fontSize: 12 }}>{initials}</div>
         <div className="admin-sidebar-user-info">
-          <div className="admin-sidebar-user-name">{session.user?.fullName ?? 'Admin'}</div>
-          <div className="admin-sidebar-user-role">{roleName[session.user?.role ?? ''] ?? ''}</div>
+          <div className="admin-sidebar-user-name">{session.user?.fullName ?? 'User'}</div>
+          <div className="admin-sidebar-user-role">{roleDisplay}</div>
         </div>
         <button onClick={handleLogout} className="admin-btn admin-btn-icon admin-btn-ghost" title="Sign out">
           <LogOut size={14} />

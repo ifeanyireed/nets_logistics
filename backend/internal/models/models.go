@@ -90,7 +90,7 @@ type User struct {
 	ID        string    `json:"id" gorm:"primaryKey;type:varchar(64)"`
 	FullName  string    `json:"fullName" gorm:"type:varchar(255);not null"`
 	Email     string    `json:"email" gorm:"uniqueIndex;type:varchar(255);not null"`
-	Role      string    `json:"role" gorm:"type:varchar(64);default:'support'"`
+	Role      string    `json:"role" gorm:"type:varchar(64);default:'staff'"`
 	Status    string    `json:"status" gorm:"type:varchar(64);default:'active'"`
 	LastLogin time.Time `json:"lastLogin"`
 	CreatedAt time.Time `json:"createdAt"`
