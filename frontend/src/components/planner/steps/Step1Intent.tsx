@@ -5,15 +5,15 @@ import { fadeUp, staggerContainer, staggerItem } from '../../../lib/motion'
 
 const INTENTS: { id: JourneyIntent, title: string, desc: string, icon: any }[] = [
   { id: 'General Transport', title: 'General Transport', desc: "Flexible transport for journeys that don't fall into a specific category.", icon: Navigation },
-  { id: 'Corporate Staff Transport', title: 'Corporate Staff', desc: 'Executive teams and employee shuttles', icon: Building2 },
+  { id: 'Corporate Staff', title: 'Corporate Staff', desc: 'Executive teams and employee shuttles', icon: Building2 },
   { id: 'Airport Transfer', title: 'Airport Transfer', desc: 'Reliable pickup and drop-off', icon: Plane },
-  { id: 'Wedding & Events', title: 'Weddings & Events', desc: 'Seamless guest transportation', icon: PartyPopper },
+  { id: 'Weddings & Events', title: 'Weddings & Events', desc: 'Seamless guest transportation', icon: PartyPopper },
   { id: 'School Transport', title: 'School Transport', desc: 'Safe travel for students and staff', icon: GraduationCap },
   { id: 'Religious Groups', title: 'Religious Groups', desc: 'Conventions and pilgrimages', icon: Church },
-  { id: 'Conference & Exhibitions', title: 'Conferences', desc: 'Large-scale delegate movement', icon: Presentation },
-  { id: 'Tourism & Excursions', title: 'Tourism', desc: 'Comfortable sightseeing travel', icon: Map },
-  { id: 'Private Group Travel', title: 'Private Group', desc: 'Custom trips for friends & family', icon: Users },
-  { id: 'Recurring Staff Shuttle', title: 'Recurring Shuttle', desc: 'Contracted daily transport', icon: RefreshCw },
+  { id: 'Conferences', title: 'Conferences', desc: 'Large-scale delegate movement', icon: Presentation },
+  { id: 'Tourism', title: 'Tourism', desc: 'Comfortable sightseeing travel', icon: Map },
+  { id: 'Private Group', title: 'Private Group', desc: 'Custom trips for friends & family', icon: Users },
+  { id: 'Recurring Shuttle', title: 'Recurring Shuttle', desc: 'Contracted daily transport', icon: RefreshCw },
 ]
 
 export function Step1Intent() {

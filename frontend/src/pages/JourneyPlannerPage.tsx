@@ -4,6 +4,7 @@ import { Step1Locations } from '../components/planner/new_steps/Step1Locations'
 import { Step2Details } from '../components/planner/new_steps/Step2Details'
 import { Step3Review } from '../components/planner/new_steps/Step3Review'
 import { AnimatePresence, motion } from 'framer-motion'
+import { usePaystackPayment } from 'react-paystack'
 
 export function JourneyPlannerPage() {
   const state = useJourneyStore()
@@ -14,8 +15,30 @@ export function JourneyPlannerPage() {
 
   const isComplete = currentStep === 1 ? isStep1Complete : currentStep === 2 ? isStep2Complete : true
 
+  const paystackConfig = {
+    reference: new Date().getTime().toString(),
+    email: state.customerDetails?.email || 'customer@nets.com.ng',
+    amount: (state.estimatedInvestment?.estimatedInvestment || 0) * 100, // Amount is in Kobo
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_1573581f39d4a4aa7486dc09a13d91856f085063',
+  }
+
+  const initializePayment = usePaystackPayment(paystackConfig)
+
   const handlePay = () => {
-    alert('Payment gateway integration goes here!')
+    if (!state.estimatedInvestment?.estimatedInvestment) {
+      alert('Cannot process payment: estimated investment is missing.')
+      return
+    }
+
+    initializePayment({
+      onSuccess: (reference: any) => {
+        console.log(reference)
+        alert('Payment Successful! Reference: ' + reference.reference)
+      },
+      onClose: () => {
+        console.log('Payment modal closed')
+      }
+    })
   }
 
   const renderStep = () => {

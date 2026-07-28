@@ -59,4 +59,55 @@ export const vehicles: Vehicle[] = [
       '/vehicles/suv.png'
     ]
   },
+  {
+    id: 'midibus-18',
+    name: '18-Seater Shuttle',
+    slug: '18-seater-shuttle',
+    capacity: 18,
+    category: 'Standard',
+    bestFor: 'Corporate Teams · Excursions',
+    imageUrl: '/vehicles/hiace.jpg', // fallback image
+    features: ['Air Conditioning', 'Comfortable Seats', 'Professional Driver', 'GPS Tracked'],
+    available: true,
+    editorialStory: 'An excellent middle ground between the standard HiAce and larger Coaster.',
+    comfortRating: 'Standard',
+    luggageSpace: 'Moderate',
+    airConditioning: 'Standard Air Conditioning',
+    recommendedFor: ['Corporate Staff Transportation', 'Short Excursions'],
+    gallery: ['/vehicles/hiace.jpg']
+  },
+  {
+    id: 'coach-50',
+    name: '50-Seater Coach',
+    slug: '50-seater-coach',
+    capacity: 50,
+    category: 'Executive',
+    bestFor: 'Large Groups · Intercity Travel',
+    imageUrl: '/vehicles/coaster.jpg', // fallback image
+    features: ['Air Conditioning', 'Reclining Seats', 'Professional Driver', 'GPS Tracked'],
+    available: true,
+    editorialStory: 'The ultimate transport for large-scale delegate movement and intercity travel.',
+    comfortRating: 'Executive',
+    luggageSpace: 'Generous',
+    airConditioning: 'High-Capacity Climate Control',
+    recommendedFor: ['Conferences', 'Large Group Travel'],
+    gallery: ['/vehicles/coaster.jpg']
+  },
+  {
+    id: 'sedan',
+    name: 'Executive Sedan',
+    slug: 'executive-sedan',
+    capacity: 3,
+    category: 'Luxury',
+    bestFor: 'VIP Transport · Executive Travel',
+    imageUrl: '/vehicles/suv.png', // fallback image
+    features: ['Leather Interior', 'Air Conditioning', 'Professional Driver', 'Privacy Glass'],
+    available: true,
+    editorialStory: 'Sleek and discreet transportation for executives and VIPs.',
+    comfortRating: 'Ultra Luxury',
+    luggageSpace: 'Standard',
+    airConditioning: 'Multi-Zone Automatic Climate Control',
+    recommendedFor: ['VIP Transport', 'Airport Pickups'],
+    gallery: ['/vehicles/suv.png']
+  }
 ]

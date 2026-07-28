@@ -134,7 +134,15 @@ interface JourneyState {
 export const useJourneyStore = create<JourneyState>((set, get) => ({
   currentStep: 1,
   setStep: (step) => set({ currentStep: step }),
-  nextStep: () => set((state) => ({ currentStep: Math.min(3, state.currentStep + 1) })),
+  nextStep: () => {
+    set((state) => {
+      const next = Math.min(3, state.currentStep + 1)
+      if (next === 3) {
+        setTimeout(() => get().calculatePricing(), 0)
+      }
+      return { currentStep: next }
+    })
+  },
   prevStep: () => set((state) => ({ currentStep: Math.max(1, state.currentStep - 1) })),
 
   isLeadModalOpen: false,
@@ -300,7 +308,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
     const state = get()
     
     // Require vehicle and distance
-    if (!state.recommendedVehicleId || state.distanceKm <= 0) {
+    if (!(state.selectedVehicleId || state.recommendedVehicleId) || state.distanceKm <= 0) {
       set({ estimatedInvestment: null, customerPricingView: null, pricingError: null })
       return
     }

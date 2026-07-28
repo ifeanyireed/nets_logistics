@@ -2,12 +2,12 @@ import { motion } from 'framer-motion'
 import { useJourneyStore, type TripType } from '@/store/useJourneyStore'
 
 const vehicleOptions = [
-  { id: 'hiace', name: 'Toyota HiAce (14 Seats)' },
-  { id: 'midibus-18', name: '18-Seater Shuttle' },
-  { id: 'coaster', name: 'Toyota Coaster (30 Seats)' },
-  { id: 'coach-50', name: '50-Seater Coach' },
-  { id: 'suv', name: 'Executive SUV' },
-  { id: 'sedan', name: 'Executive Sedan' }
+  { id: 'hiace', name: 'Toyota HiAce (14 Seats)', capacity: 14 },
+  { id: 'midibus-18', name: '18-Seater Shuttle', capacity: 18 },
+  { id: 'coaster', name: 'Toyota Coaster (30 Seats)', capacity: 30 },
+  { id: 'coach-50', name: '50-Seater Coach', capacity: 50 },
+  { id: 'suv', name: 'Executive SUV', capacity: 4 },
+  { id: 'sedan', name: 'Executive Sedan', capacity: 3 }
 ]
 
 export function Step2Details() {

@@ -71,7 +71,6 @@ export function buildCRMPayload(
     estimatedInvestment: {
       total: estimate.estimatedInvestment,
       rateTier: estimate.rateTier,
-      optionalServicesTotal: estimate.optionalServices.totalOptionalCharges,
       minimumChargeApplied: estimate.minimumChargeApplied,
     },
 

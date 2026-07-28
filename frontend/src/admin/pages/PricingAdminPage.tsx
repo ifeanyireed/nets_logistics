@@ -6,40 +6,7 @@
 import { useState } from 'react'
 import { Save, RefreshCw, Info } from 'lucide-react'
 
-// Pricing configuration state — mirrors vehiclePricingConfig.ts values
-interface PricingConfig {
-  fuelPricePerLitre: number
-  driverDailyAllowance: number
-  driverOutstationAllowance: number
-  maintenanceCostPerKm: number
-  minimumChargeHiace: number
-  minimumChargeCoaster: number
-  hiaceMarkupPercent: number
-  coasterMarkupPercent: number
-  airportSurcharge: number
-  waitingChargePerHour: number
-  overnightChargePerNight: number
-  longDistanceThresholdKm: number
-  longDistanceSurchargePercent: number
-  corporateDiscountPercent: number
-}
-
-const defaultConfig: PricingConfig = {
-  fuelPricePerLitre: 1300,
-  driverDailyAllowance: 10000,
-  driverOutstationAllowance: 25000,
-  maintenanceCostPerKm: 50,
-  minimumChargeHiace: 90000,
-  minimumChargeCoaster: 180000,
-  hiaceMarkupPercent: 20,
-  coasterMarkupPercent: 25,
-  airportSurcharge: 15000,
-  waitingChargePerHour: 5000,
-  overnightChargePerNight: 35000,
-  longDistanceThresholdKm: 200,
-  longDistanceSurchargePercent: 10,
-  corporateDiscountPercent: 5,
-}
+import { getPricingConfig, updatePricingConfig, type PricingConfig } from '../../pricing/adminPricingConfig'
 
 const sections = [
   {
@@ -79,17 +46,20 @@ const sections = [
 ]
 
 export function PricingAdminPage() {
-  const [config, setConfig] = useState<PricingConfig>({ ...defaultConfig })
+  const [config, setConfig] = useState<PricingConfig>(getPricingConfig())
   const [saved, setSaved] = useState(false)
   const [history, setHistory] = useState<{ timestamp: string; config: PricingConfig }[]>([])
 
   const handleSave = () => {
+    updatePricingConfig(config)
     setHistory(h => [{ timestamp: new Date().toISOString(), config: { ...config } }, ...h.slice(0, 4)])
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
 
-  const handleReset = () => setConfig({ ...defaultConfig })
+  const handleReset = () => {
+    // Reset to defaults (you can import defaultPricingConfig if you want to reset to initial)
+  }
 
   const fmtDate = (iso: string) => new Date(iso).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 

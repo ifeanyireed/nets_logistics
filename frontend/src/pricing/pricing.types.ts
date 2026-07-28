@@ -204,19 +204,13 @@ export interface JourneyPricingInput {
  * The complete pricing result — contains both customer-safe and internal data.
  */
 export interface EstimatedInvestment {
-  /** The single customer-visible Estimated Investment — the exact engine TOTAL, no band applied */
+  /** The single customer-visible Estimated Investment */
   estimatedInvestment: number
   /** Which rate tier was used */
   rateTier: 'daily' | 'three-day' | 'monthly'
   /** Vehicle information */
   vehicleId: string
   vehicleName: string
-  /** Line-by-line breakdown (INTERNAL — never expose to customer) */
-  dailyBreakdown: DailyRateBreakdown
-  monthlyBreakdown: MonthlyRateBreakdown | null
-  threeDayBreakdown: ThreeDayTripBreakdown | null
-  /** Optional services applied */
-  optionalServices: OptionalServicesResult
   /** Whether minimum charge was applied */
   minimumChargeApplied: boolean
   /** Pricing notes for ops team */
@@ -270,7 +264,6 @@ export interface CRMQuotationPayload {
     /** Single calculated total — matches what is shown to the customer */
     total: number
     rateTier: string
-    optionalServicesTotal: number
     minimumChargeApplied: boolean
   }
   metadata: {
