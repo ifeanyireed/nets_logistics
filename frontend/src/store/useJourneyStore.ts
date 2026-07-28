@@ -6,15 +6,15 @@ import { getPricingErrorMessage } from '../pricing/pricingErrors'
 
 export type JourneyIntent =
   | 'General Transport'
-  | 'Corporate Staff Transport'
+  | 'Corporate Staff'
   | 'Airport Transfer'
-  | 'Wedding & Events'
+  | 'Weddings & Events'
   | 'School Transport'
   | 'Religious Groups'
-  | 'Conference & Exhibitions'
-  | 'Tourism & Excursions'
-  | 'Private Group Travel'
-  | 'Recurring Staff Shuttle'
+  | 'Conferences'
+  | 'Tourism'
+  | 'Private Group'
+  | 'Recurring Shuttle'
   | null
 
 export type TripType = 'One Way' | 'Return' | 'Multi-Day' | 'Recurring'
@@ -45,7 +45,15 @@ interface JourneyState {
   nextStep: () => void
   prevStep: () => void
 
-  // Step 1
+  isLeadModalOpen: boolean
+  setLeadModalOpen: (open: boolean) => void
+  isQuoteModalOpen: boolean
+  setQuoteModalOpen: (open: boolean) => void
+  leadModalNextAction: 'quote' | 'planner' | null
+  setLeadModalNextAction: (action: 'quote' | 'planner' | null) => void
+
+  // Old Step 1 (Intent) is not used in UI but kept in state for CRM payload compatibility if needed
+
   intent: JourneyIntent
   setIntent: (intent: JourneyIntent) => void
 
@@ -79,6 +87,10 @@ interface JourneyState {
   setTripType: (type: TripType) => void
   returnDate: Date | null
   setReturnDate: (d: Date | null) => void
+  returnTime: string
+  setReturnTime: (t: string) => void
+  multiDayItinerary: { date: Date | null; time: string }[]
+  setMultiDayItinerary: (itinerary: { date: Date | null; time: string }[]) => void
 
   // Step 6
   extras: string[]
@@ -96,6 +108,8 @@ interface JourneyState {
   setRecommendedVehicleId: (id: string | null) => void
   selectedVehicleId: string | null
   setSelectedVehicleId: (id: string | null) => void
+  additionalVehicleIds: string[]
+  setAdditionalVehicleIds: (ids: string[]) => void
 
   // Customer Details
   customerDetails: CustomerDetails
@@ -120,8 +134,16 @@ interface JourneyState {
 export const useJourneyStore = create<JourneyState>((set, get) => ({
   currentStep: 1,
   setStep: (step) => set({ currentStep: step }),
-  nextStep: () => set((state) => ({ currentStep: Math.min(10, state.currentStep + 1) })),
+  nextStep: () => set((state) => ({ currentStep: Math.min(3, state.currentStep + 1) })),
   prevStep: () => set((state) => ({ currentStep: Math.max(1, state.currentStep - 1) })),
+
+  isLeadModalOpen: false,
+  setLeadModalOpen: (open) => set({ isLeadModalOpen: open }),
+  isQuoteModalOpen: false,
+  setQuoteModalOpen: (open) => set({ isQuoteModalOpen: open }),
+  leadModalNextAction: null,
+  setLeadModalNextAction: (action) => set({ leadModalNextAction: action }),
+
 
   intent: null,
   setIntent: (intent) => set({ intent }),
@@ -152,6 +174,10 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
   setTripType: (tripType) => set({ tripType }),
   returnDate: null,
   setReturnDate: (returnDate) => set({ returnDate }),
+  returnTime: '09:00',
+  setReturnTime: (returnTime) => set({ returnTime }),
+  multiDayItinerary: [],
+  setMultiDayItinerary: (multiDayItinerary) => set({ multiDayItinerary }),
 
   extras: [],
   toggleExtra: (extra) => set((state) => ({
@@ -182,8 +208,15 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
   selectedVehicleId: null,
   setSelectedVehicleId: (selectedVehicleId) => {
     set({ selectedVehicleId })
-    // Recalculate pricing if they change vehicle after passing step 9
-    if (get().currentStep >= 9) {
+    // Recalculate pricing if they change vehicle
+    if (get().currentStep >= 2) {
+      get().calculatePricing()
+    }
+  },
+  additionalVehicleIds: [],
+  setAdditionalVehicleIds: (additionalVehicleIds) => {
+    set({ additionalVehicleIds })
+    if (get().currentStep >= 2) {
       get().calculatePricing()
     }
   },
@@ -235,8 +268,12 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         passengerCount: state.passengers,
         recommendedVehicle: state.recommendedVehicleId,
         selectedVehicle: state.selectedVehicleId,
+        additionalVehicles: state.additionalVehicleIds,
         travelDate: state.travelDate?.toISOString(),
-        tripType: state.tripType
+        tripType: state.tripType,
+        returnDate: state.returnDate?.toISOString(),
+        returnTime: state.returnTime,
+        multiDayItinerary: state.multiDayItinerary.map(d => ({ date: d.date?.toISOString(), time: d.time }))
       },
       estimatedInvestment: state.estimatedInvestment ? {
         total: state.estimatedInvestment.estimatedInvestment,
@@ -273,9 +310,11 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
     try {
       const passengerCount = state.passengers ? parseInt(state.passengers.split('–')[0] || '1', 10) : 1
       
-      // Calculate number of days for multi-day trips
+      // Calculate number of days for multi-day/recurring trips
       let numberOfDays = 1
-      if (state.tripType === 'Multi-Day' && state.travelDate && state.returnDate) {
+      if (state.tripType === 'Recurring') {
+        numberOfDays = 1 + state.multiDayItinerary.length
+      } else if ((state.tripType === 'Multi-Day' || state.tripType === 'Return') && state.travelDate && state.returnDate) {
         const diff = state.returnDate.getTime() - state.travelDate.getTime()
         numberOfDays = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)))
       }
@@ -299,6 +338,31 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         customRequest: state.customRequest,
         useReferenceDistance: true, // Default: use workbook reference distance
       })
+
+      // If there are additional vehicles, calculate their cost and sum it up
+      for (const addVehId of state.additionalVehicleIds) {
+        if (addVehId) {
+          const addEstimate = generateEstimate({
+            vehicleId: addVehId,
+            distanceKm: state.distanceKm,
+            distanceMeters: state.distanceMeters,
+            durationMinutes: state.durationMins,
+            durationSeconds: state.durationSeconds,
+            tripType: state.tripType as any,
+            passengerCount: 1, // Base rate without scaling passengers
+            travelDate: state.travelDate,
+            returnDate: state.returnDate,
+            numberOfDays,
+            stops: state.stops.length,
+            journeyInsights: state.journeyInsights,
+            selectedExtras: state.extras,
+            customRequest: state.customRequest,
+            useReferenceDistance: true,
+          })
+          estimate.estimatedInvestment += addEstimate.estimatedInvestment
+          estimate.vehicleName += ` + ${addEstimate.vehicleName}`
+        }
+      }
 
       const customerView = formatEstimateForCustomer(estimate)
 
@@ -338,14 +402,20 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       departureTime: '09:00',
       tripType: 'One Way',
       returnDate: null,
+      returnTime: '09:00',
+      multiDayItinerary: [],
       extras: [],
       customRequest: '',
       stops: [],
       recommendedVehicleId: null,
+      additionalVehicleIds: [],
       referenceNumber: null,
       estimatedInvestment: null,
       customerPricingView: null,
       pricingError: null,
+      isLeadModalOpen: false,
+      isQuoteModalOpen: false,
+      leadModalNextAction: null,
       // intentionally keeping customer details (name/email/etc) populated 
       // in case they want to plan another journey without re-typing their info
     })

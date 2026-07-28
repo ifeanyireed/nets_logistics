@@ -11,7 +11,7 @@ interface Props {
 
 export function PlannerLayout({ children }: Props) {
   const { currentStep } = useJourneyStore()
-  const progressPercentage = (currentStep / 10) * 100
+  const progressPercentage = (currentStep / 3) * 100
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-nets-white)' }}>
@@ -35,7 +35,7 @@ export function PlannerLayout({ children }: Props) {
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-nets-text-3)' }}>
-                Step {currentStep} of 10
+                Step {currentStep} of 3
               </span>
               <div style={{ width: '120px', height: '4px', background: 'var(--color-nets-border)', borderRadius: '2px', overflow: 'hidden' }}>
                 <motion.div
@@ -52,7 +52,7 @@ export function PlannerLayout({ children }: Props) {
           <div className="lg:hidden" style={{ padding: '1.5rem', borderBottom: '1px solid var(--color-nets-border)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-nets-text-3)' }}>
-                Step {currentStep} of 10
+                Step {currentStep} of 3
               </span>
             </div>
             <div style={{ width: '100%', height: '4px', background: 'var(--color-nets-border)', borderRadius: '2px', overflow: 'hidden' }}>

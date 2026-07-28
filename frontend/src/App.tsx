@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage'
 import { FleetPage } from './pages/FleetPage'
 import { VehicleDetailPage } from './pages/VehicleDetailPage'
 import { JourneyPlannerPage } from './pages/JourneyPlannerPage'
+import { LeadCaptureModal } from './components/sections/LeadCaptureModal'
 import { AdminRouter } from './admin/AdminRouter'
 
 function ScrollToTopAndHash() {
@@ -84,6 +85,7 @@ function AppContent() {
       </main>
 
       {!isPlanner && <Footer />}
+      <LeadCaptureModal />
     </>
   )
 }

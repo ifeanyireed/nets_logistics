@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useLocation } from 'react-router-dom'
+import { useJourneyStore } from '../../store/useJourneyStore'
 
 const desktopNavLinks = [
   { label: 'Services',   href: '/#services', isHash: true },
@@ -24,6 +25,7 @@ export function Navigation() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+  const { setLeadModalOpen, setLeadModalNextAction } = useJourneyStore()
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60)
@@ -39,6 +41,13 @@ export function Navigation() {
   const isActive = (href: string, isHash: boolean) => {
     if (isHash) return location.hash === href.replace('/', '')
     return location.pathname === href
+  }
+
+  const handlePlanJourney = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setMobileOpen(false)
+    setLeadModalNextAction('planner')
+    setLeadModalOpen(true)
   }
 
   return (
@@ -68,9 +77,9 @@ export function Navigation() {
                 <a key={l.label} href={l.href} className="nav-link">{l.label}</a> :
                 <Link key={l.label} to={l.href} className="nav-link">{l.label}</Link>
             ))}
-            <Link to="/plan" className="btn btn-red" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}>
+            <button onClick={handlePlanJourney} className="btn btn-red" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }}>
               Plan Your Journey
-            </Link>
+            </button>
           </nav>
 
           {/* Desktop actions */}
@@ -149,9 +158,9 @@ export function Navigation() {
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.3 }}
                 style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}
               >
-                <Link to="/plan" onClick={() => setMobileOpen(false)} className="btn btn-red" style={{ width: '100%', justifyContent: 'center', padding: '1rem' }}>
+                <button onClick={handlePlanJourney} className="btn btn-red" style={{ width: '100%', justifyContent: 'center', padding: '1rem', border: 'none', cursor: 'pointer' }}>
                   Plan Your Journey
-                </Link>
+                </button>
 
                 {/* Contact Info */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

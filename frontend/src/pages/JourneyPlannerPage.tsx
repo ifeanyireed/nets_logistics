@@ -1,37 +1,34 @@
 import { useJourneyStore } from '../store/useJourneyStore'
 import { PlannerLayout } from '../components/planner/PlannerLayout'
-import { Step1Intent } from '../components/planner/steps/Step1Intent'
-import { Step2Pickup } from '../components/planner/steps/Step2Pickup'
-import { Step3Destination } from '../components/planner/steps/Step3Destination'
-import { Step4Passengers } from '../components/planner/steps/Step4Passengers'
-import { Step5Schedule } from '../components/planner/steps/Step5Schedule'
-import { Step6Extras } from '../components/planner/steps/Step6Extras'
-import { Step7Recommendation } from '../components/planner/steps/Step7Recommendation'
-import { Step8Review } from '../components/planner/steps/Step8Review'
-import { Step9Estimate } from '../components/planner/steps/Step9Estimate'
-import { Step10Success } from '../components/planner/steps/Step10Success'
+import { Step1Locations } from '../components/planner/new_steps/Step1Locations'
+import { Step2Details } from '../components/planner/new_steps/Step2Details'
+import { Step3Review } from '../components/planner/new_steps/Step3Review'
 import { AnimatePresence, motion } from 'framer-motion'
 
 export function JourneyPlannerPage() {
-  const { currentStep } = useJourneyStore()
+  const state = useJourneyStore()
+  const { currentStep, nextStep, prevStep } = state
+
+  const isStep1Complete = state.pickup && state.destination
+  const isStep2Complete = state.passengers && state.travelDate && state.departureTime && state.selectedVehicleId && state.additionalVehicleIds.every(id => id !== '') && (state.tripType === 'Recurring' ? state.multiDayItinerary.every(d => d.date) : true)
+
+  const isComplete = currentStep === 1 ? isStep1Complete : currentStep === 2 ? isStep2Complete : true
+
+  const handlePay = () => {
+    alert('Payment gateway integration goes here!')
+  }
 
   const renderStep = () => {
     switch (currentStep) {
-      case 1: return <Step1Intent />
-      case 2: return <Step2Pickup />
-      case 3: return <Step3Destination />
-      case 4: return <Step4Passengers />
-      case 5: return <Step5Schedule />
-      case 6: return <Step6Extras />
-      case 7: return <Step7Recommendation />
-      case 8: return <Step8Review />
-      case 9: return <Step9Estimate />
-      case 10: return <Step10Success />
-      default: return <Step1Intent />
+      case 1: return <Step1Locations />
+      case 2: return <Step2Details />
+      case 3: return <Step3Review />
+      default: return <Step1Locations />
     }
   }
 
   return (
+    <>
       <PlannerLayout>
         <AnimatePresence mode="wait">
           <motion.div
@@ -45,5 +42,45 @@ export function JourneyPlannerPage() {
           </motion.div>
         </AnimatePresence>
       </PlannerLayout>
+
+      {/* Floating Action Buttons */}
+        <div style={{ 
+          position: 'fixed',
+          bottom: '2rem',
+          left: '2rem',
+          right: '2rem',
+          background: 'transparent',
+          display: 'flex', 
+          justifyContent: currentStep === 1 ? 'flex-end' : 'space-between',
+          pointerEvents: 'none', // so users can click map through the empty space
+          zIndex: 9999
+        }}>
+          {currentStep > 1 && (
+            <button
+              onClick={prevStep}
+              className="btn btn-outline shadow-lg"
+              style={{ padding: '0.75rem 2rem', border: '1px solid var(--color-nets-border)', background: '#fff', pointerEvents: 'auto', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}
+            >
+              Back
+            </button>
+          )}
+
+          <button
+            onClick={currentStep === 3 ? handlePay : nextStep}
+            disabled={!isComplete}
+            className="btn btn-red btn-lg shadow-lg"
+            style={{ 
+              padding: '0.75rem 3rem', 
+              opacity: isComplete ? 1 : 0.5, 
+              cursor: isComplete ? 'pointer' : 'not-allowed', 
+              border: 'none', 
+              pointerEvents: 'auto', 
+              boxShadow: '0 8px 16px rgba(192,39,45,0.2)' 
+            }}
+          >
+            {currentStep === 1 ? 'Next Step' : currentStep === 2 ? 'Review & Pay' : 'Pay Now'}
+          </button>
+        </div>
+    </>
   )
 }

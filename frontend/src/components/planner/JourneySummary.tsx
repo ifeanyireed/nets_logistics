@@ -23,31 +23,21 @@ export function JourneySummary() {
         <h3 style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--color-nets-navy)', marginBottom: '1rem' }}>
           Live Operational Status
         </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingLeft: '0.5rem', borderLeft: '2px solid var(--color-nets-border)', marginLeft: '6px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingLeft: '24px', borderLeft: '2px solid var(--color-nets-border)', marginLeft: '6px' }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative' }}>
-            <div style={{ position: 'absolute', left: '-11px', width: '10px', height: '10px', borderRadius: '50%', background: state.pickup ? 'var(--color-nets-success)' : '#fff', border: '2px solid var(--color-nets-border)' }} />
-            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: state.pickup ? 'var(--color-nets-navy-dark)' : 'var(--color-nets-text-3)' }}>Location Selected</span>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '-31px', width: '12px', height: '12px', borderRadius: '50%', background: state.pickup ? 'var(--color-nets-success)' : '#fff', border: '2px solid var(--color-nets-border)' }} />
+            <span style={{ paddingLeft: '0.25rem', fontSize: '0.8125rem', fontWeight: 600, color: state.pickup ? 'var(--color-nets-navy-dark)' : 'var(--color-nets-text-3)' }}>Journey Locations</span>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative' }}>
-            <div style={{ position: 'absolute', left: '-11px', width: '10px', height: '10px', borderRadius: '50%', background: state.destination ? 'var(--color-nets-success)' : '#fff', border: '2px solid var(--color-nets-border)' }} />
-            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: state.destination ? 'var(--color-nets-navy-dark)' : 'var(--color-nets-text-3)' }}>Route Calculated</span>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '-31px', width: '12px', height: '12px', borderRadius: '50%', background: state.currentStep >= 2 ? 'var(--color-nets-success)' : '#fff', border: '2px solid var(--color-nets-border)' }} />
+            <span style={{ paddingLeft: '0.25rem', fontSize: '0.8125rem', fontWeight: 600, color: state.currentStep >= 2 ? 'var(--color-nets-navy-dark)' : 'var(--color-nets-text-3)' }}>Vehicle & Schedule</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative' }}>
-            <div style={{ position: 'absolute', left: '-11px', width: '10px', height: '10px', borderRadius: '50%', background: state.recommendedVehicleId ? 'var(--color-nets-success)' : '#fff', border: '2px solid var(--color-nets-border)' }} />
-            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: state.recommendedVehicleId ? 'var(--color-nets-navy-dark)' : 'var(--color-nets-text-3)' }}>Vehicle Matched</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative' }}>
-            <div style={{ position: 'absolute', left: '-11px', width: '10px', height: '10px', borderRadius: '50%', background: state.currentStep >= 9 ? 'var(--color-nets-success)' : '#fff', border: '2px solid var(--color-nets-border)' }} />
-            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: state.currentStep >= 9 ? 'var(--color-nets-navy-dark)' : 'var(--color-nets-text-3)' }}>Estimate Generated</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative' }}>
-            <div style={{ position: 'absolute', left: '-11px', width: '10px', height: '10px', borderRadius: '50%', background: state.currentStep === 10 ? 'var(--color-nets-success)' : '#fff', border: '2px solid var(--color-nets-border)' }} />
-            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: state.currentStep === 10 ? 'var(--color-nets-navy-dark)' : 'var(--color-nets-text-3)' }}>Quote Requested</span>
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '-31px', width: '12px', height: '12px', borderRadius: '50%', background: state.currentStep >= 3 ? 'var(--color-nets-success)' : '#fff', border: '2px solid var(--color-nets-border)' }} />
+            <span style={{ paddingLeft: '0.25rem', fontSize: '0.8125rem', fontWeight: 600, color: state.currentStep >= 3 ? 'var(--color-nets-navy-dark)' : 'var(--color-nets-text-3)' }}>Review & Pay</span>
           </div>
 
         </div>
@@ -68,8 +58,8 @@ export function JourneySummary() {
       {/* Summary Info */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: '1px solid var(--color-nets-border)', paddingTop: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8125rem', color: 'var(--color-nets-text-2)' }}>Journey Type</span>
-          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-nets-navy-dark)' }}>{state.intent || 'Pending'}</span>
+          <span style={{ fontSize: '0.8125rem', color: 'var(--color-nets-text-2)' }}>Trip Type</span>
+          <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-nets-navy-dark)' }}>{state.tripType || 'Pending'}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '0.8125rem', color: 'var(--color-nets-text-2)' }}>Travel Date</span>
@@ -85,32 +75,6 @@ export function JourneySummary() {
         </div>
       </div>
 
-      {/* Journey Insights (Only show if calculated) */}
-      {state.journeyInsights.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--color-nets-border)', paddingTop: '1.5rem' }}>
-          <div style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--color-nets-navy)' }}>Journey Insights</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {state.journeyInsights.map((insight, i) => (
-              <span key={i} style={{ fontSize: '0.75rem', background: 'var(--color-nets-light)', color: 'var(--color-nets-navy-dark)', padding: '0.25rem 0.5rem', borderRadius: '2px', fontWeight: 500 }}>
-                {insight}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Live Estimate (Only show if calculated) */}
-      {state.distanceKm > 0 && vehicle && (
-        <div style={{ background: 'var(--color-nets-navy-dark)', color: '#fff', padding: '1.5rem', borderRadius: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <ShieldCheck size={16} color="var(--color-nets-red)" />
-            <span style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-nets-red)' }}>Estimated Investment</span>
-          </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 300, letterSpacing: '0.02em' }}>
-            {formattedEstimate}
-          </div>
-        </div>
-      )}
 
       {/* Need Help CTA */}
       <div style={{ borderTop: '1px solid var(--color-nets-border)', paddingTop: '1.5rem', textAlign: 'center' }}>

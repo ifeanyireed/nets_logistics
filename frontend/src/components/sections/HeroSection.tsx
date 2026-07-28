@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { staggerContainer, staggerItem, slideInRight } from '@/lib/motion'
 import { useJourneyStore, type LocationData } from '@/store/useJourneyStore'
 import { MapboxAutocomplete } from '@/components/planner/MapboxAutocomplete'
+import { LeadCaptureModal } from './LeadCaptureModal'
 
 const vehicleOptions = [
   'Any Vehicle',
@@ -18,7 +19,8 @@ export function HeroSection() {
     pickup, setPickup, destination, setDestination, 
     tripType, setTripType, travelDate, setTravelDate, 
     passengers, setPassengers, setRecommendedVehicleId, 
-    recommendedVehicleId, generateReference, setStep
+    recommendedVehicleId, generateReference, setStep,
+    setLeadModalOpen, setLeadModalNextAction
   } = useJourneyStore()
 
   const [errors, setErrors] = useState<string[]>([])
@@ -62,9 +64,16 @@ export function HeroSection() {
 
     // Generate CRM Reference
     generateReference()
-    // Skip to passenger count/schedule if already filled
-    setStep(1)
-    navigate('/plan')
+    
+    // Open modal to get details and show quote
+    setLeadModalNextAction('quote')
+    setLeadModalOpen(true)
+  }
+
+  const handlePlanJourneyClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setLeadModalNextAction('planner')
+    setLeadModalOpen(true)
   }
 
   return (
@@ -162,12 +171,12 @@ export function HeroSection() {
 
           {/* CTAs (Moved higher) */}
           <motion.div variants={staggerItem} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
-            <Link to="/plan" className="btn btn-red btn-lg">
+            <button onClick={() => document.getElementById('quote')?.scrollIntoView({ behavior: 'smooth' })} className="btn btn-red btn-lg">
               Get Instant Quote
-            </Link>
-            <Link to="/plan" className="btn btn-outline-white btn-lg">
+            </button>
+            <button onClick={handlePlanJourneyClick} className="btn btn-outline-white btn-lg">
               Plan Your Journey
-            </Link>
+            </button>
           </motion.div>
 
           {/* Trust badges (Compact and understated) */}

@@ -39,15 +39,43 @@ export function MapboxAutocomplete({ value, onChange, onLocationSelect, placehol
         return
       }
       try {
-        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&country=ng&types=poi,address,place,locality,neighborhood`)
+        // West/Central Africa bounding box (approx 0.0,2.0 to 16.0,15.0) spanning Nigeria and neighbors
+        const waBbox = '0.0,2.0,16.0,15.0'
+        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&bbox=${waBbox}`)
         const data = await res.json()
-        setSuggestions(data.features || [])
+        
+        // Map Photon features to a standardized format
+        const formattedFeatures = (data.features || []).map((f: any) => {
+          const props = f.properties
+          const name = props.name || ''
+          const street = props.street || ''
+          const city = props.city || props.county || ''
+          const state = props.state || ''
+          const country = props.country || ''
+          
+          let parts = []
+          if (name) parts.push(name)
+          if (street && street !== name) parts.push(street)
+          if (city) parts.push(city)
+          if (state) parts.push(state)
+          if (country) parts.push(country)
+          
+          return {
+            id: f.properties.osm_id || Math.random().toString(),
+            place_name: parts.join(', '),
+            text: name || street || city,
+            center: f.geometry.coordinates,
+            country: country
+          }
+        }).filter((f: any) => f.place_name)
+
+        setSuggestions(formattedFeatures)
         setIsOpen(true)
       } catch (err) {
-        console.error('Mapbox search failed', err)
+        console.error('Photon search failed', err)
       }
     }
-    const timeoutId = setTimeout(fetchPlaces, 300)
+    const timeoutId = setTimeout(fetchPlaces, 100)
     return () => clearTimeout(timeoutId)
   }, [query, value])
 
@@ -60,7 +88,7 @@ export function MapboxAutocomplete({ value, onChange, onLocationSelect, placehol
       address: feature.place_name,
       lat: feature.center[1],
       lng: feature.center[0],
-      country: feature.context?.find((c: any) => c.id.startsWith('country'))?.text || 'Nigeria'
+      country: feature.country || 'Nigeria'
     })
   }
 

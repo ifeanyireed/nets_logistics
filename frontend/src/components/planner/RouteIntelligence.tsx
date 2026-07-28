@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useJourneyStore, LocationData } from '../../store/useJourneyStore'
-import { MAPBOX_TOKEN } from '../../config/api'
+import { MAPBOX_TOKEN, geocodeAddress } from '../../config/api'
 
 function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371
@@ -22,14 +22,34 @@ export function RouteIntelligence() {
 
     const calculateRoute = async () => {
       try {
+        let pLat = pickup.lat
+        let pLng = pickup.lng
+        
+        if (!pLat || !pLng) {
+          const coords = await geocodeAddress(pickup.address)
+          if (coords) { pLat = coords.lat; pLng = coords.lng }
+        }
+
+        let dLat = destination.lat
+        let dLng = destination.lng
+        
+        if (!dLat || !dLng) {
+          const coords = await geocodeAddress(destination.address)
+          if (coords) { dLat = coords.lat; dLng = coords.lng }
+        }
+
+        if (!pLat || !pLng || !dLat || !dLng) {
+          throw new Error('Coordinates missing and could not be geocoded')
+        }
+
         const waypoints = stops.filter((s: LocationData) => s.lat && s.lng)
-        const coords = [
-          `${pickup.lng},${pickup.lat}`,
+        const coordsStr = [
+          `${pLng},${pLat}`,
           ...waypoints.map((s: LocationData) => `${s.lng},${s.lat}`),
-          `${destination.lng},${destination.lat}`
+          `${dLng},${dLat}`
         ].join(';')
 
-        const res = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`)
+        const res = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coordsStr}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`)
         const data = await res.json()
 
         if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
