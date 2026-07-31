@@ -1,32 +1,45 @@
-# React + TypeScript + Vite
+# New Era Transport Services (NETS) — Enterprise Logistics & Charter Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Official web application and executive administration portal for New Era Transport Services Ltd. (NETS Nigeria).
 
-Currently, two official plugins are available:
+## Features & Modules
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 🚍 Public Journey Planner & Booking Engine
+- **Dynamic Pricing Engine**: Automated distance, vehicle category, and duration rate calculations.
+- **Interactive Mapbox Integration**: Real-time pickup/destination geocoding, route line rendering, and map bounds controller.
+- **Paystack Payment Gateway Integration**: Instant checkout with automated CRM lead submission and post-payment confirmation.
+- **Client-Side PDF Quotation Generator**: Styled quotation receipts (`NETS-Quotation-<REF>.pdf`) generated via `jsPDF` complete with NETS logo, journey details, and status badge.
 
-## React Compiler
+### 📊 Executive Control Center (Admin Portal)
+- **CRM Leads & Pipeline (`/admin/crm`)**: Real-time customer lead management, pipeline opportunity tracking, and stage updates.
+- **Booking Management (`/admin/bookings`)**: Operational dispatch tracking, status updates, and payment verification.
+- **Fleet & Pricing Engine (`/admin/pricing`)**: Centralized vehicle catalog and dynamic rate adjustments.
+- **Unified Live Data Sync**: Synchronized real-time KPI metrics across all control center modules connected to REST API database endpoints.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the Oxlint configuration
+- **Frontend**: React 19, TypeScript, Vite, TailwindCSS, Lucide React
+- **Mapping & Routing**: Mapbox GL JS, `@vis.gl/react-mapbox`
+- **State Management**: Zustand
+- **PDF Generation**: jsPDF
+- **Backend API**: Go REST API (`https://nets-web-backend.onrender.com/api/v1`)
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Local Development
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Run local development server
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Deployment & Production Build
+
+```bash
+# Build production bundle
+npm run build
+```
