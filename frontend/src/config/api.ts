@@ -5,12 +5,17 @@
 export const API_URL = 
   import.meta.env.NEXT_PUBLIC_API_URL || 
   import.meta.env.VITE_API_URL || 
-  'http://localhost:8080/api/v1'
+  'https://nets-web-backend.onrender.com/api/v1'
 
 export const MAPBOX_TOKEN = 
   import.meta.env.NEXT_PUBLIC_MAPBOX_TOKEN || 
   import.meta.env.VITE_MAPBOX_TOKEN || 
   ''
+
+export const PAYSTACK_PUBLIC_KEY = 
+  import.meta.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 
+  import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 
+  'pk_test_1573581f39d4a4aa7486dc09a13d91856f085063'
 
 export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   try {

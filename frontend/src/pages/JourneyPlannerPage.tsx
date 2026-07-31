@@ -3,8 +3,11 @@ import { PlannerLayout } from '../components/planner/PlannerLayout'
 import { Step1Locations } from '../components/planner/new_steps/Step1Locations'
 import { Step2Details } from '../components/planner/new_steps/Step2Details'
 import { Step3Review } from '../components/planner/new_steps/Step3Review'
+import { Step10Success } from '../components/planner/steps/Step10Success'
 import { AnimatePresence, motion } from 'framer-motion'
 import { usePaystackPayment } from 'react-paystack'
+import { PAYSTACK_PUBLIC_KEY } from '../config/api'
+import { crmService } from '../services/crmService'
 
 export function JourneyPlannerPage() {
   const state = useJourneyStore()
@@ -19,7 +22,45 @@ export function JourneyPlannerPage() {
     reference: new Date().getTime().toString(),
     email: state.customerDetails?.email || 'customer@nets.com.ng',
     amount: (state.estimatedInvestment?.estimatedInvestment || 0) * 100, // Amount is in Kobo
-    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_1573581f39d4a4aa7486dc09a13d91856f085063',
+    publicKey: PAYSTACK_PUBLIC_KEY,
+  }
+
+  const handleSuccess = async (reference: any) => {
+    console.log('Payment successful:', reference)
+    const payRef = reference?.reference || reference?.trxref || paystackConfig.reference
+
+    if (!state.referenceNumber) {
+      state.generateReference()
+    }
+
+    const payload = state.getCRMLeadPayload()
+    payload.paymentInformation = {
+      status: 'paid',
+      paymentMethod: 'Paystack',
+      paystackReference: payRef,
+      amountPaid: state.estimatedInvestment?.estimatedInvestment || 0,
+      paidAt: new Date().toISOString()
+    }
+    if (payload.leadMetadata) {
+      payload.leadMetadata.status = 'Paid & Confirmed'
+      payload.leadMetadata.paymentReference = payRef
+    }
+
+    try {
+      await crmService.submitLead(payload)
+    } catch (err) {
+      console.warn('Backend submission failed, proceeding to confirmation screen:', err)
+    }
+
+    crmService.trackEvent('Payment_Completed', { reference: payRef, amount: paystackConfig.amount })
+    
+    // Set current step to 4 (Step10Success) and scroll to top of page
+    state.setStep(4)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleClose = () => {
+    console.log('Payment modal closed by user')
   }
 
   const initializePayment = usePaystackPayment(paystackConfig)
@@ -30,14 +71,15 @@ export function JourneyPlannerPage() {
       return
     }
 
+    if (!paystackConfig.publicKey) {
+      alert('Paystack public key is not configured. Please set VITE_PAYSTACK_PUBLIC_KEY in environment.')
+      return
+    }
+
+    // Call initializePayment with options object containing onSuccess and onClose
     initializePayment({
-      onSuccess: (reference: any) => {
-        console.log(reference)
-        alert('Payment Successful! Reference: ' + reference.reference)
-      },
-      onClose: () => {
-        console.log('Payment modal closed')
-      }
+      onSuccess: handleSuccess,
+      onClose: handleClose,
     })
   }
 
@@ -46,6 +88,7 @@ export function JourneyPlannerPage() {
       case 1: return <Step1Locations />
       case 2: return <Step2Details />
       case 3: return <Step3Review />
+      case 4: return <Step10Success />
       default: return <Step1Locations />
     }
   }
@@ -67,6 +110,7 @@ export function JourneyPlannerPage() {
       </PlannerLayout>
 
       {/* Floating Action Buttons */}
+      {currentStep < 4 && (
         <div style={{ 
           position: 'fixed',
           bottom: '2rem',
@@ -104,6 +148,7 @@ export function JourneyPlannerPage() {
             {currentStep === 1 ? 'Next Step' : currentStep === 2 ? 'Review & Pay' : 'Pay Now'}
           </button>
         </div>
+      )}
     </>
   )
 }
