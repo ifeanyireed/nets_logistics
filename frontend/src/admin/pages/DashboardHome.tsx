@@ -97,8 +97,8 @@ export function DashboardHome() {
           <div className="admin-page-desc">Real-time overview of NETS transport operations and customer demand</div>
         </div>
         <div className="admin-page-actions">
-          <button className="admin-btn admin-btn-primary" onClick={() => navigate('/admin/quotes')}>
-            <Plus size={14} /> View Leads
+          <button className="admin-btn admin-btn-primary" onClick={() => navigate('/admin/crm')}>
+            <Plus size={14} /> View CRM Leads
           </button>
         </div>
       </div>

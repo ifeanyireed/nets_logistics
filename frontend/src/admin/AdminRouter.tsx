@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AdminShell } from './AdminShell'
 import { AdminLoginPage } from './pages/AdminLoginPage'
 import { DashboardHome } from './pages/DashboardHome'
+import { CRMPage } from './pages/CRMPage'
 import { QuotesPage } from './pages/QuotesPage'
 import { BookingsPage } from './pages/BookingsPage'
 import { CustomersPage } from './pages/CustomersPage'
@@ -23,6 +24,7 @@ export function AdminRouter() {
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin" element={<AdminShell />}>
         <Route index element={<DashboardHome />} />
+        <Route path="crm" element={<CRMPage />} />
         <Route path="quotes" element={<QuotesPage />} />
         <Route path="bookings" element={<BookingsPage />} />
         <Route path="customers" element={<CustomersPage />} />

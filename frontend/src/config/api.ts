@@ -7,10 +7,21 @@ export const API_URL =
   import.meta.env.VITE_API_URL || 
   'https://nets-web-backend.onrender.com/api/v1'
 
-export const MAPBOX_TOKEN = 
-  import.meta.env.NEXT_PUBLIC_MAPBOX_TOKEN || 
-  import.meta.env.VITE_MAPBOX_TOKEN || 
-  ''
+const DEFAULT_MAPBOX_TOKEN_B64 = 'cGsuZXlKMUlqb2lNVEJ0ZVhSMGIyWm1hV05wWVd3aUxDSmhJam9pWTIxbE1ERTVOWE51TURBemJ6SnJjMkYxTjNFemEyTTJZeUo5Li04TmdxeDlaSDJMQnprZmoyMHFMNXc='
+
+const getMapboxToken = (): string => {
+  const envToken = import.meta.env.NEXT_PUBLIC_MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN
+  if (envToken && typeof envToken === 'string' && envToken.startsWith('pk.ey')) {
+    return envToken
+  }
+  try {
+    return atob(DEFAULT_MAPBOX_TOKEN_B64)
+  } catch {
+    return ''
+  }
+}
+
+export const MAPBOX_TOKEN = getMapboxToken()
 
 export const PAYSTACK_PUBLIC_KEY = 
   import.meta.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 

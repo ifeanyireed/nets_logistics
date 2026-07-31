@@ -1,19 +1,49 @@
 // ============================================================================
 // NETS Enterprise Lead Management — PDF Service (jsPDF Implementation)
 // ============================================================================
-// Generates styled, professional PDF quotations with NETS branding.
+// Generates styled, professional PDF quotations with NETS branding & logo.
 // ============================================================================
 
 import jsPDF from 'jspdf'
 
 class PDFService {
   /**
-   * Generates a styled PDF quotation document and triggers a browser download.
+   * Helper to convert the favicon.svg logo into a Base64 PNG data URL for jsPDF.
    */
-  public generateQuotationPDF(payload: any): void {
+  private async getLogoBase64(): Promise<string | null> {
+    if (typeof window === 'undefined') return null
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.crossOrigin = 'Anonymous'
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width || 128
+          canvas.height = img.height || 128
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+            resolve(canvas.toDataURL('image/png'))
+          } else {
+            resolve(null)
+          }
+        } catch {
+          resolve(null)
+        }
+      }
+      img.onerror = () => resolve(null)
+      img.src = '/favicon.svg'
+    })
+  }
+
+  /**
+   * Generates a styled PDF quotation document with logo and triggers a browser download.
+   */
+  public async generateQuotationPDF(payload: any): Promise<void> {
     console.log('📄 [PDF SERVICE] Generating Styled Quotation PDF...')
     
     try {
+      const logoDataUrl = await this.getLogoBase64()
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -37,8 +67,8 @@ class PDFService {
         : 'N/A'
 
       const totalCost = payload.estimatedInvestment?.total 
-        ? `₦${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` 
-        : '₦---,---'
+        ? `NGN ${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` 
+        : 'NGN ---,---'
       
       const paymentStatus = payload.paymentInformation?.status === 'paid' ? 'PAID & CONFIRMED' : 'QUOTATION ESTIMATE'
       const payRef = payload.paymentInformation?.paystackReference || 'N/A'
@@ -47,16 +77,23 @@ class PDFService {
       doc.setFillColor(13, 16, 96) // #0D1060
       doc.rect(0, 0, 210, 38, 'F')
 
+      // Draw Favicon Logo if loaded
+      let textStartX = 14
+      if (logoDataUrl) {
+        doc.addImage(logoDataUrl, 'PNG', 14, 7, 22, 22)
+        textStartX = 42
+      }
+
       // Header Brand Text
       doc.setTextColor(255, 255, 255)
-      doc.setFontSize(18)
+      doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
-      doc.text('NEW ERA TRANSPORT SERVICES', 14, 16)
+      doc.text('NEW ERA TRANSPORT SERVICES', textStartX, 16)
       
       doc.setFontSize(9)
       doc.setFont('helvetica', 'normal')
-      doc.text('Official Charter & Logistics Quotation', 14, 23)
-      doc.text('info@neweratransports.com | +234 916 791 9439', 14, 29)
+      doc.text('Official Charter & Logistics Quotation', textStartX, 23)
+      doc.text('info@neweratransports.com | +234 916 791 9439', textStartX, 29)
 
       // Status Badge Top Right
       if (paymentStatus === 'PAID & CONFIRMED') {
@@ -180,19 +217,19 @@ class PDFService {
       doc.roundedRect(14, y, 182, 34, 3, 3, 'FD')
 
       doc.setTextColor(13, 16, 96)
-      doc.setFontSize(10)
+      doc.setFontSize(9)
       doc.setFont('helvetica', 'bold')
-      doc.text('TOTAL INVESTMENT', 22, y + 12)
+      doc.text('TOTAL INVESTMENT', 22, y + 10)
 
       doc.setTextColor(192, 39, 45) // NETS Red
-      doc.setFontSize(18)
+      doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
-      doc.text(totalCost, 188, y + 14, { align: 'right' })
+      doc.text(totalCost, 22, y + 19)
 
       doc.setTextColor(100, 116, 139)
       doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
-      doc.text('Includes: Executive Vehicle, Certified Professional Driver, Fuel Allowance, Dispatch Support & Insurance', 22, y + 25)
+      doc.text('Includes: Executive Vehicle, Certified Professional Driver, Fuel Allowance, Dispatch Support & Insurance', 22, y + 27)
 
       // Terms & Operational Standards
       y += 44

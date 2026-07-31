@@ -14,7 +14,8 @@ const navItems = [
 ]
 
 const operationsItems = [
-  { to: '/admin/quotes', label: 'Quotes', icon: FileText, badge: 'new' },
+  { to: '/admin/crm', label: 'CRM Leads', icon: Users, badge: 'new' },
+  { to: '/admin/quotes', label: 'Quotes', icon: FileText },
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarCheck },
   { to: '/admin/customers', label: 'Customers', icon: Users },
 ]
