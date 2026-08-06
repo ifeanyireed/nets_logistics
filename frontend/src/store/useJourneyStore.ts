@@ -307,8 +307,8 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
   calculatePricing: () => {
     const state = get()
     
-    // Require vehicle and distance
-    if (!(state.selectedVehicleId || state.recommendedVehicleId) || state.distanceKm <= 0) {
+    // Require distance
+    if (state.distanceKm <= 0) {
       set({ estimatedInvestment: null, customerPricingView: null, pricingError: null })
       return
     }
@@ -327,7 +327,18 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         numberOfDays = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)))
       }
 
-      const vehicleId = state.selectedVehicleId || state.recommendedVehicleId || 'hiace'
+      const deriveVehicle = (pax: string | null) => {
+        if (!pax) return 'hiace';
+        if (pax === '1–7') return 'suv';
+        if (pax === '8–14') return 'hiace';
+        if (pax === '15–18') return 'midibus-18';
+        if (pax === '19–30') return 'coaster';
+        if (pax === '31–50') return 'coach-50';
+        if (pax === '50+') return 'coach-50';
+        return 'hiace';
+      }
+
+      const vehicleId = state.selectedVehicleId || state.recommendedVehicleId || deriveVehicle(state.passengers)
 
       const estimate = generateEstimate({
         vehicleId,

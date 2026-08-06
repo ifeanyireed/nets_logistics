@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useJourneyStore } from '@/store/useJourneyStore'
-import { MapboxAutocomplete } from '../MapboxAutocomplete'
+import { GooglePlacesAutocomplete } from '../GooglePlacesAutocomplete'
 
 export function Step1Locations() {
   const { pickup, setPickup, destination, setDestination, intent, setIntent, nextStep } = useJourneyStore()
@@ -47,7 +47,7 @@ export function Step1Locations() {
           <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
             Pickup Location
           </label>
-          <MapboxAutocomplete
+          <GooglePlacesAutocomplete
             value={pickup?.address || null}
             onChange={() => {}}
             onLocationSelect={setPickup}
@@ -60,7 +60,7 @@ export function Step1Locations() {
           <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
             Destination
           </label>
-          <MapboxAutocomplete
+          <GooglePlacesAutocomplete
             value={destination?.address || null}
             onChange={() => {}}
             onLocationSelect={setDestination}

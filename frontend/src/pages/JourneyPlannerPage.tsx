@@ -76,11 +76,11 @@ export function JourneyPlannerPage() {
       return
     }
 
-    // Call initializePayment with options object containing onSuccess and onClose
     initializePayment({
+      ...paystackConfig,
       onSuccess: handleSuccess,
       onClose: handleClose,
-    })
+    } as any)
   }
 
   const renderStep = () => {

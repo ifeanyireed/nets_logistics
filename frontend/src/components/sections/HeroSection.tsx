@@ -3,14 +3,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { staggerContainer, staggerItem, slideInRight } from '@/lib/motion'
 import { useJourneyStore, type LocationData } from '@/store/useJourneyStore'
-import { MapboxAutocomplete } from '@/components/planner/MapboxAutocomplete'
+import { GooglePlacesAutocomplete } from '@/components/planner/GooglePlacesAutocomplete'
 import { LeadCaptureModal } from './LeadCaptureModal'
 
 const vehicleOptions = [
-  'Any Vehicle',
-  'Toyota HiAce',
-  'Toyota Coaster',
-  'Executive SUV',
+  { id: '', name: 'Any Vehicle' },
+  { id: 'hiace', name: 'Toyota HiAce (14 Seats)' },
+  { id: 'midibus-18', name: '18-Seater Shuttle' },
+  { id: 'coaster', name: 'Toyota Coaster (30 Seats)' },
+  { id: 'coach-50', name: '50-Seater Coach' },
+  { id: 'suv', name: 'Executive SUV' },
+  { id: 'sedan', name: 'Executive Sedan' }
 ]
 
 export function HeroSection() {
@@ -25,27 +28,10 @@ export function HeroSection() {
 
   const [errors, setErrors] = useState<string[]>([])
 
-  const vehicleLabels: Record<string, string> = {
-    'hiace': 'Toyota HiAce (14 Seats)',
-    'midibus-18': '18-Seater Shuttle',
-    'coaster': 'Toyota Coaster (30 Seats)',
-    'coach-50': '50-Seater Coach',
-    'suv': 'Executive SUV',
-    'sedan': 'Executive Sedan',
-  }
-  
-  const currentVehicleLabel = recommendedVehicleId ? (vehicleLabels[recommendedVehicleId] || 'Select Vehicle Type') : 'Select Vehicle Type'
-
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value) {
       setTravelDate(new Date(e.target.value))
     }
-  }
-
-  const handleVehicleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const label = e.target.value
-    const id = Object.keys(vehicleLabels).find(k => vehicleLabels[k] === label) || null
-    setRecommendedVehicleId(id)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -225,7 +211,7 @@ export function HeroSection() {
 
               <div>
                 <label htmlFor="hero-pickup" className="field-label-dark">Pickup Location</label>
-                <MapboxAutocomplete 
+                <GooglePlacesAutocomplete 
                   value={pickup?.address || null} 
                   onChange={() => {}} 
                   onLocationSelect={setPickup} 
@@ -238,7 +224,7 @@ export function HeroSection() {
 
               <div>
                 <label htmlFor="hero-dest" className="field-label-dark">Destination</label>
-                <MapboxAutocomplete 
+                <GooglePlacesAutocomplete 
                   value={destination?.address || null} 
                   onChange={() => {}} 
                   onLocationSelect={setDestination} 
@@ -300,8 +286,14 @@ export function HeroSection() {
 
               <div>
                 <label htmlFor="hero-veh" className="field-label-dark">Preferred Vehicle</label>
-                <select id="hero-veh" className="input-dark" style={{ padding: '0.625rem 1rem', width: '100%' }} value={currentVehicleLabel} onChange={handleVehicleChange}>
-                  {vehicleOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                <select 
+                  id="hero-veh" 
+                  className="input-dark" 
+                  style={{ padding: '0.625rem 1rem', width: '100%' }} 
+                  value={recommendedVehicleId || ''} 
+                  onChange={(e) => setRecommendedVehicleId(e.target.value === '' ? null : e.target.value)}
+                >
+                  {vehicleOptions.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                 </select>
               </div>
 

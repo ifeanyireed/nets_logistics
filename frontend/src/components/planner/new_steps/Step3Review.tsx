@@ -6,7 +6,8 @@ export function Step3Review() {
   const { 
     pickup, destination, travelDate, departureTime,
     passengers, selectedVehicleId, tripType,
-    customerPricingView, estimatedInvestment, calculatePricing, prevStep
+    customerPricingView, estimatedInvestment, calculatePricing, prevStep,
+    customerDetails, setCustomerDetails
   } = useJourneyStore()
 
   // Ensure pricing is up-to-date
@@ -77,6 +78,8 @@ export function Step3Review() {
           {customerPricingView?.estimatedInvestment || 'Calculating...'}
         </div>
       </div>
+
+
     </div>
   )
 }

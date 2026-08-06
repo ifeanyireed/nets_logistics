@@ -316,7 +316,7 @@ export function Step2Details() {
           </div>
         )}
 
+      </div>
     </div>
-  </div>
   )
 }

@@ -8,6 +8,8 @@ import { VehicleDetailPage } from './pages/VehicleDetailPage'
 import { JourneyPlannerPage } from './pages/JourneyPlannerPage'
 import { LeadCaptureModal } from './components/sections/LeadCaptureModal'
 import { AdminRouter } from './admin/AdminRouter'
+import { APIProvider } from '@vis.gl/react-google-maps'
+import { GOOGLE_MAPS_API_KEY } from './config/api'
 
 function ScrollToTopAndHash() {
   const { pathname, hash } = useLocation()
@@ -92,9 +94,11 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </APIProvider>
   )
 }
 

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { MapPin, ArrowRight } from 'lucide-react'
 import { useJourneyStore } from '../../../store/useJourneyStore'
 import { fadeUp, staggerContainer } from '../../../lib/motion'
-import { MapboxAutocomplete } from '../MapboxAutocomplete'
+import { GooglePlacesAutocomplete } from '../GooglePlacesAutocomplete'
 
 export function Step2Pickup() {
   const { pickup, setPickup, nextStep, prevStep } = useJourneyStore()
@@ -43,7 +43,7 @@ export function Step2Pickup() {
             <MapPin size={20} />
           </div>
           
-          <MapboxAutocomplete
+          <GooglePlacesAutocomplete
             value={inputValue}
             onChange={(val) => {
               setInputValue(val)

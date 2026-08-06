@@ -1,9 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
-import { useJourneyStore } from '@/store/useJourneyStore'
+import { useJourneyStore, LocationData } from '@/store/useJourneyStore'
 import { useNavigate } from 'react-router-dom'
-import { MAPBOX_TOKEN, geocodeAddress } from '@/config/api'
-// Simple fallback distance calculation if Mapbox fails
+import { geocodeAddress } from '@/config/api'
+import { useMapsLibrary } from '@vis.gl/react-google-maps'
+
+// Simple fallback distance calculation if Mapbox/Google fails
 function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371
   const dLat = (lat2 - lat1) * (Math.PI / 180)
@@ -16,6 +18,7 @@ function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: n
 
 export function LeadCaptureModal() {
   const navigate = useNavigate()
+  const routesLibrary = useMapsLibrary('routes')
   const { 
     isLeadModalOpen, 
     setLeadModalOpen, 
@@ -59,24 +62,34 @@ export function LeadCaptureModal() {
 
       if (!pLat || !pLng || !dLat || !dLng) throw new Error('Missing coordinates')
 
-      const coordsStr = [
-        `${pLng},${pLat}`,
-        ...stops.filter(s => s.lat && s.lng).map(s => `${s.lng},${s.lat}`),
-        `${dLng},${dLat}`
-      ].join(';')
-
-      const res = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coordsStr}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`)
-      const data = await res.json()
-
       let totalDistanceMeters = 0
       let totalDurationSeconds = 0
-      
-      if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
-        const route = data.routes[0]
-        totalDistanceMeters = route.distance || 0
-        totalDurationSeconds = route.duration || 0
+      let routePolyline: any = null
+
+      if (routesLibrary) {
+        const directionsService = new routesLibrary.DirectionsService()
+        const waypoints = stops.filter((s: LocationData) => s.lat && s.lng)
+        
+        const request: google.maps.DirectionsRequest = {
+          origin: { lat: pLat, lng: pLng },
+          destination: { lat: dLat, lng: dLng },
+          waypoints: waypoints.map((s: LocationData) => ({ location: { lat: s.lat!, lng: s.lng! }, stopover: true })),
+          travelMode: google.maps.TravelMode.DRIVING,
+        }
+
+        const result = await directionsService.route(request)
+        if (result.routes && result.routes.length > 0) {
+          const route = result.routes[0]
+          route.legs.forEach((leg: google.maps.DirectionsLeg) => {
+            totalDistanceMeters += leg.distance?.value || 0
+            totalDurationSeconds += leg.duration?.value || 0
+          })
+          routePolyline = route.overview_polyline
+        } else {
+          throw new Error('No route found')
+        }
       } else {
-        throw new Error('No route found')
+        throw new Error('Routes library not loaded')
       }
 
       const distanceKm = Math.max(1.5, Math.round((totalDistanceMeters / 1000) * 10) / 10)
@@ -88,12 +101,12 @@ export function LeadCaptureModal() {
         durationMins,
         durationSeconds: totalDurationSeconds,
         durationText: `${Math.floor(durationMins / 60)}h ${durationMins % 60}m`,
-        routePolyline: data.routes[0].geometry,
+        routePolyline: routePolyline,
         journeyBounds: null,
         journeyInsights: []
       })
     } catch (err) {
-      console.warn('Mapbox fallback', err)
+      console.warn('Google Maps fallback', err)
       const dist = getFallbackDistanceKm(pickup.lat, pickup.lng, destination.lat, destination.lng)
       const totalKm = Math.max(1.5, Math.round(dist * 10) / 10)
       const totalMins = Math.round(totalKm * 2.5)

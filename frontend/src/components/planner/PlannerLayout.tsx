@@ -33,11 +33,32 @@ export function PlannerLayout({ children }: Props) {
               <ArrowLeft size={16} /> Exit Planner
             </Link>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-nets-text-3)' }}>
-                Step {currentStep} of 3
-              </span>
-              <div style={{ width: '120px', height: '4px', background: 'var(--color-nets-border)', borderRadius: '2px', overflow: 'hidden' }}>
+            {currentStep <= 3 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-nets-text-3)' }}>
+                  Step {currentStep} of 3
+                </span>
+                <div style={{ width: '120px', height: '4px', background: 'var(--color-nets-border)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPercentage}%` }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    style={{ height: '100%', background: 'var(--color-nets-red)' }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Progress (Mobile) */}
+          {currentStep <= 3 && (
+            <div className="lg:hidden" style={{ padding: '1.5rem', borderBottom: '1px solid var(--color-nets-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-nets-text-3)' }}>
+                  Step {currentStep} of 3
+                </span>
+              </div>
+              <div style={{ width: '100%', height: '4px', background: 'var(--color-nets-border)', borderRadius: '2px', overflow: 'hidden' }}>
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercentage}%` }}
@@ -46,24 +67,7 @@ export function PlannerLayout({ children }: Props) {
                 />
               </div>
             </div>
-          </div>
-
-          {/* Progress (Mobile) */}
-          <div className="lg:hidden" style={{ padding: '1.5rem', borderBottom: '1px solid var(--color-nets-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-nets-text-3)' }}>
-                Step {currentStep} of 3
-              </span>
-            </div>
-            <div style={{ width: '100%', height: '4px', background: 'var(--color-nets-border)', borderRadius: '2px', overflow: 'hidden' }}>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercentage}%` }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                style={{ height: '100%', background: 'var(--color-nets-red)' }}
-              />
-            </div>
-          </div>
+          )}
 
           {/* Scrollable Form Content */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '2rem 1.5rem' }} className="lg:px-12 lg:py-8 h-[calc(100vh-130px)] lg:h-[calc(100vh-85px)]">

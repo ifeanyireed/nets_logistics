@@ -73,189 +73,187 @@ class PDFService {
       const paymentStatus = payload.paymentInformation?.status === 'paid' ? 'PAID & CONFIRMED' : 'QUOTATION ESTIMATE'
       const payRef = payload.paymentInformation?.paystackReference || 'N/A'
 
-      // Header Band (NETS Navy Background)
+      // Header Band (Modern Navy Background)
       doc.setFillColor(13, 16, 96) // #0D1060
-      doc.rect(0, 0, 210, 38, 'F')
+      doc.rect(0, 0, 210, 45, 'F')
 
       // Draw Favicon Logo if loaded
       let textStartX = 14
       if (logoDataUrl) {
-        doc.addImage(logoDataUrl, 'PNG', 14, 7, 22, 22)
-        textStartX = 42
+        doc.addImage(logoDataUrl, 'PNG', 14, 11, 24, 24)
+        textStartX = 44
       }
 
       // Header Brand Text
       doc.setTextColor(255, 255, 255)
-      doc.setFontSize(16)
+      doc.setFontSize(18)
       doc.setFont('helvetica', 'bold')
-      doc.text('NEW ERA TRANSPORT SERVICES', textStartX, 16)
+      doc.text('NEW ERA TRANSPORT SERVICES', textStartX, 22)
       
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'normal')
-      doc.text('Official Charter & Logistics Quotation', textStartX, 23)
-      doc.text('info@neweratransports.com | +234 916 791 9439', textStartX, 29)
+      const isPaid = payload.paymentInformation?.status === 'paid'
 
-      // Status Badge Top Right
-      if (paymentStatus === 'PAID & CONFIRMED') {
-        doc.setFillColor(34, 197, 94) // Green
-      } else {
-        doc.setFillColor(192, 39, 45) // NETS Red
-      }
-      doc.roundedRect(140, 10, 56, 14, 2, 2, 'F')
-      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.text(isPaid ? 'Booking Receipt & Itinerary' : 'Journey Quotation', textStartX, 30)
+      
+      // Contact info right aligned
       doc.setFontSize(8)
-      doc.setFont('helvetica', 'bold')
-      doc.text(paymentStatus, 168, 18.5, { align: 'center' })
+      doc.text('info@neweratransports.com', 196, 22, { align: 'right' })
+      doc.text('+234 916 791 9439', 196, 30, { align: 'right' })
 
-      // Reference & Date Info Section
-      let y = 48
-      doc.setTextColor(30, 41, 59)
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'bold')
-      doc.text('DOCUMENT DETAILS', 14, y)
-      doc.setDrawColor(226, 232, 240)
-      doc.line(14, y + 2, 196, y + 2)
-
-      y += 10
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Reference No:', 14, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(ref, 45, y)
-
-      doc.setFont('helvetica', 'bold')
-      doc.text('Date Issued:', 120, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(new Date().toLocaleDateString('en-NG'), 145, y)
-
-      if (payRef !== 'N/A') {
-        y += 6
-        doc.setFont('helvetica', 'bold')
-        doc.text('Payment Ref:', 14, y)
-        doc.setFont('helvetica', 'normal')
-        doc.text(payRef, 45, y)
+      let y = 60
+      
+      // Top row: Payment Status and Receipt Info
+      // Left side: Status Badge
+      if (isPaid) {
+        doc.setFillColor(34, 197, 94, 0.1) // Light green bg
+        doc.setDrawColor(34, 197, 94)
+      } else {
+        doc.setFillColor(248, 250, 252)
+        doc.setDrawColor(203, 213, 225)
       }
-
-      // Customer Information Section
-      y += 12
-      doc.setFont('helvetica', 'bold')
-      doc.text('CLIENT INFORMATION', 14, y)
-      doc.line(14, y + 2, 196, y + 2)
-
-      y += 10
-      doc.setFont('helvetica', 'bold')
-      doc.text('Full Name:', 14, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(customerName, 45, y)
-
-      doc.setFont('helvetica', 'bold')
-      doc.text('Email:', 120, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(customerEmail, 145, y)
-
-      y += 6
-      doc.setFont('helvetica', 'bold')
-      doc.text('Company:', 14, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(company, 45, y)
-
-      doc.setFont('helvetica', 'bold')
-      doc.text('Phone:', 120, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(customerPhone, 145, y)
-
-      // Journey Specifications Section
-      y += 12
-      doc.setFont('helvetica', 'bold')
-      doc.text('JOURNEY SPECIFICATIONS', 14, y)
-      doc.line(14, y + 2, 196, y + 2)
-
-      y += 10
-      doc.setFont('helvetica', 'bold')
-      doc.text('Trip Type:', 14, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(journeyType, 45, y)
-
-      doc.setFont('helvetica', 'bold')
-      doc.text('Travel Date:', 120, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(travelDate, 145, y)
-
-      y += 6
-      doc.setFont('helvetica', 'bold')
-      doc.text('Pickup:', 14, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(pickup.length > 42 ? pickup.substring(0, 39) + '...' : pickup, 45, y)
-
-      y += 6
-      doc.setFont('helvetica', 'bold')
-      doc.text('Destination:', 14, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(destination.length > 42 ? destination.substring(0, 39) + '...' : destination, 45, y)
-
-      y += 6
-      doc.setFont('helvetica', 'bold')
-      doc.text('Vehicle Category:', 14, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(vehicle, 45, y)
-
-      doc.setFont('helvetica', 'bold')
-      doc.text('Passengers:', 120, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(String(passengers), 145, y)
-
-      y += 6
-      doc.setFont('helvetica', 'bold')
-      doc.text('Est. Distance:', 14, y)
-      doc.setFont('helvetica', 'normal')
-      doc.text(distance, 45, y)
-
-      // Financial Summary Box
-      y += 16
-      doc.setFillColor(248, 250, 252) // slate-50
-      doc.setDrawColor(226, 232, 240)
-      doc.roundedRect(14, y, 182, 34, 3, 3, 'FD')
-
-      doc.setTextColor(13, 16, 96)
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'bold')
-      doc.text('TOTAL INVESTMENT', 22, y + 10)
-
-      doc.setTextColor(192, 39, 45) // NETS Red
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.text(totalCost, 22, y + 19)
-
+      doc.roundedRect(14, y, 90, 24, 2, 2, 'FD')
+      
       doc.setTextColor(100, 116, 139)
       doc.setFontSize(8)
-      doc.setFont('helvetica', 'normal')
-      doc.text('Includes: Executive Vehicle, Certified Professional Driver, Fuel Allowance, Dispatch Support & Insurance', 22, y + 27)
+      doc.setFont('helvetica', 'bold')
+      doc.text('STATUS', 20, y + 8)
+      
+      if (isPaid) {
+        doc.setTextColor(21, 128, 61)
+      } else {
+        doc.setTextColor(192, 39, 45)
+      }
+      doc.setFontSize(12)
+      doc.text(paymentStatus, 20, y + 16)
 
-      // Terms & Operational Standards
-      y += 44
+      // Right side: Ref Info
+      doc.setFillColor(248, 250, 252)
+      doc.setDrawColor(226, 232, 240)
+      doc.roundedRect(108, y, 88, 24, 2, 2, 'FD')
+      
+      doc.setTextColor(100, 116, 139)
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'bold')
+      doc.text('BOOKING REFERENCE', 114, y + 8)
+      doc.text('DATE', 165, y + 8)
+      
+      doc.setTextColor(30, 41, 59)
+      doc.setFontSize(11)
+      doc.text(ref, 114, y + 16)
+      doc.text(new Date().toLocaleDateString('en-NG'), 165, y + 16)
+
+      // Main Itinerary Card
+      y += 34
+      doc.setFillColor(255, 255, 255)
+      doc.setDrawColor(226, 232, 240)
+      doc.roundedRect(14, y, 182, 105, 3, 3, 'FD')
+      
+      // Card Header
+      doc.setFillColor(248, 250, 252)
+      doc.roundedRect(14, y, 182, 12, 3, 3, 'F')
+      // Fix bottom corners of header to be square
+      doc.rect(14, y + 6, 182, 6, 'F')
+      
+      doc.setTextColor(15, 23, 42)
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.text('JOURNEY DETAILS', 20, y + 8)
+
+      // Journey Info
+      let innerY = y + 22
+      doc.setTextColor(100, 116, 139)
+      doc.setFontSize(8)
+      doc.text('PASSENGER', 20, innerY)
+      doc.text('VEHICLE', 114, innerY)
+      
+      doc.setTextColor(30, 41, 59)
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.text(customerName, 20, innerY + 5)
+      doc.text(vehicle, 114, innerY + 5)
+      
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(9)
+      doc.text(customerPhone, 20, innerY + 10)
+      doc.text(`Capacity: ${passengers} passengers`, 114, innerY + 10)
+
+      doc.setDrawColor(241, 245, 249)
+      doc.line(20, innerY + 16, 186, innerY + 16)
+
+      innerY += 26
+      doc.setTextColor(100, 116, 139)
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'bold')
+      doc.text('PICKUP', 20, innerY)
+      doc.text('DROPOFF', 114, innerY)
+      
       doc.setTextColor(30, 41, 59)
       doc.setFontSize(9)
-      doc.setFont('helvetica', 'bold')
-      doc.text('NETS OPERATIONAL STANDARDS', 14, y)
-      doc.line(14, y + 2, 196, y + 2)
-
-      y += 8
-      doc.setFontSize(8)
       doc.setFont('helvetica', 'normal')
-      doc.setTextColor(71, 85, 105)
-      doc.text('• All vehicles undergo rigorous multi-point safety inspections prior to dispatch.', 14, y)
-      doc.text('• Drivers are fully vetted, certified, and trained in defensive driving & executive protocol.', 14, y + 5)
-      doc.text('• 24/7 Control Center monitoring ensures punctual arrival and real-time route optimization.', 14, y + 10)
+      
+      const splitPickup = doc.splitTextToSize(pickup, 80)
+      const splitDropoff = doc.splitTextToSize(destination, 80)
+      doc.text(splitPickup, 20, innerY + 5)
+      doc.text(splitDropoff, 114, innerY + 5)
 
-      // Footer Line & Copyright
+      innerY += 20
+      doc.setDrawColor(241, 245, 249)
+      doc.line(20, innerY, 186, innerY)
+      
+      innerY += 8
+      doc.setTextColor(100, 116, 139)
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'bold')
+      doc.text('TRAVEL DATE', 20, innerY)
+      doc.text('TRIP TYPE', 70, innerY)
+      doc.text('EST. DISTANCE', 120, innerY)
+      
+      doc.setTextColor(30, 41, 59)
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.text(travelDate, 20, innerY + 5)
+      doc.text(journeyType, 70, innerY + 5)
+      doc.text(distance, 120, innerY + 5)
+
+      // Payment Summary Card
+      y += 115
+      doc.setFillColor(248, 250, 252)
       doc.setDrawColor(226, 232, 240)
-      doc.line(14, 280, 196, 280)
+      doc.roundedRect(14, y, 182, 36, 3, 3, 'FD')
+
+      doc.setTextColor(100, 116, 139)
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.text('PAYMENT SUMMARY', 20, y + 10)
+      
+      if (payRef !== 'N/A') {
+        doc.setFontSize(8)
+        doc.text(`Transaction ID: ${payRef}`, 20, y + 16)
+      }
+
+      doc.setTextColor(15, 23, 42)
+      doc.setFontSize(10)
+      doc.text('Amount Paid:', 130, y + 15)
+      
+      doc.setTextColor(13, 16, 96)
+      doc.setFontSize(18)
+      doc.setFont('helvetica', 'bold')
+      doc.text(totalCost, 130, y + 25)
+
+      // Footer
       doc.setFontSize(8)
       doc.setTextColor(148, 163, 184)
-      doc.text('New Era Transport Services Ltd. — Official Computer-Generated Document', 105, 285, { align: 'center' })
+      doc.setFont('helvetica', 'normal')
+      doc.text('Includes: Executive Vehicle, Certified Professional Driver, Fuel Allowance, Dispatch Support & Insurance', 105, y + 46, { align: 'center' })
+      
+      doc.setDrawColor(226, 232, 240)
+      doc.line(14, y + 54, 196, y + 54)
+      doc.text('Thank you for traveling with New Era Transport Services.', 105, y + 60, { align: 'center' })
 
       // Save PDF file to trigger download
-      doc.save(`NETS-Quotation-${ref}.pdf`)
+      const filename = isPaid ? `NETS-Receipt-${ref}.pdf` : `NETS-Quotation-${ref}.pdf`
+      doc.save(filename)
       console.log('📄 [PDF SERVICE] PDF generated and downloaded successfully.')
     } catch (err) {
       console.error('❌ [PDF SERVICE] Error generating PDF document:', err)

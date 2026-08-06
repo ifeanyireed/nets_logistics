@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useJourneyStore, LocationData } from '../../store/useJourneyStore'
-import { MAPBOX_TOKEN, geocodeAddress } from '../../config/api'
+import { GOOGLE_MAPS_API_KEY, geocodeAddress } from '../../config/api'
+import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps'
 
 function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371
@@ -14,9 +15,27 @@ function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: n
 
 export function RouteIntelligence() {
   const { pickup, destination, stops, setRouteCalculations } = useJourneyStore()
+  const map = useMap()
+  const routesLibrary = useMapsLibrary('routes')
+  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null)
 
   useEffect(() => {
-    if (!pickup || !destination) {
+    if (!map || !routesLibrary) return
+    if (!directionsRenderer) {
+      setDirectionsRenderer(new routesLibrary.DirectionsRenderer({
+        map,
+        suppressMarkers: true,
+        polylineOptions: {
+          strokeColor: '#C0272D',
+          strokeWeight: 4,
+          strokeOpacity: 0.8
+        }
+      }))
+    }
+  }, [map, routesLibrary, directionsRenderer])
+
+  useEffect(() => {
+    if (!pickup || !destination || !routesLibrary || !directionsRenderer) {
       return
     }
 
@@ -43,23 +62,26 @@ export function RouteIntelligence() {
         }
 
         const waypoints = stops.filter((s: LocationData) => s.lat && s.lng)
-        const coordsStr = [
-          `${pLng},${pLat}`,
-          ...waypoints.map((s: LocationData) => `${s.lng},${s.lat}`),
-          `${dLng},${dLat}`
-        ].join(';')
-
-        const res = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coordsStr}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`)
-        const data = await res.json()
-
-        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-          throw new Error('No route found')
+        
+        const directionsService = new routesLibrary.DirectionsService()
+        const request: google.maps.DirectionsRequest = {
+          origin: { lat: pLat, lng: pLng },
+          destination: { lat: dLat, lng: dLng },
+          waypoints: waypoints.map((s: LocationData) => ({ location: { lat: s.lat!, lng: s.lng! }, stopover: true })),
+          travelMode: google.maps.TravelMode.DRIVING,
         }
 
-        const route = data.routes[0]
+        const result = await directionsService.route(request)
+        directionsRenderer.setDirections(result)
         
-        let totalDistanceMeters = route.distance || 0
-        let totalDurationSeconds = route.duration || 0
+        const route = result.routes[0]
+        let totalDistanceMeters = 0
+        let totalDurationSeconds = 0
+
+        route.legs.forEach((leg: google.maps.DirectionsLeg) => {
+          totalDistanceMeters += leg.distance?.value || 0
+          totalDurationSeconds += leg.duration?.value || 0
+        })
 
         const distanceKm = Math.round((totalDistanceMeters / 1000) * 10) / 10
         const durationMins = Math.round(totalDurationSeconds / 60)
@@ -73,14 +95,9 @@ export function RouteIntelligence() {
           insights.push('International Border Crossing - Special Request')
         }
 
-        // Calculate rudimentary bounds from the GeoJSON coordinates
-        let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90
-        route.geometry.coordinates.forEach((coord: [number, number]) => {
-          minLng = Math.min(minLng, coord[0])
-          maxLng = Math.max(maxLng, coord[0])
-          minLat = Math.min(minLat, coord[1])
-          maxLat = Math.max(maxLat, coord[1])
-        })
+        const bounds = route.bounds
+        const sw = bounds.getSouthWest()
+        const ne = bounds.getNorthEast()
 
         setRouteCalculations({
           distanceKm,
@@ -88,13 +105,14 @@ export function RouteIntelligence() {
           durationMins,
           durationSeconds: totalDurationSeconds,
           durationText: `${Math.floor(durationMins / 60)}h ${durationMins % 60}m`,
-          routePolyline: route.geometry, // GeoJSON
-          journeyBounds: [[minLng, minLat], [maxLng, maxLat]], // Mapbox bounding box format
+          routePolyline: route.overview_polyline, // Storing encoded polyline just in case
+          journeyBounds: [[sw.lng(), sw.lat()], [ne.lng(), ne.lat()]], // Format for bounds
           journeyInsights: insights
         })
 
       } catch (err) {
-        console.warn('Mapbox Directions failed, using Haversine fallback', err)
+        console.warn('Google Directions failed, using Haversine fallback', err)
+        directionsRenderer.setDirections({ routes: [] } as any)
         
         // Fallback calculation
         let totalKm = 0
@@ -123,7 +141,7 @@ export function RouteIntelligence() {
     }
 
     calculateRoute()
-  }, [pickup, destination, stops, setRouteCalculations])
+  }, [pickup, destination, stops, setRouteCalculations, routesLibrary, directionsRenderer])
 
   return null
 }
