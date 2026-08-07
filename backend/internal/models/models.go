@@ -96,3 +96,10 @@ type User struct {
 	LastLogin time.Time `json:"lastLogin"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+
+type PricingConfig struct {
+	ID         uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+	ConfigJSON string    `json:"configJson" gorm:"type:json"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+}
