@@ -126,7 +126,7 @@ export function JourneyPlannerPage() {
             <button
               onClick={prevStep}
               className="btn btn-outline shadow-lg"
-              style={{ padding: '0.75rem 2rem', border: '1px solid var(--color-nets-border)', background: '#fff', pointerEvents: 'auto', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}
+              style={{ padding: '0.75rem 2rem', border: '1px solid var(--color-nets-border)', background: '#fff', pointerEvents: 'auto', boxShadow: '0 8px 16px rgba(0,0,0,0.1)', marginLeft: '1rem' }}
             >
               Back
             </button>

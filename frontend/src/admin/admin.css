@@ -223,6 +223,7 @@
 .admin-badge-red { background: var(--adm-danger-subtle); color: var(--adm-danger); }
 .admin-badge-yellow { background: var(--adm-warning-subtle); color: var(--adm-warning); }
 .admin-badge-gray { background: var(--adm-surface-3); color: var(--adm-text-2); }
+.admin-badge-white { background: #FFFFFF; color: var(--adm-text-1); border: 1px solid var(--adm-border); }
 .admin-badge-accent { background: var(--adm-accent-subtle); color: var(--adm-accent); }
 
 /* Buttons */

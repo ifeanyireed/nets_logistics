@@ -37,6 +37,7 @@ export interface CustomerDetails {
   company: string
   specialInstructions: string
   consentGiven: boolean
+  heardAboutUs: string
 }
 
 interface JourneyState {
@@ -91,6 +92,11 @@ interface JourneyState {
   setReturnTime: (t: string) => void
   multiDayItinerary: { date: Date | null; time: string }[]
   setMultiDayItinerary: (itinerary: { date: Date | null; time: string }[]) => void
+
+  retentionPreference: 'keep' | 'return' | null
+  setRetentionPreference: (pref: 'keep' | 'return' | null) => void
+  vehicleMobility: 'parked' | 'moving' | null
+  setVehicleMobility: (mob: 'parked' | 'moving' | null) => void
 
   // Step 6
   extras: string[]
@@ -187,6 +193,11 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
   multiDayItinerary: [],
   setMultiDayItinerary: (multiDayItinerary) => set({ multiDayItinerary }),
 
+  retentionPreference: null,
+  setRetentionPreference: (retentionPreference) => set({ retentionPreference }),
+  vehicleMobility: null,
+  setVehicleMobility: (vehicleMobility) => set({ vehicleMobility }),
+
   extras: [],
   toggleExtra: (extra) => set((state) => ({
     extras: state.extras.includes(extra) 
@@ -237,6 +248,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
     company: '',
     specialInstructions: '',
     consentGiven: false,
+    heardAboutUs: '',
   },
   referenceNumber: null,
   setCustomerDetails: (details) => set((state) => ({
@@ -258,6 +270,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         phone: state.customerDetails.phone,
         whatsappNumber: state.customerDetails.whatsappNumber || null,
         company: state.customerDetails.company || null,
+        heardAboutUs: state.customerDetails.heardAboutUs || null,
         specialInstructions: state.customerDetails.specialInstructions || null,
         consentGiven: state.customerDetails.consentGiven
       },
@@ -281,6 +294,8 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         tripType: state.tripType,
         returnDate: state.returnDate?.toISOString(),
         returnTime: state.returnTime,
+        retentionPreference: state.retentionPreference,
+        vehicleMobility: state.vehicleMobility,
         multiDayItinerary: state.multiDayItinerary.map(d => ({ date: d.date?.toISOString(), time: d.time }))
       },
       estimatedInvestment: state.estimatedInvestment ? {
@@ -323,13 +338,18 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       if (state.tripType === 'Recurring') {
         numberOfDays = 1 + state.multiDayItinerary.length
       } else if ((state.tripType === 'Multi-Day' || state.tripType === 'Return') && state.travelDate && state.returnDate) {
-        const diff = state.returnDate.getTime() - state.travelDate.getTime()
-        numberOfDays = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)))
+        // Strip time to accurately calculate whole days difference
+        const start = new Date(state.travelDate.getFullYear(), state.travelDate.getMonth(), state.travelDate.getDate())
+        const end = new Date(state.returnDate.getFullYear(), state.returnDate.getMonth(), state.returnDate.getDate())
+        const diff = end.getTime() - start.getTime()
+        const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24))
+        numberOfDays = Math.max(1, diffDays + 1)
       }
 
       const deriveVehicle = (pax: string | null) => {
         if (!pax) return 'hiace';
-        if (pax === '1–7') return 'suv';
+        if (pax === '1–3') return 'sedan';
+        if (pax === '4–7') return 'sienna';
         if (pax === '8–14') return 'hiace';
         if (pax === '15–18') return 'midibus-18';
         if (pax === '19–30') return 'coaster';
@@ -355,6 +375,8 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         journeyInsights: state.journeyInsights,
         selectedExtras: state.extras,
         customRequest: state.customRequest,
+        retentionPreference: state.retentionPreference,
+        vehicleMobility: state.vehicleMobility,
         useReferenceDistance: true, // Default: use workbook reference distance
       })
 
@@ -376,6 +398,8 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
             journeyInsights: state.journeyInsights,
             selectedExtras: state.extras,
             customRequest: state.customRequest,
+            retentionPreference: state.retentionPreference,
+            vehicleMobility: state.vehicleMobility,
             useReferenceDistance: true,
           })
           estimate.estimatedInvestment += addEstimate.estimatedInvestment
@@ -423,6 +447,8 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       returnDate: null,
       returnTime: '09:00',
       multiDayItinerary: [],
+      retentionPreference: null,
+      vehicleMobility: null,
       extras: [],
       customRequest: '',
       stops: [],

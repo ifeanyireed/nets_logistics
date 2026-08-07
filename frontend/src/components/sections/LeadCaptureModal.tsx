@@ -236,15 +236,32 @@ export function LeadCaptureModal() {
                     onChange={(e) => setCustomerDetails({ phone: e.target.value })}
                   />
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-nets-navy-dark)' }}>Company (Optional)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Company Name"
-                    style={{ width: '100%', padding: '0.75rem', border: '1px solid var(--color-nets-border)', borderRadius: '4px' }}
-                    value={customerDetails.company}
-                    onChange={(e) => setCustomerDetails({ company: e.target.value })}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-nets-navy-dark)' }}>Company (Optional)</label>
+                    <input 
+                      type="text" 
+                      placeholder="Company Name"
+                      style={{ width: '100%', padding: '0.75rem', border: '1px solid var(--color-nets-border)', borderRadius: '4px' }}
+                      value={customerDetails.company}
+                      onChange={(e) => setCustomerDetails({ company: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-nets-navy-dark)' }}>Where did you hear about us?</label>
+                    <select 
+                      style={{ width: '100%', padding: '0.75rem', border: '1px solid var(--color-nets-border)', borderRadius: '4px', backgroundColor: '#fff' }}
+                      value={customerDetails.heardAboutUs}
+                      onChange={(e) => setCustomerDetails({ heardAboutUs: e.target.value })}
+                    >
+                      <option value="" disabled>Select an option</option>
+                      <option value="Google Search">Google Search</option>
+                      <option value="Social Media">Social Media</option>
+                      <option value="Friend/Colleague">Friend or Colleague</option>
+                      <option value="Advertisement">Advertisement</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
                 </div>
                 
                 <button 

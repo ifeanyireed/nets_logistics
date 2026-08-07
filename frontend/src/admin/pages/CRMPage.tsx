@@ -22,6 +22,7 @@ const statusBadges: Record<string, { label: string; class: string }> = {
   proposal_sent: { label: 'Proposal Sent', class: 'admin-badge-accent' },
   won: { label: 'Won & Paid', class: 'admin-badge-green' },
   converted: { label: 'Converted to Booking', class: 'admin-badge-green' },
+  'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-white' },
   lost: { label: 'Lost / Closed', class: 'admin-badge-red' },
 }
 
@@ -220,6 +221,12 @@ export function CRMPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, color: 'var(--adm-text-2)' }}>
                   <Phone size={14} />
                   <span>{selectedLead.customerPhone}</span>
+                </div>
+              )}
+              {selectedLead.heardAboutUs && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, color: 'var(--adm-text-2)', marginTop: '0.25rem' }}>
+                  <strong style={{ color: 'var(--adm-text-3)' }}>Source:</strong>
+                  <span>{selectedLead.heardAboutUs}</span>
                 </div>
               )}
             </div>

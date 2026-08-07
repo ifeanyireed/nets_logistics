@@ -26,70 +26,88 @@ export function generateEstimate(input: JourneyPricingInput): EstimatedInvestmen
   const adminConfig = getPricingConfig()
   const vehicleConfig = getVehiclePricingConfig(input.vehicleId) // For vehicleName
 
-  // Step 1: Base Operating Costs
   const isCoaster = input.vehicleId === 'coaster' || input.vehicleId === 'coach-50'
-  const vehicleFuelEfficiency = isCoaster ? 15 : 8 // Liters per 100km
+  const isSaloon = input.vehicleId === 'sedan'
 
-  const fuelCost = (input.distanceKm / 100) * vehicleFuelEfficiency * adminConfig.fuelPricePerLitre
-  const maintenanceCost = input.distanceKm * adminConfig.maintenanceCostPerKm
+  // Determine variables based on vehicle class
+  let fuelRatio = adminConfig.hiaceFuelRatio
+  let driverSalary = adminConfig.hiaceDriverSalary
+  let maintenance = adminConfig.hiaceMaintenance
+  let security = adminConfig.hiaceSecurity
+  let levies = adminConfig.hiaceLevies
+  let outstation = adminConfig.hiaceOutstationAllowance
+  let depreciation = adminConfig.hiaceDepreciation
+  let markupPercent = adminConfig.hiaceMarkupPercent
+
+  let retentionParked = adminConfig.hiaceRetentionParked
+  let retentionMoving = adminConfig.hiaceRetentionMoving
+
+  if (isCoaster) {
+    fuelRatio = adminConfig.coasterFuelRatio
+    driverSalary = adminConfig.coasterDriverSalary
+    maintenance = adminConfig.coasterMaintenance
+    security = adminConfig.coasterSecurity
+    levies = adminConfig.coasterLevies
+    outstation = adminConfig.coasterOutstationAllowance
+    depreciation = adminConfig.coasterDepreciation
+    markupPercent = adminConfig.coasterMarkupPercent
+    retentionParked = adminConfig.coasterRetentionParked
+    retentionMoving = adminConfig.coasterRetentionMoving
+  } else if (isSaloon) {
+    fuelRatio = adminConfig.saloonFuelRatio
+    driverSalary = adminConfig.saloonDriverSalary
+    maintenance = adminConfig.saloonMaintenance
+    security = adminConfig.saloonSecurity
+    levies = adminConfig.saloonLevies
+    outstation = adminConfig.saloonOutstationAllowance
+    depreciation = adminConfig.saloonDepreciation
+    markupPercent = adminConfig.saloonMarkupPercent
+    retentionParked = adminConfig.saloonRetentionParked
+    retentionMoving = adminConfig.saloonRetentionMoving
+  }
+
+  // 1. Dynamic Fuel Variables
+  const tripsPerDay = (input.tripType === 'Return' && input.numberOfDays === 1) ? 2 : 1
+  const dailyFuelCost = input.distanceKm * tripsPerDay * fuelRatio * adminConfig.fuelPricePerLitre
   
+  // 2. Static Base Operational Costs
   const isOutstation = input.tripType === 'Multi-Day' || input.tripType === 'Recurring' || input.numberOfDays > 1
-  const driverCost = isOutstation
-    ? adminConfig.driverOutstationAllowance * input.numberOfDays
-    : adminConfig.driverDailyAllowance * input.numberOfDays
+  const dailyOutstation = isOutstation ? outstation : 0
 
-  const baseCost = fuelCost + maintenanceCost + driverCost
-
-  // Step 2: Margin & Floor Price
-  const vehicleMarkupPercent = isCoaster ? adminConfig.coasterMarkupPercent : adminConfig.hiaceMarkupPercent
-  const vehicleMinimumCharge = isCoaster ? adminConfig.minimumChargeCoaster : adminConfig.minimumChargeHiace
-
-  const markedUpPrice = baseCost * (1 + vehicleMarkupPercent / 100)
+  const dailyFixedOps = driverSalary + maintenance + security + levies + dailyOutstation + depreciation
+  const dailyBaseCost = dailyFuelCost + dailyFixedOps
   
-  let floorPrice = Math.max(markedUpPrice, vehicleMinimumCharge * input.numberOfDays)
-  const minimumChargeApplied = floorPrice > markedUpPrice
+  // 3. Profit Margin Variable
+  const markedUpDailyPrice = dailyBaseCost * (1 + markupPercent / 100)
 
-  // Step 3: Event-Driven Surcharges
-  let surcharges = 0
+  // 4. Vehicle Retention Fees (3+ Days) & Total Calculation
+  let chargeableDays = input.numberOfDays
+  let additionalRetentionFee = 0
 
-  if (input.distanceKm > adminConfig.longDistanceThresholdKm) {
-    surcharges += floorPrice * (adminConfig.longDistanceSurchargePercent / 100)
+  if (input.numberOfDays >= 3 && (input.tripType === 'Return' || input.tripType === 'Multi-Day') && input.retentionPreference) {
+    if (input.retentionPreference === 'return') {
+      // If returning to base, they only pay the daily rate for the 2 travel days (drop-off day, pick-up day)
+      // Note: We double the daily fuel for these 2 days since the bus drives back empty each time.
+      chargeableDays = 2
+    } else if (input.retentionPreference === 'keep') {
+      // If keeping, they pay standard daily rate for travel days (2) + retention fee for middle days
+      const middleDays = input.numberOfDays - 2
+      chargeableDays = 2
+      const feePerDay = input.vehicleMobility === 'parked' ? retentionParked : retentionMoving
+      additionalRetentionFee = middleDays * feePerDay
+    }
   }
 
-  // Very basic airport detection from journeyInsights or we can leave it to the dispatcher.
-  // We'll apply it if journeyInsights contains "Airport"
-  const hasAirport = input.journeyInsights.some(insight => insight.toLowerCase().includes('airport'))
-  if (hasAirport) {
-    surcharges += adminConfig.airportSurcharge
-  }
-
-  if (input.numberOfDays > 1) {
-    surcharges += adminConfig.overnightChargePerNight * (input.numberOfDays - 1)
-  }
-
-  const subtotal = floorPrice + surcharges
-
-  // Step 4: Final Modifiers
-  let discounts = 0
-  // Corporate Staff intent gives corporate discount
-  if (input.journeyInsights.includes('Corporate Staff')) {
-    discounts = subtotal * (adminConfig.corporateDiscountPercent / 100)
-  }
-
-  const finalTotal = subtotal - discounts
-
-  const pricingNotes: string[] = []
-  if (minimumChargeApplied) pricingNotes.push('Minimum charge threshold applied')
-  if (hasAirport) pricingNotes.push('Airport Surcharge applied')
-  if (discounts > 0) pricingNotes.push('Corporate Discount applied')
+  // Total for all days
+  const finalTotal = (markedUpDailyPrice * chargeableDays) + additionalRetentionFee
 
   return {
     estimatedInvestment: finalTotal,
     rateTier: input.tripType === 'Recurring' ? 'monthly' : input.tripType === 'Multi-Day' ? 'three-day' : 'daily',
     vehicleId: input.vehicleId,
     vehicleName: vehicleConfig.vehicleName,
-    minimumChargeApplied,
-    pricingNotes,
+    minimumChargeApplied: false,
+    pricingNotes: [],
     pricingVersion: PRICING_ENGINE_VERSION,
     calculatedAt: new Date().toISOString(),
   }

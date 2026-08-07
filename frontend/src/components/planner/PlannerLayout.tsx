@@ -70,8 +70,8 @@ export function PlannerLayout({ children }: Props) {
           )}
 
           {/* Scrollable Form Content */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '2rem 1.5rem' }} className="lg:px-12 lg:py-8 h-[calc(100vh-130px)] lg:h-[calc(100vh-85px)]">
-            <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '2rem 10% 8rem 10%' }} className="h-[calc(100vh-130px)] lg:h-[calc(100vh-85px)]">
+            <div style={{ maxWidth: '640px', margin: '0' }}>
               {children}
             </div>
           </div>

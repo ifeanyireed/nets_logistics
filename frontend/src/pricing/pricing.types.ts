@@ -194,6 +194,8 @@ export interface JourneyPricingInput {
   journeyInsights: string[]
   selectedExtras: string[]
   customRequest: string
+  retentionPreference?: 'keep' | 'return' | null
+  vehicleMobility?: 'parked' | 'moving' | null
   /** Whether to use the live Google Maps distance or the workbook's reference distance */
   useReferenceDistance: boolean
 }

@@ -45,6 +45,7 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 	customerEmail, _ := cust["email"].(string)
 	customerPhone, _ := cust["phone"].(string)
 	company, _ := cust["company"].(string)
+	heardAboutUs, _ := cust["heardAboutUs"].(string)
 
 	journeyType, _ := journey["journeyType"].(string)
 	if journeyType == "" {
@@ -77,6 +78,7 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 		CustomerEmail:          customerEmail,
 		CustomerPhone:          customerPhone,
 		Company:                company,
+		HeardAboutUs:           heardAboutUs,
 		JourneyType:            journeyType,
 		Origin:                 origin,
 		Destination:            destination,

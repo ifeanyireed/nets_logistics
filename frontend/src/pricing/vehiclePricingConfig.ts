@@ -103,6 +103,17 @@ export const EXECUTIVE_SEDAN_CONFIG: VehiclePricingConfig = {
   engineType: 'standard',
 }
 
+/**
+ * Toyota Sienna — Standard Engine. Rates to be configured by New Era Transport.
+ * Currently uses Hiace seed values as placeholder.
+ */
+export const SIENNA_CONFIG: VehiclePricingConfig = {
+  ...HIACE_CONFIG,
+  vehicleId: 'sienna',
+  vehicleName: 'Toyota Sienna',
+  engineType: 'standard',
+}
+
 // ── Vehicle Configuration Registry ──
 
 const VEHICLE_CONFIGS: Record<string, VehiclePricingConfig> = {
@@ -112,6 +123,7 @@ const VEHICLE_CONFIGS: Record<string, VehiclePricingConfig> = {
   'midibus-18': EXECUTIVE_BUS_CONFIG,
   'coach-50': LUXURY_COACH_CONFIG,
   'sedan': EXECUTIVE_SEDAN_CONFIG,
+  'sienna': SIENNA_CONFIG,
 }
 
 /**

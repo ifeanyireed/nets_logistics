@@ -18,7 +18,7 @@ const mobileNavLinks = [
   { label: 'About Us',          href: '/#about',    isHash: true },
   { label: 'Contact',           href: '/#contact',  isHash: true },
   { label: 'Plan Your Journey', href: '/plan',      isHash: false },
-  { label: 'Request a Quote',   href: '/#quote',    isHash: true },
+  { label: 'Contact Sales',     href: 'https://wa.me/2349167919439', isHash: false },
 ]
 
 export function Navigation() {
@@ -87,7 +87,7 @@ export function Navigation() {
             <a href="tel:+2349167919439" style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>
               +234 916 791 9439
             </a>
-            <a href="#quote" className="btn btn-red btn-sm">Get a Quote</a>
+            <a href="https://wa.me/2349167919439" target="_blank" rel="noopener noreferrer" className="btn btn-red btn-sm">Contact Sales</a>
           </div>
 
           {/* Mobile hamburger */}
@@ -148,6 +148,12 @@ export function Navigation() {
                       {l.label}
                     </motion.div>
                   )
+                  const isExternal = l.href.startsWith('http')
+                  
+                  if (isExternal) {
+                    return (<a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" onClick={() => setMobileOpen(false)} style={{ display: 'block', textDecoration: 'none' }}>{content}</a>)
+                  }
+                  
                   return l.isHash ? 
                     (<a key={l.label} href={l.href} onClick={() => setMobileOpen(false)} style={{ display: 'block', textDecoration: 'none' }}>{content}</a>) :
                     (<Link key={l.label} to={l.href} onClick={() => setMobileOpen(false)} style={{ display: 'block', textDecoration: 'none' }}>{content}</Link>)

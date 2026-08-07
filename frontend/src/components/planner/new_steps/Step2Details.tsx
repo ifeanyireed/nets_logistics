@@ -3,11 +3,12 @@ import { useJourneyStore, type TripType } from '@/store/useJourneyStore'
 
 const vehicleOptions = [
   { id: 'hiace', name: 'Toyota HiAce (14 Seats)', capacity: 14 },
-  { id: 'midibus-18', name: '18-Seater Shuttle', capacity: 18 },
+  { id: 'midibus-18', name: '18-Seater Shuttle (18 Seats)', capacity: 18 },
   { id: 'coaster', name: 'Toyota Coaster (30 Seats)', capacity: 30 },
-  { id: 'coach-50', name: '50-Seater Coach', capacity: 50 },
-  { id: 'suv', name: 'Executive SUV', capacity: 4 },
-  { id: 'sedan', name: 'Executive Sedan', capacity: 3 }
+  { id: 'coach-50', name: '50-Seater Coach (50 Seats)', capacity: 50 },
+  { id: 'sienna', name: 'Toyota Sienna (7 Seats)', capacity: 7 },
+  { id: 'suv', name: 'Executive SUV (4 Seats)', capacity: 4 },
+  { id: 'sedan', name: 'Executive Sedan (3 Seats)', capacity: 3 }
 ]
 
 export function Step2Details() {
@@ -18,6 +19,8 @@ export function Step2Details() {
     tripType, setTripType,
     returnDate, setReturnDate,
     returnTime, setReturnTime,
+    retentionPreference, setRetentionPreference,
+    vehicleMobility, setVehicleMobility,
     multiDayItinerary, setMultiDayItinerary,
     selectedVehicleId, setSelectedVehicleId,
     additionalVehicleIds, setAdditionalVehicleIds,
@@ -85,8 +88,34 @@ export function Step2Details() {
     setMultiDayItinerary(updated)
   }
 
+  const getNumberOfDays = () => {
+    if ((tripType === 'Multi-Day' || tripType === 'Return') && travelDate && returnDate) {
+      const start = new Date(travelDate.getFullYear(), travelDate.getMonth(), travelDate.getDate())
+      const end = new Date(returnDate.getFullYear(), returnDate.getMonth(), returnDate.getDate())
+      const diff = end.getTime() - start.getTime()
+      const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24))
+      return Math.max(1, diffDays + 1)
+    }
+    return 1
+  }
+
   // Filter out any empty additional vehicle selections before allowing them to proceed
-  const isComplete = passengers && travelDate && departureTime && selectedVehicleId && additionalVehicleIds.every(id => id !== '') && (tripType === 'Recurring' ? multiDayItinerary.every(d => d.date) : true)
+  let isComplete = !!(passengers && travelDate && departureTime && selectedVehicleId && additionalVehicleIds.every(id => id !== ''))
+  
+  if (tripType === 'Recurring') {
+    isComplete = isComplete && multiDayItinerary.every(d => d.date)
+  }
+  
+  if (tripType === 'Return' || tripType === 'Multi-Day') {
+    isComplete = isComplete && !!returnDate
+    const days = getNumberOfDays()
+    if (days >= 3) {
+      isComplete = isComplete && !!retentionPreference
+      if (retentionPreference === 'keep') {
+        isComplete = isComplete && !!vehicleMobility
+      }
+    }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -131,7 +160,7 @@ export function Step2Details() {
               onChange={(e) => setPassengers(e.target.value)}
             >
               <option value="" disabled>Select Passengers</option>
-              {['1–7','8–14','15–18','19–30','31–50','50+'].map(o => <option key={o} value={o}>{o}</option>)}
+              {['1–3','4–7','8–14','15–18','19–30','31–50','50+'].map(o => <option key={o} value={o}>{o}</option>)}
             </select>
           </div>
         </div>
@@ -267,6 +296,56 @@ export function Step2Details() {
             )}
           </div>
         )}
+
+        {/* 3+ Days Retention Logic */}
+        {(() => {
+          let numberOfDays = 1
+          if ((tripType === 'Multi-Day' || tripType === 'Return') && travelDate && returnDate) {
+            const start = new Date(travelDate.getFullYear(), travelDate.getMonth(), travelDate.getDate())
+            const end = new Date(returnDate.getFullYear(), returnDate.getMonth(), returnDate.getDate())
+            const diff = end.getTime() - start.getTime()
+            const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24))
+            numberOfDays = Math.max(1, diffDays + 1)
+          }
+          if ((tripType === 'Return' || tripType === 'Multi-Day') && numberOfDays >= 3) {
+            return (
+              <div style={{ background: 'var(--color-nets-bg-2)', padding: '1rem', borderRadius: '4px', border: '1px dashed var(--color-nets-border)', textAlign: 'right' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
+                  Vehicle Retention (3+ Days Trip)
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem', marginBottom: retentionPreference === 'keep' ? '1.25rem' : '0' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+                    Keep Vehicle with Us
+                    <input type="radio" name="retentionPref" value="keep" checked={retentionPreference === 'keep'} onChange={() => setRetentionPreference('keep')} />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+                    Return to Base (Pick us up later)
+                    <input type="radio" name="retentionPref" value="return" checked={retentionPreference === 'return'} onChange={() => { setRetentionPreference('return'); setVehicleMobility(null); }} />
+                  </label>
+                </div>
+
+                {retentionPreference === 'keep' && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
+                      Vehicle Usage During Stay
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+                        Vehicle will be Parked
+                        <input type="radio" name="vehMobility" value="parked" checked={vehicleMobility === 'parked'} onChange={() => setVehicleMobility('parked')} />
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem' }}>
+                        Vehicle will be Moving (e.g., local runs)
+                        <input type="radio" name="vehMobility" value="moving" checked={vehicleMobility === 'moving'} onChange={() => setVehicleMobility('moving')} />
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          }
+          return null
+        })()}
 
         {/* Recurring Itinerary Builder */}
         {tripType === 'Recurring' && (

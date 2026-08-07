@@ -9,11 +9,12 @@ import { LeadCaptureModal } from './LeadCaptureModal'
 const vehicleOptions = [
   { id: '', name: 'Any Vehicle' },
   { id: 'hiace', name: 'Toyota HiAce (14 Seats)' },
-  { id: 'midibus-18', name: '18-Seater Shuttle' },
+  { id: 'midibus-18', name: '18-Seater Shuttle (18 Seats)' },
   { id: 'coaster', name: 'Toyota Coaster (30 Seats)' },
-  { id: 'coach-50', name: '50-Seater Coach' },
-  { id: 'suv', name: 'Executive SUV' },
-  { id: 'sedan', name: 'Executive Sedan' }
+  { id: 'coach-50', name: '50-Seater Coach (50 Seats)' },
+  { id: 'sienna', name: 'Toyota Sienna (7 Seats)' },
+  { id: 'suv', name: 'Executive SUV (4 Seats)' },
+  { id: 'sedan', name: 'Executive Sedan (3 Seats)' }
 ]
 
 export function HeroSection() {
@@ -278,7 +279,7 @@ export function HeroSection() {
                     onChange={(e) => setPassengers(e.target.value)}
                   >
                     <option disabled>Select Passengers</option>
-                    {['1–7','8–14','15–18','19–30','31–50','50+'].map(o => <option key={o} value={o}>{o}</option>)}
+                    {['1–3','4–7','8–14','15–18','19–30','31–50','50+'].map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
                   {errors.includes('passengers') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Required</span>}
                 </div>

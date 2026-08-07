@@ -15,6 +15,7 @@ export interface AdminLead {
   customerEmail: string
   customerPhone?: string
   company?: string
+  heardAboutUs?: string
   journeyType?: string
   origin?: string
   destination?: string

@@ -9,6 +9,7 @@ type Lead struct {
 	CustomerEmail          string    `json:"customerEmail" gorm:"type:varchar(255)"`
 	CustomerPhone          string    `json:"customerPhone" gorm:"type:varchar(64)"`
 	Company                string    `json:"company" gorm:"type:varchar(255)"`
+	HeardAboutUs           string    `json:"heardAboutUs" gorm:"type:varchar(255)"`
 	JourneyType            string    `json:"journeyType" gorm:"type:varchar(64)"`
 	Origin                 string    `json:"origin" gorm:"type:varchar(255)"`
 	Destination            string    `json:"destination" gorm:"type:varchar(255)"`

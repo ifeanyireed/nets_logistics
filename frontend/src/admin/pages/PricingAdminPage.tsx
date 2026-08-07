@@ -3,52 +3,63 @@
 // ============================================================================
 // Editable pricing configurations that feed directly into the pricing engine.
 // ============================================================================
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Save, RefreshCw, Info } from 'lucide-react'
 
-import { getPricingConfig, updatePricingConfig, type PricingConfig } from '../../pricing/adminPricingConfig'
+import { getPricingConfig, updatePricingConfig, defaultPricingConfig, initializePricingConfig, type PricingConfig } from '../../pricing/adminPricingConfig'
 
-const sections = [
-  {
-    title: 'Fuel & Operating Costs',
-    fields: [
-      { key: 'fuelPricePerLitre', label: 'Fuel Price Per Litre', desc: 'Current market pump price in NGN', prefix: '₦' },
-      { key: 'maintenanceCostPerKm', label: 'Maintenance Cost Per KM', desc: 'Amortised vehicle maintenance per kilometre', prefix: '₦' },
-      { key: 'driverDailyAllowance', label: 'Driver Daily Allowance', desc: 'Per-day driver compensation for local trips', prefix: '₦' },
-      { key: 'driverOutstationAllowance', label: 'Driver Outstation Allowance', desc: 'Additional daily allowance for multi-day trips', prefix: '₦' },
-    ],
+type VehicleTab = 'coaster' | 'hiace' | 'saloon'
+
+const vehicleConfigFields = {
+  coaster: {
+    fuelRatio: { key: 'coasterFuelRatio', label: 'Fuel Ratio', desc: 'Litres consumed per km (Coaster)', prefix: '' },
+    salary: { key: 'coasterDriverSalary', label: 'Driver Salary / Day', desc: 'Daily driver allocation', prefix: '₦' },
+    maintenance: { key: 'coasterMaintenance', label: 'Maintenance / Day', desc: 'Amortised daily vehicle maintenance', prefix: '₦' },
+    security: { key: 'coasterSecurity', label: 'Security & Parking / Day', desc: 'Security and parking fees', prefix: '₦' },
+    levies: { key: 'coasterLevies', label: 'Government Levies / Day', desc: 'Daily government levies', prefix: '₦' },
+    outstation: { key: 'coasterOutstationAllowance', label: 'Outstation Allowance / Day', desc: 'Allowance for out-of-town trips', prefix: '₦' },
+    depreciation: { key: 'coasterDepreciation', label: 'Depreciation Cost / Day', desc: 'Vehicle depreciation allocation', prefix: '₦' },
+    markup: { key: 'coasterMarkupPercent', label: 'Mark-Up (%)', desc: 'Profit margin applied to base cost', prefix: '', suffix: '%' },
+    retentionParked: { key: 'coasterRetentionParked', label: 'Retention Fee (Parked) / Day', desc: 'Fee per day when vehicle is kept parked', prefix: '₦' },
+    retentionMoving: { key: 'coasterRetentionMoving', label: 'Retention Fee (Moving) / Day', desc: 'Fee per day when vehicle is kept moving', prefix: '₦' },
   },
-  {
-    title: 'Minimum Charges',
-    fields: [
-      { key: 'minimumChargeHiace', label: 'Minimum Charge — HiAce', desc: 'Floor price for any HiAce journey', prefix: '₦' },
-      { key: 'minimumChargeCoaster', label: 'Minimum Charge — Coaster', desc: 'Floor price for any Coaster journey', prefix: '₦' },
-    ],
+  hiace: {
+    fuelRatio: { key: 'hiaceFuelRatio', label: 'Fuel Ratio', desc: 'Litres consumed per km (HiAce/SUV/Sienna)', prefix: '' },
+    salary: { key: 'hiaceDriverSalary', label: 'Driver Salary / Day', desc: 'Daily driver allocation', prefix: '₦' },
+    maintenance: { key: 'hiaceMaintenance', label: 'Maintenance / Day', desc: 'Amortised daily vehicle maintenance', prefix: '₦' },
+    security: { key: 'hiaceSecurity', label: 'Security & Parking / Day', desc: 'Security and parking fees', prefix: '₦' },
+    levies: { key: 'hiaceLevies', label: 'Government Levies / Day', desc: 'Daily government levies', prefix: '₦' },
+    outstation: { key: 'hiaceOutstationAllowance', label: 'Outstation Allowance / Day', desc: 'Allowance for out-of-town trips', prefix: '₦' },
+    depreciation: { key: 'hiaceDepreciation', label: 'Depreciation Cost / Day', desc: 'Vehicle depreciation allocation', prefix: '₦' },
+    markup: { key: 'hiaceMarkupPercent', label: 'Mark-Up (%)', desc: 'Profit margin applied to base cost', prefix: '', suffix: '%' },
+    retentionParked: { key: 'hiaceRetentionParked', label: 'Retention Fee (Parked) / Day', desc: 'Fee per day when vehicle is kept parked', prefix: '₦' },
+    retentionMoving: { key: 'hiaceRetentionMoving', label: 'Retention Fee (Moving) / Day', desc: 'Fee per day when vehicle is kept moving', prefix: '₦' },
   },
-  {
-    title: 'Markup & Margin',
-    fields: [
-      { key: 'hiaceMarkupPercent', label: 'HiAce Markup (%)', desc: 'Profit margin applied to HiAce engine cost', prefix: '', suffix: '%' },
-      { key: 'coasterMarkupPercent', label: 'Coaster Markup (%)', desc: 'Profit margin applied to Coaster engine cost', prefix: '', suffix: '%' },
-      { key: 'corporateDiscountPercent', label: 'Corporate Account Discount (%)', desc: 'Standard discount for contracted corporate clients', prefix: '', suffix: '%' },
-    ],
-  },
-  {
-    title: 'Surcharges & Special Rates',
-    fields: [
-      { key: 'airportSurcharge', label: 'Airport Surcharge', desc: 'Additional fee for airport pickup/drop-off journeys', prefix: '₦' },
-      { key: 'waitingChargePerHour', label: 'Waiting Charge Per Hour', desc: 'Billed for driver waiting time beyond free period', prefix: '₦' },
-      { key: 'overnightChargePerNight', label: 'Overnight Charge Per Night', desc: 'Accommodation and allowance for overnight trips', prefix: '₦' },
-      { key: 'longDistanceThresholdKm', label: 'Long Distance Threshold (KM)', desc: 'Minimum distance to trigger long distance surcharge', prefix: '', suffix: ' km' },
-      { key: 'longDistanceSurchargePercent', label: 'Long Distance Surcharge (%)', desc: 'Extra percentage added for journeys beyond threshold', prefix: '', suffix: '%' },
-    ],
-  },
-]
+  saloon: {
+    fuelRatio: { key: 'saloonFuelRatio', label: 'Fuel Ratio', desc: 'Litres consumed per km (Saloon)', prefix: '' },
+    salary: { key: 'saloonDriverSalary', label: 'Driver Salary / Day', desc: 'Daily driver allocation', prefix: '₦' },
+    maintenance: { key: 'saloonMaintenance', label: 'Maintenance / Day', desc: 'Amortised daily vehicle maintenance', prefix: '₦' },
+    security: { key: 'saloonSecurity', label: 'Security & Parking / Day', desc: 'Security and parking fees', prefix: '₦' },
+    levies: { key: 'saloonLevies', label: 'Government Levies / Day', desc: 'Daily government levies', prefix: '₦' },
+    outstation: { key: 'saloonOutstationAllowance', label: 'Outstation Allowance / Day', desc: 'Allowance for out-of-town trips', prefix: '₦' },
+    depreciation: { key: 'saloonDepreciation', label: 'Depreciation Cost / Day', desc: 'Vehicle depreciation allocation', prefix: '₦' },
+    markup: { key: 'saloonMarkupPercent', label: 'Mark-Up (%)', desc: 'Profit margin applied to base cost', prefix: '', suffix: '%' },
+    retentionParked: { key: 'saloonRetentionParked', label: 'Retention Fee (Parked) / Day', desc: 'Fee per day when vehicle is kept parked', prefix: '₦' },
+    retentionMoving: { key: 'saloonRetentionMoving', label: 'Retention Fee (Moving) / Day', desc: 'Fee per day when vehicle is kept moving', prefix: '₦' },
+  }
+}
 
 export function PricingAdminPage() {
   const [config, setConfig] = useState<PricingConfig>(getPricingConfig())
   const [saved, setSaved] = useState(false)
   const [history, setHistory] = useState<{ timestamp: string; config: PricingConfig }[]>([])
+  const [activeTab, setActiveTab] = useState<VehicleTab>('hiace')
+
+  useEffect(() => {
+    initializePricingConfig().then(() => {
+      setConfig(getPricingConfig())
+    })
+  }, [])
 
   const handleSave = () => {
     updatePricingConfig(config)
@@ -58,17 +69,43 @@ export function PricingAdminPage() {
   }
 
   const handleReset = () => {
-    // Reset to defaults (you can import defaultPricingConfig if you want to reset to initial)
+    setConfig({ ...defaultPricingConfig })
   }
 
   const fmtDate = (iso: string) => new Date(iso).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+
+  const renderField = (field: any) => (
+    <div key={field.key} className="admin-pricing-row">
+      <div>
+        <div className="admin-pricing-row-label">{field.label}</div>
+        <div className="admin-pricing-row-desc">{field.desc}</div>
+      </div>
+      <div style={{ position: 'relative' }}>
+        {field.prefix && (
+          <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--adm-text-2)', fontSize: 13, fontWeight: 500 }}>{field.prefix}</span>
+        )}
+        <input
+          className="admin-input"
+          type="number"
+          value={(config as any)[field.key]}
+          onChange={e => setConfig(c => ({ ...c, [field.key]: parseFloat(e.target.value) || 0 }))}
+          style={{ paddingLeft: field.prefix ? '1.75rem' : undefined, textAlign: 'right' }}
+        />
+        {field.suffix && (
+          <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--adm-text-2)', fontSize: 13, fontWeight: 500, pointerEvents: 'none' }}>{field.suffix}</span>
+        )}
+      </div>
+    </div>
+  )
+
+  const activeFields = vehicleConfigFields[activeTab]
 
   return (
     <>
       <div className="admin-page-header">
         <div>
           <div className="admin-page-title">Pricing Administration</div>
-          <div className="admin-page-desc">All pricing values feed directly into the Journey Planner engine. Changes take effect immediately.</div>
+          <div className="admin-page-desc">All pricing values feed directly into the Journey Planner engine based on the established spreadsheet calculations. Changes take effect immediately.</div>
         </div>
         <div className="admin-page-actions">
           <button className="admin-btn admin-btn-ghost" onClick={handleReset}><RefreshCw size={13} /> Reset Defaults</button>
@@ -84,51 +121,102 @@ export function PricingAdminPage() {
 
       <div className="admin-grid-2" style={{ gap: '1.5rem', alignItems: 'start' }}>
         <div>
-          {sections.map(section => (
-            <div key={section.title} className="admin-card" style={{ marginBottom: '1.25rem' }}>
-              <div className="admin-pricing-section-title">{section.title}</div>
-              {section.fields.map(field => (
-                <div key={field.key} className="admin-pricing-row">
-                  <div>
-                    <div className="admin-pricing-row-label">{field.label}</div>
-                    <div className="admin-pricing-row-desc">{field.desc}</div>
-                  </div>
-                  <div style={{ position: 'relative' }}>
-                    {field.prefix && (
-                      <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--adm-text-2)', fontSize: 13, fontWeight: 500 }}>{field.prefix}</span>
-                    )}
-                    <input
-                      className="admin-input"
-                      type="number"
-                      value={(config as any)[field.key]}
-                      onChange={e => setConfig(c => ({ ...c, [field.key]: parseFloat(e.target.value) || 0 }))}
-                      style={{ paddingLeft: field.prefix ? '1.75rem' : undefined, textAlign: 'right' }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
+          {/* Global Settings */}
+          <div className="admin-card" style={{ marginBottom: '1.25rem' }}>
+            <div className="admin-pricing-section-title">Global Settings</div>
+            {renderField({ key: 'fuelPricePerLitre', label: 'Fuel Price Per Litre', desc: 'Current market pump price (Global)', prefix: '₦' })}
+          </div>
+
+          {/* Vehicle Tabs */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', padding: '0.25rem', background: 'var(--adm-bg)', borderRadius: 'var(--adm-radius)', border: '1px solid var(--adm-border-subtle)' }}>
+            {(['coaster', 'hiace', 'saloon'] as VehicleTab[]).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  flex: 1,
+                  padding: '0.625rem',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textTransform: 'capitalize',
+                  border: 'none',
+                  borderRadius: 'var(--adm-radius-sm)',
+                  background: activeTab === tab ? '#fff' : 'transparent',
+                  color: activeTab === tab ? 'var(--adm-accent)' : 'var(--adm-text-2)',
+                  boxShadow: activeTab === tab ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {tab === 'hiace' ? 'HiAce/SUV/Sienna' : tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Vehicle Specific Settings */}
+          <div className="admin-card" style={{ marginBottom: '1.25rem' }}>
+            <div className="admin-pricing-section-title">1. Dynamic Fuel Variables</div>
+            {renderField(activeFields.fuelRatio)}
+          </div>
+
+          <div className="admin-card" style={{ marginBottom: '1.25rem' }}>
+            <div className="admin-pricing-section-title">2. Static Base Operational Costs</div>
+            {renderField(activeFields.salary)}
+            {renderField(activeFields.maintenance)}
+            {renderField(activeFields.security)}
+            {renderField(activeFields.levies)}
+            {renderField(activeFields.outstation)}
+            {renderField(activeFields.depreciation)}
+          </div>
+
+          <div className="admin-card" style={{ marginBottom: '1.25rem' }}>
+            <div className="admin-pricing-section-title">3. Profit Margin Variable</div>
+            {renderField(activeFields.markup)}
+          </div>
+
+          <div className="admin-card" style={{ marginBottom: '1.25rem' }}>
+            <div className="admin-pricing-section-title">4. Vehicle Retention Fees (3+ Days)</div>
+            {renderField(activeFields.retentionParked)}
+            {renderField(activeFields.retentionMoving)}
+          </div>
         </div>
 
         <div>
           <div className="admin-card" style={{ marginBottom: '1.25rem' }}>
             <div className="admin-card-title">Live Preview</div>
-            <div style={{ fontSize: 13, color: 'var(--adm-text-2)', marginBottom: '1rem' }}>
-              Sample calculation for a 100km HiAce journey
+            <div style={{ fontSize: 13, color: 'var(--adm-text-2)', marginBottom: '1rem', textTransform: 'capitalize' }}>
+              Sample calculation for a 100km {activeTab === 'hiace' ? 'HiAce/SUV/Sienna' : activeTab} journey (1 Trip)
             </div>
             {(() => {
-              const fuelKmHiace = 8 // litres per 100km for hiace
-              const fuelCost = (100 / 100) * fuelKmHiace * config.fuelPricePerLitre
-              const maintenance = 100 * config.maintenanceCostPerKm
-              const driver = config.driverDailyAllowance
-              const baseCost = fuelCost + maintenance + driver
-              const withMarkup = baseCost * (1 + config.hiaceMarkupPercent / 100)
-              const final = Math.max(withMarkup, config.minimumChargeHiace)
+              const distanceKm = 100
+              const trips = 1
+              
+              const fuelRatio = (config as any)[activeFields.fuelRatio.key]
+              const fuelCost = distanceKm * trips * fuelRatio * config.fuelPricePerLitre
+              
+              const fixedOps = 
+                (config as any)[activeFields.salary.key] + 
+                (config as any)[activeFields.maintenance.key] + 
+                (config as any)[activeFields.security.key] + 
+                (config as any)[activeFields.levies.key] + 
+                (config as any)[activeFields.outstation.key] + 
+                (config as any)[activeFields.depreciation.key]
+                
+              const baseCost = fuelCost + fixedOps
+              
+              const markupPercent = (config as any)[activeFields.markup.key]
+              const withMarkup = baseCost * (1 + markupPercent / 100)
+              
+              const final = withMarkup
               const fmt = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
               return (
                 <div>
-                  {[['Fuel Cost (100km)', fmt(fuelCost)], ['Maintenance', fmt(maintenance)], ['Driver Allowance', fmt(driver)], ['Base Cost', fmt(baseCost)], [`+ Markup (${config.hiaceMarkupPercent}%)`, fmt(withMarkup - baseCost)],].map(([l,v]) => (
+                  {[
+                    ['Fuel Cost (100km × 1 trip × ratio × price)', fmt(fuelCost)], 
+                    ['Fixed Ops (Salary, Maint, Sec, Levy, Dep)', fmt(fixedOps)], 
+                    ['Running Total (Base Cost)', fmt(baseCost)], 
+                    [`+ Mark-Up (${markupPercent}%)`, fmt(withMarkup - baseCost)],
+                  ].map(([l,v]) => (
                     <div key={l as string} className="admin-detail-row">
                       <span className="admin-detail-label" style={{ fontSize: 12 }}>{l}</span>
                       <span className="admin-detail-value" style={{ fontSize: 12 }}>{v}</span>
@@ -154,7 +242,7 @@ export function PricingAdminPage() {
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.625rem 0', borderBottom: '1px solid var(--adm-border-subtle)', fontSize: 12 }}>
                 <div>
                   <div style={{ color: 'var(--adm-text-1)', fontWeight: 500 }}>Saved {fmtDate(h.timestamp)}</div>
-                  <div style={{ color: 'var(--adm-text-3)' }}>Fuel: ₦{h.config.fuelPricePerLitre.toLocaleString()} / HiAce Min: ₦{h.config.minimumChargeHiace.toLocaleString()}</div>
+                  <div style={{ color: 'var(--adm-text-3)' }}>Fuel: ₦{h.config.fuelPricePerLitre.toLocaleString()}</div>
                 </div>
                 <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => setConfig({ ...h.config })}>Restore</button>
               </div>

@@ -77,7 +77,7 @@ export function JourneySummary() {
 
 
       {/* Need Help CTA */}
-      <div style={{ borderTop: '1px solid var(--color-nets-border)', paddingTop: '1.5rem', textAlign: 'center' }}>
+      <div style={{ borderTop: '1px solid var(--color-nets-border)', paddingTop: '1.5rem', textAlign: 'left' }}>
         <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-nets-navy-dark)', marginBottom: '0.5rem' }}>Need Help?</div>
         <a href="tel:+2348000000000" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-nets-red)', textDecoration: 'none' }}>
           <Phone size={14} /> Contact a Specialist
