@@ -48,7 +48,7 @@ export function FleetManagementPage() {
       category: editForm.category || selected.category,
       capacity: editForm.capacity || selected.capacity,
       bestFor: 'Corporate & VIP Travel',
-      imageUrl: editForm.imageUrl || selected.imageUrl || '/images/vehicles/sedan.jpg',
+      imageUrl: editForm.imageUrl || selected.imageUrl || '/vehicles/Sedan.jpeg',
       features: selected.features || [],
       available: editForm.available ?? selected.available,
       comfortRating: '5 Stars',

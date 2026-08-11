@@ -49,7 +49,7 @@ export const mockAdminVehicles: AdminVehicle[] = [
   },
   {
     id: 'suv', name: 'Executive SUV', slug: 'executive-suv', capacity: 4, category: 'Luxury',
-    imageUrl: '/vehicles/suv.png', registrationNumber: 'LAG-345-VWX', insuranceExpiry: daysFromNow(330),
+    imageUrl: '/vehicles/Sedan.jpeg', registrationNumber: 'LAG-345-VWX', insuranceExpiry: daysFromNow(330),
     maintenanceStatus: 'ok', available: true, visible: true, pricingCategory: 'hiace',
     features: ['Leather Interior', 'Air Conditioning', 'Professional Driver', 'Privacy Glass'],
   },

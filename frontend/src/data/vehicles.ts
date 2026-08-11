@@ -100,7 +100,7 @@ export const vehicles: Vehicle[] = [
     capacity: 3,
     category: 'Luxury',
     bestFor: 'VIP Transport · Executive Travel',
-    imageUrl: '/vehicles/suv.png', // fallback image
+    imageUrl: '/vehicles/Sedan.jpeg',
     features: ['Leather Interior', 'Air Conditioning', 'Professional Driver', 'Privacy Glass'],
     available: true,
     editorialStory: 'Sleek and discreet transportation for executives and VIPs.',
@@ -108,7 +108,7 @@ export const vehicles: Vehicle[] = [
     luggageSpace: 'Standard',
     airConditioning: 'Multi-Zone Automatic Climate Control',
     recommendedFor: ['VIP Transport', 'Airport Pickups'],
-    gallery: ['/vehicles/suv.png']
+    gallery: ['/vehicles/Sedan.jpeg']
   },
   {
     id: 'sienna',
@@ -117,7 +117,7 @@ export const vehicles: Vehicle[] = [
     capacity: 7,
     category: 'Standard',
     bestFor: 'Family Travel · Airport Transfers · Executive Teams',
-    imageUrl: '/vehicles/suv.png', // fallback image
+    imageUrl: '/vehicles/Sienna.jpeg',
     features: ['Air Conditioning', 'Comfortable Seats', 'Professional Driver', 'Privacy Glass'],
     available: true,
     editorialStory: 'A premium minivan offering exceptional comfort, space, and a smooth ride for small groups and families.',
@@ -125,6 +125,6 @@ export const vehicles: Vehicle[] = [
     luggageSpace: 'Standard (Good for medium suitcases)',
     airConditioning: 'Multi-Zone Automatic Climate Control',
     recommendedFor: ['Airport Transfers', 'Family Travel', 'Executive Teams'],
-    gallery: ['/vehicles/suv.png']
+    gallery: ['/vehicles/Sienna.jpeg']
   }
 ]

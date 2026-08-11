@@ -21,7 +21,7 @@ export class VehicleService {
 
     return {
       ...v,
-      imageUrl: img || (fallback ? fallback.imageUrl : '/vehicles/suv.png'),
+      imageUrl: img || (fallback ? fallback.imageUrl : '/vehicles/Sedan.jpeg'),
       editorialStory: v.editorialStory || (fallback ? fallback.editorialStory : ''),
       recommendedFor: v.recommendedFor || (fallback ? fallback.recommendedFor : []),
       gallery: v.gallery || (fallback ? fallback.gallery : [img]),
