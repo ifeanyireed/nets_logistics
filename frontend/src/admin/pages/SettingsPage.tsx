@@ -93,6 +93,11 @@ export function SettingsPage() {
               </div>
             </div>
             <div className="admin-form-group">
+              <label className="admin-label">Meta (Facebook) Pixel ID</label>
+              <input className="admin-input" placeholder="e.g. 1234567890" value={form.metaPixelId || ''} onChange={e => setForm(f => ({ ...f, metaPixelId: e.target.value }))} />
+              <div style={{ color: 'var(--adm-text-3)', fontSize: 12, marginTop: 4 }}>Used for tracking PageViews and Purchases on the Planner.</div>
+            </div>
+            <div className="admin-form-group">
               <label className="admin-label">Pricing Engine Version</label>
               <input className="admin-input" value={form.pricingEngineVersion} disabled style={{ opacity: 0.5 }} />
             </div>

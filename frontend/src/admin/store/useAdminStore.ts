@@ -71,6 +71,7 @@ export interface SystemSettings {
   businessName: string; businessEmail: string; businessPhone: string
   businessWhatsApp: string; businessAddress: string; serviceAreas: string[]
   operatingHours: string; googleMapsApiKey: string; pricingEngineVersion: string
+  metaPixelId: string
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -157,6 +158,17 @@ const defaultSettings: SystemSettings = {
   operatingHours: 'Monday – Saturday: 6:00AM – 10:00PM',
   googleMapsApiKey: '••••••••••••••••••••••••••••••••',
   pricingEngineVersion: '1.0.0',
+  metaPixelId: '',
+}
+
+const loadInitialSettings = (): SystemSettings => {
+  try {
+    const stored = localStorage.getItem('nets_admin_settings')
+    if (stored) {
+      return { ...defaultSettings, ...JSON.parse(stored) }
+    }
+  } catch (err) {}
+  return defaultSettings
 }
 
 let entryCounter = 1000
@@ -225,7 +237,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
   users: [...mockUsers],
   activityLog: [],
   promotions: [...mockPromotions],
-  settings: { ...defaultSettings },
+  settings: loadInitialSettings(),
 
   // ── Search ──
   searchQuery: '',
@@ -303,8 +315,13 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     set(s => ({ promotions: s.promotions.filter(x => x.id !== id) })),
 
   // ── Settings ──
-  updateSettings: (updates) =>
-    set(s => ({ settings: { ...s.settings, ...updates } })),
+  updateSettings: (updates) => {
+    set(s => {
+      const newSettings = { ...s.settings, ...updates }
+      localStorage.setItem('nets_admin_settings', JSON.stringify(newSettings))
+      return { settings: newSettings }
+    })
+  },
 
   // ── Audit ──
   addActivityEntry: (entry) => {
