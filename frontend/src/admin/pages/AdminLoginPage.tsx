@@ -64,7 +64,7 @@ export function AdminLoginPage() {
                 placeholder="Enter your password"
                 value={password} onChange={e => setPassword(e.target.value)} />
             </div>
-            <button className="admin-btn admin-btn-primary" type="submit" disabled={loading}
+            <button className={`admin-btn admin-btn-primary ${loading ? 'is-loading' : ''}`} type="submit" disabled={loading}
               style={{ marginTop: '0.5rem', height: 40, fontSize: 14, justifyContent: 'center' }}>
               {loading ? 'Signing in…' : 'Sign In'}
             </button>

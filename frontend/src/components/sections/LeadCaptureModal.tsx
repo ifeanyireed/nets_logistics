@@ -267,7 +267,7 @@ export function LeadCaptureModal() {
                 <button 
                   type="submit" 
                   disabled={isLoading}
-                  className="btn btn-red btn-lg" 
+                  className={`btn btn-red btn-lg ${isLoading ? 'is-loading' : ''}`} 
                   style={{ width: '100%', justifyContent: 'center', marginTop: '1rem', border: 'none' }}
                 >
                   {isLoading ? 'Calculating...' : (leadModalNextAction === 'quote' ? 'Reveal Quote' : 'Continue to Planner')}

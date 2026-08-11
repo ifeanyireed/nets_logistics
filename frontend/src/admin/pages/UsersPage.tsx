@@ -189,9 +189,12 @@ function AddUserModal({ onClose, onSave, initialData, isEdit }: any) {
     role: initialData?.role || 'staff', 
     status: initialData?.status || 'active' 
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmitting(true)
     await onSave(form)
+    setIsSubmitting(false)
     onClose()
   }
   return (
@@ -220,8 +223,10 @@ function AddUserModal({ onClose, onSave, initialData, isEdit }: any) {
             </div>
           </div>
           <div className="admin-modal-footer">
-            <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="admin-btn admin-btn-primary"><Save size={13} /> {isEdit ? 'Save Changes' : 'Add User'}</button>
+            <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose} disabled={isSubmitting}>Cancel</button>
+            <button type="submit" className={`admin-btn admin-btn-primary ${isSubmitting ? 'is-loading' : ''}`} disabled={isSubmitting}>
+              <Save size={13} /> {isEdit ? 'Save Changes' : 'Add User'}
+            </button>
           </div>
         </form>
       </div>

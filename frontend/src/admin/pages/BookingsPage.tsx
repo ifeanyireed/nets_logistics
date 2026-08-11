@@ -168,10 +168,14 @@ function CreateBookingModal({ onClose, vehicles, customers }: any) {
     driverId: null, driverName: null, quoteReference: null, notes: '',
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.customerId || !form.vehicleId || !form.pickup || !form.travelDate) return
-    createBooking(form as any)
+    setIsSubmitting(true)
+    await createBooking(form as any)
+    setIsSubmitting(false)
     onClose()
   }
 
@@ -238,8 +242,10 @@ function CreateBookingModal({ onClose, vehicles, customers }: any) {
             </div>
           </div>
           <div className="admin-modal-footer">
-            <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="admin-btn admin-btn-primary"><Save size={13} /> Create Booking</button>
+            <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose} disabled={isSubmitting}>Cancel</button>
+            <button type="submit" className={`admin-btn admin-btn-primary ${isSubmitting ? 'is-loading' : ''}`} disabled={isSubmitting}>
+              <Save size={13} /> Create Booking
+            </button>
           </div>
         </form>
       </div>

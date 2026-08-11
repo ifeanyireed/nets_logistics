@@ -22,6 +22,7 @@ export function FleetManagementPage() {
   const [selected, setSelected] = useState<AdminVehicle | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [editForm, setEditForm] = useState<Partial<AdminVehicle>>({})
 
   const loadFleet = () => {
@@ -38,6 +39,7 @@ export function FleetManagementPage() {
   const startEdit = (v: AdminVehicle) => { setEditForm({ ...v }); setEditing(true) }
   const saveEdit = async () => {
     if (!selected) return
+    setIsSaving(true)
     updateVehicle(selected.id, editForm)
     await adminService.saveVehicle({
       id: selected.id,
@@ -55,6 +57,7 @@ export function FleetManagementPage() {
     }, true)
     loadFleet()
     setSelected(v => v ? { ...v, ...editForm } : v)
+    setIsSaving(false)
     setEditing(false)
   }
 
@@ -175,8 +178,10 @@ export function FleetManagementPage() {
                   </label>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  <button className="admin-btn admin-btn-primary" onClick={saveEdit}><Save size={13} /> Save</button>
-                  <button className="admin-btn admin-btn-ghost" onClick={() => setEditing(false)}>Cancel</button>
+                  <button className={`admin-btn admin-btn-primary ${isSaving ? 'is-loading' : ''}`} onClick={saveEdit} disabled={isSaving}>
+                    <Save size={13} /> Save
+                  </button>
+                  <button className="admin-btn admin-btn-ghost" onClick={() => setEditing(false)} disabled={isSaving}>Cancel</button>
                 </div>
               </div>
             ) : (
@@ -214,9 +219,13 @@ export function FleetManagementPage() {
 
 function AddVehicleModal({ onClose, addVehicle }: any) {
   const [form, setForm] = useState({ name: '', registrationNumber: '', category: 'Standard', capacity: 14, pricingCategory: 'hiace', imageUrl: '/vehicles/hiace.jpg', maintenanceStatus: 'ok', available: true, visible: true, insuranceExpiry: '', features: [] as string[], slug: '' })
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    addVehicle({ ...form, slug: form.name.toLowerCase().replace(/\s+/g, '-'), insuranceExpiry: form.insuranceExpiry || new Date(Date.now() + 365*86400000).toISOString() })
+    setIsSubmitting(true)
+    await addVehicle({ ...form, slug: form.name.toLowerCase().replace(/\s+/g, '-'), insuranceExpiry: form.insuranceExpiry || new Date(Date.now() + 365*86400000).toISOString() })
+    setIsSubmitting(false)
     onClose()
   }
   return (
@@ -263,8 +272,10 @@ function AddVehicleModal({ onClose, addVehicle }: any) {
             </div>
           </div>
           <div className="admin-modal-footer">
-            <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="admin-btn admin-btn-primary"><Plus size={13} /> Add Vehicle</button>
+            <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose} disabled={isSubmitting}>Cancel</button>
+            <button type="submit" className={`admin-btn admin-btn-primary ${isSubmitting ? 'is-loading' : ''}`} disabled={isSubmitting}>
+              <Plus size={13} /> Add Vehicle
+            </button>
           </div>
         </form>
       </div>
