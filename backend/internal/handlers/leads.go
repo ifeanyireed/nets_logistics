@@ -56,10 +56,20 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 	if origin == "" {
 		origin, _ = journey["pickupState"].(string)
 	}
+	if origin == "" {
+		if pickupMap, ok := journey["pickup"].(map[string]interface{}); ok {
+			origin, _ = pickupMap["address"].(string)
+		}
+	}
 
 	destination, _ := journey["destinationLocation"].(string)
 	if destination == "" {
 		destination, _ = journey["destinationState"].(string)
+	}
+	if destination == "" {
+		if destMap, ok := journey["destination"].(map[string]interface{}); ok {
+			destination, _ = destMap["address"].(string)
+		}
 	}
 
 	var minEst, maxEst float64
@@ -69,8 +79,23 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 	if v, ok := invest["maximumEstimate"].(float64); ok {
 		maxEst = v
 	}
+	if v, ok := invest["total"].(float64); ok {
+		if minEst == 0 {
+			minEst = v
+		}
+		if maxEst == 0 {
+			maxEst = v
+		}
+	}
 
 	payloadBytes, _ := json.Marshal(payload)
+
+	status := "pending"
+	if payInfo, ok := payload["paymentInformation"].(map[string]interface{}); ok {
+		if s, ok := payInfo["status"].(string); ok && s != "" {
+			status = s
+		}
+	}
 
 	lead := models.Lead{
 		LeadReference:          ref,
@@ -84,7 +109,7 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 		Destination:            destination,
 		EstimatedInvestmentMin: minEst,
 		EstimatedInvestmentMax: maxEst,
-		Status:                 "pending",
+		Status:                 status,
 		PayloadJSON:            string(payloadBytes),
 	}
 

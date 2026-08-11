@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useJourneyStore } from '../store/useJourneyStore'
 import { PlannerLayout } from '../components/planner/PlannerLayout'
 import { Step1Locations } from '../components/planner/new_steps/Step1Locations'
@@ -12,6 +13,10 @@ import { crmService } from '../services/crmService'
 export function JourneyPlannerPage() {
   const state = useJourneyStore()
   const { currentStep, nextStep, prevStep } = state
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentStep])
 
   const isStep1Complete = state.pickup && state.destination
   const isStep2Complete = state.passengers && state.travelDate && state.departureTime && state.selectedVehicleId && state.additionalVehicleIds.every(id => id !== '') && (state.tripType === 'Recurring' ? state.multiDayItinerary.every(d => d.date) : true)
