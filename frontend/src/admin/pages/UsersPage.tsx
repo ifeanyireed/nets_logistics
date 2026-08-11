@@ -2,7 +2,7 @@
 // NETS Admin — User Management
 // ============================================================================
 import { useState, useEffect } from 'react'
-import { Plus, X, Save } from 'lucide-react'
+import { Plus, X, Save, Edit2, Trash2 } from 'lucide-react'
 import { useAdminStore, type AdminUser } from '../store/useAdminStore'
 import { adminService, AdminUserDB } from '../services/adminService'
 
@@ -37,6 +37,7 @@ export function UsersPage() {
   const [users, setUsers] = useState<AdminUserDB[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
+  const [editingUser, setEditingUser] = useState<AdminUserDB | null>(null)
   const [showMatrix, setShowMatrix] = useState(false)
 
   const loadUsers = () => {
@@ -60,6 +61,20 @@ export function UsersPage() {
   const handleAddUser = async (userForm: Partial<AdminUserDB>) => {
     await adminService.saveUser(userForm)
     loadUsers()
+  }
+
+  const handleEditUser = async (userForm: Partial<AdminUserDB>) => {
+    if (editingUser) {
+      await adminService.updateUser(editingUser.id, userForm)
+      loadUsers()
+    }
+  }
+
+  const handleDeleteUser = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      await adminService.deleteUser(id)
+      loadUsers()
+    }
   }
 
   const fmtDate = (iso?: string) => {
@@ -107,10 +122,16 @@ export function UsersPage() {
                   <td><span className={`admin-badge ${roleBadge[u.role] ?? 'admin-badge-gray'}`}>{roleLabels[u.role] ?? u.role}</span></td>
                   <td><span className={`admin-badge ${u.status === 'active' ? 'admin-badge-green' : 'admin-badge-gray'}`}>{u.status}</span></td>
                   <td style={{ fontSize: 13, color: 'var(--adm-text-2)' }}>{fmtDate(u.lastLogin)}</td>
-                  <td>
+                  <td style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <button className="admin-btn admin-btn-ghost admin-btn-sm"
                       onClick={() => handleToggleStatus(u.id, u.status)}>
                       {u.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button className="admin-btn admin-btn-icon admin-btn-ghost admin-btn-sm" title="Edit" onClick={() => setEditingUser(u)}>
+                      <Edit2 size={14} />
+                    </button>
+                    <button className="admin-btn admin-btn-icon admin-btn-ghost admin-btn-sm" style={{ color: 'var(--adm-red)' }} title="Delete" onClick={() => handleDeleteUser(u.id)}>
+                      <Trash2 size={14} />
                     </button>
                   </td>
                 </tr>
@@ -154,12 +175,20 @@ export function UsersPage() {
 
       {/* Add User Modal */}
       {showAdd && <AddUserModal onClose={() => setShowAdd(false)} onSave={handleAddUser} />}
+
+      {/* Edit User Modal */}
+      {editingUser && <AddUserModal initialData={editingUser} onClose={() => setEditingUser(null)} onSave={handleEditUser} isEdit />}
     </>
   )
 }
 
-function AddUserModal({ onClose, onSave }: any) {
-  const [form, setForm] = useState({ fullName: '', email: '', role: 'staff', status: 'active' as const })
+function AddUserModal({ onClose, onSave, initialData, isEdit }: any) {
+  const [form, setForm] = useState({ 
+    fullName: initialData?.fullName || '', 
+    email: initialData?.email || '', 
+    role: initialData?.role || 'staff', 
+    status: initialData?.status || 'active' 
+  })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     await onSave(form)
@@ -169,7 +198,7 @@ function AddUserModal({ onClose, onSave }: any) {
     <div className="admin-modal-backdrop" onClick={onClose}>
       <div className="admin-modal" onClick={e => e.stopPropagation()}>
         <div className="admin-modal-header">
-          <span className="admin-modal-title">Add New User</span>
+          <span className="admin-modal-title">{isEdit ? 'Edit User' : 'Add New User'}</span>
           <button className="admin-btn admin-btn-icon admin-btn-ghost" onClick={onClose}><X size={14} /></button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -192,7 +221,7 @@ function AddUserModal({ onClose, onSave }: any) {
           </div>
           <div className="admin-modal-footer">
             <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="admin-btn admin-btn-primary"><Save size={13} /> Add User</button>
+            <button type="submit" className="admin-btn admin-btn-primary"><Save size={13} /> {isEdit ? 'Save Changes' : 'Add User'}</button>
           </div>
         </form>
       </div>

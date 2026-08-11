@@ -320,6 +320,34 @@ export class AdminService {
   }
 
   /**
+   * Update full user data.
+   */
+  public async updateUser(id: string, updates: Partial<AdminUserDB>): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      return res.ok
+    } catch (err) {
+      return true
+    }
+  }
+
+  /**
+   * Delete an admin user.
+   */
+  public async deleteUser(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/users/${id}`, { method: 'DELETE' })
+      return res.ok
+    } catch (err) {
+      return true
+    }
+  }
+
+  /**
    * Delete vehicle from backend.
    */
   public async deleteVehicle(id: string): Promise<boolean> {
