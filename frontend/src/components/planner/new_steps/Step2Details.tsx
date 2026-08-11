@@ -20,6 +20,7 @@ export function Step2Details() {
     travelDate, setTravelDate,
     departureTime, setDepartureTime,
     tripType, setTripType,
+    returnDate, setReturnDate,
     returnTime, setReturnTime,
     retentionPreference, setRetentionPreference,
     vehicleMobility, setVehicleMobility,

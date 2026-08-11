@@ -171,7 +171,7 @@ export interface MinimumChargeConfig {
 // ── Journey Input ──
 
 /** Trip types supported by the platform */
-export type TripType = 'One Way' | 'Return' | 'Round Trip' | 'Multi-Day' | 'Recurring'
+export type TripType = 'One Way' | 'Return' | 'Round Trip' | 'Multi-Day' | 'Recurring' | 'Staff Pickup'
   | 'Airport Transfer' | 'Corporate Shuttle' | 'Wedding' | 'Tourism'
   | 'Conference' | 'School Transport'
 
