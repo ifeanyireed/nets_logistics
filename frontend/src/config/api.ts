@@ -16,7 +16,7 @@ export const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey()
 export const PAYSTACK_PUBLIC_KEY = 
   import.meta.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 
   import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 
-  'pk_test_3440e89ceb0536d08a6c5d74e10ddbe8de4be294'
+  'pk_live_744369c487505db8ecdde2f521781cfce2993ca2'
 
 export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   try {
