@@ -1,5 +1,8 @@
 import { motion } from 'framer-motion'
 import { useJourneyStore, type TripType } from '@/store/useJourneyStore'
+import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay } from 'date-fns'
+import { useState } from 'react'
+import { GooglePlacesAutocomplete } from '../GooglePlacesAutocomplete'
 
 const vehicleOptions = [
   { id: 'hiace', name: 'Toyota HiAce (14 Seats)', capacity: 14 },
@@ -17,15 +20,36 @@ export function Step2Details() {
     travelDate, setTravelDate,
     departureTime, setDepartureTime,
     tripType, setTripType,
-    returnDate, setReturnDate,
     returnTime, setReturnTime,
     retentionPreference, setRetentionPreference,
     vehicleMobility, setVehicleMobility,
     multiDayItinerary, setMultiDayItinerary,
+    staffPickupDays, setStaffPickupDays,
+    staffPickupTime, setStaffPickupTime,
+    staffDropOffTime, setStaffDropOffTime,
+    staffRoutes, addStaffRoute,
+    removeStaffRoute, updateStaffRoute,
     selectedVehicleId, setSelectedVehicleId,
     additionalVehicleIds, setAdditionalVehicleIds,
     nextStep, prevStep
   } = useJourneyStore()
+
+  const [calendarMonthOffset, setCalendarMonthOffset] = useState(0)
+  
+  const currentDate = addMonths(new Date(), calendarMonthOffset)
+  const monthStart = startOfMonth(currentDate)
+  const monthEnd = endOfMonth(currentDate)
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
+  const startDayOfWeek = getDay(monthStart) // 0 = Sunday, 1 = Monday...
+
+  const handleToggleDay = (day: Date) => {
+    const exists = staffPickupDays.find(d => isSameDay(d, day))
+    if (exists) {
+      setStaffPickupDays(staffPickupDays.filter(d => !isSameDay(d, day)))
+    } else {
+      setStaffPickupDays([...staffPickupDays, day])
+    }
+  }
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value) {
@@ -99,10 +123,12 @@ export function Step2Details() {
     return 1
   }
 
-  // Filter out any empty additional vehicle selections before allowing them to proceed
   let isComplete = !!(passengers && travelDate && departureTime && selectedVehicleId && additionalVehicleIds.every(id => id !== ''))
   
-  if (tripType === 'Recurring') {
+  if (tripType === 'Staff Pickup') {
+    isComplete = !!(passengers && selectedVehicleId && additionalVehicleIds.every(id => id !== ''))
+    isComplete = isComplete && staffPickupDays.length > 0 && !!staffPickupTime && !!staffDropOffTime
+  } else if (tripType === 'Recurring') {
     isComplete = isComplete && multiDayItinerary.every(d => d.date)
   }
   
@@ -216,7 +242,7 @@ export function Step2Details() {
             Trip Type
           </label>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            {['One Way', 'Return', 'Multi-Day', 'Recurring'].map((t) => (
+            {['One Way', 'Return', 'Multi-Day', 'Recurring', 'Staff Pickup'].map((t) => (
               <label 
                 key={t}
                 style={{
@@ -237,33 +263,35 @@ export function Step2Details() {
         </div>
 
         {/* Outbound Schedule */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
-              {tripType === 'Recurring' ? 'Day 1 Travel Date' : (tripType === 'Return' ? 'Departure Date' : (tripType === 'Multi-Day' ? 'Start Date' : 'Travel Date'))}
-            </label>
-            <input 
-              type="date"
-              className="input"
-              style={{ width: '100%', padding: '0.75rem' }}
-              value={travelDate ? travelDate.toISOString().split('T')[0] : ''}
-              onChange={handleDateChange}
-            />
-          </div>
+        {tripType !== 'Staff Pickup' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
+                {tripType === 'Recurring' ? 'Day 1 Travel Date' : (tripType === 'Return' ? 'Departure Date' : (tripType === 'Multi-Day' ? 'Start Date' : 'Travel Date'))}
+              </label>
+              <input 
+                type="date"
+                className="input"
+                style={{ width: '100%', padding: '0.75rem' }}
+                value={travelDate ? travelDate.toISOString().split('T')[0] : ''}
+                onChange={handleDateChange}
+              />
+            </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
-              {tripType === 'Recurring' ? 'Day 1 Pickup Time' : (tripType === 'Return' ? 'Departure Time' : 'Pickup Time')}
-            </label>
-            <input 
-              type="time"
-              className="input"
-              style={{ width: '100%', padding: '0.75rem' }}
-              value={departureTime}
-              onChange={(e) => setDepartureTime(e.target.value)}
-            />
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
+                {tripType === 'Recurring' ? 'Day 1 Pickup Time' : (tripType === 'Return' ? 'Departure Time' : 'Pickup Time')}
+              </label>
+              <input 
+                type="time"
+                className="input"
+                style={{ width: '100%', padding: '0.75rem' }}
+                value={departureTime}
+                onChange={(e) => setDepartureTime(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Return Schedule */}
         {(tripType === 'Return' || tripType === 'Multi-Day') && (
@@ -346,6 +374,141 @@ export function Step2Details() {
           }
           return null
         })()}
+
+        {/* Staff Pickup Settings */}
+        {tripType === 'Staff Pickup' && (
+          <div style={{ background: 'var(--color-nets-bg-2)', padding: '1.5rem', borderRadius: '8px', border: '1px dashed var(--color-nets-border)' }}>
+            <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-nets-navy-dark)', marginBottom: '1.5rem' }}>Staff Pickup Schedule</div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
+                  Pickup Time
+                </label>
+                <input 
+                  type="time"
+                  className="input"
+                  style={{ width: '100%', padding: '0.75rem' }}
+                  value={staffPickupTime}
+                  onChange={(e) => setStaffPickupTime(e.target.value)}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
+                  Drop Off Time
+                </label>
+                <input 
+                  type="time"
+                  className="input"
+                  style={{ width: '100%', padding: '0.75rem' }}
+                  value={staffDropOffTime}
+                  onChange={(e) => setStaffDropOffTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--color-nets-border)', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-nets-navy-dark)', marginBottom: '1rem' }}>Additional Routes</div>
+              {staffRoutes.map((route, idx) => (
+                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '1rem', marginBottom: '1rem', alignItems: 'flex-end' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-nets-navy-dark)' }}>
+                      Pickup
+                    </label>
+                    <GooglePlacesAutocomplete
+                      value={route.pickup?.address || null}
+                      onChange={() => {}}
+                      onLocationSelect={(loc) => updateStaffRoute(idx, 'pickup', loc)}
+                      placeholder="e.g. Origin"
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-nets-navy-dark)' }}>
+                      Destination
+                    </label>
+                    <GooglePlacesAutocomplete
+                      value={route.destination?.address || null}
+                      onChange={() => {}}
+                      onLocationSelect={(loc) => updateStaffRoute(idx, 'destination', loc)}
+                      placeholder="e.g. Destination"
+                      className="input"
+                    />
+                  </div>
+                  <button 
+                    onClick={() => removeStaffRoute(idx)}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--color-nets-red)', cursor: 'pointer', padding: '0.6rem 0', fontSize: '0.875rem', fontWeight: 600 }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button 
+                onClick={addStaffRoute}
+                style={{ background: 'transparent', border: 'none', color: 'var(--color-nets-blue)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add Route
+              </button>
+            </div>
+
+            <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--color-nets-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <button 
+                  onClick={() => setCalendarMonthOffset(o => o - 1)}
+                  style={{ background: 'transparent', border: '1px solid var(--color-nets-border)', borderRadius: '4px', padding: '0.5rem', cursor: 'pointer' }}
+                >
+                  &larr; Prev
+                </button>
+                <div style={{ fontWeight: 600, color: 'var(--color-nets-navy-dark)' }}>
+                  {format(currentDate, 'MMMM yyyy')}
+                </div>
+                <button 
+                  onClick={() => setCalendarMonthOffset(o => o + 1)}
+                  style={{ background: 'transparent', border: '1px solid var(--color-nets-border)', borderRadius: '4px', padding: '0.5rem', cursor: 'pointer' }}
+                >
+                  Next &rarr;
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', textAlign: 'center', marginBottom: '0.5rem' }}>
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                  <div key={day} style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-nets-text-2)' }}>{day}</div>
+                ))}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
+                {Array.from({ length: startDayOfWeek }).map((_, i) => (
+                  <div key={`empty-${i}`} />
+                ))}
+                {daysInMonth.map(day => {
+                  const isSelected = staffPickupDays.some(d => isSameDay(d, day))
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      onClick={() => handleToggleDay(day)}
+                      style={{
+                        padding: '0.5rem',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        background: isSelected ? 'var(--color-nets-red)' : 'var(--color-nets-bg-2)',
+                        color: isSelected ? '#fff' : 'var(--color-nets-navy-dark)',
+                        fontWeight: 500,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      {format(day, 'd')}
+                    </button>
+                  )
+                })}
+              </div>
+              <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--color-nets-text-2)', textAlign: 'right' }}>
+                Selected Days: {staffPickupDays.length}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Recurring Itinerary Builder */}
         {tripType === 'Recurring' && (

@@ -103,7 +103,7 @@ export function generateEstimate(input: JourneyPricingInput): EstimatedInvestmen
 
   return {
     estimatedInvestment: finalTotal,
-    rateTier: input.tripType === 'Recurring' ? 'monthly' : input.tripType === 'Multi-Day' ? 'three-day' : 'daily',
+    rateTier: (input.tripType === 'Recurring' || input.tripType === 'Staff Pickup') ? 'monthly' : input.tripType === 'Multi-Day' ? 'three-day' : 'daily',
     vehicleId: input.vehicleId,
     vehicleName: vehicleConfig.vehicleName,
     minimumChargeApplied: false,

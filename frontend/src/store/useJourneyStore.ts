@@ -17,7 +17,7 @@ export type JourneyIntent =
   | 'Recurring Shuttle'
   | null
 
-export type TripType = 'One Way' | 'Return' | 'Multi-Day' | 'Recurring'
+export type TripType = 'One Way' | 'Return' | 'Multi-Day' | 'Recurring' | 'Staff Pickup'
 
 export interface LocationData {
   address: string
@@ -92,6 +92,17 @@ interface JourneyState {
   setReturnTime: (t: string) => void
   multiDayItinerary: { date: Date | null; time: string }[]
   setMultiDayItinerary: (itinerary: { date: Date | null; time: string }[]) => void
+
+  staffPickupDays: Date[]
+  setStaffPickupDays: (days: Date[]) => void
+  staffPickupTime: string
+  setStaffPickupTime: (time: string) => void
+  staffDropOffTime: string
+  setStaffDropOffTime: (time: string) => void
+  staffRoutes: { pickup: LocationData | null, destination: LocationData | null }[]
+  addStaffRoute: () => void
+  removeStaffRoute: (index: number) => void
+  updateStaffRoute: (index: number, field: 'pickup' | 'destination', loc: LocationData | null) => void
 
   retentionPreference: 'keep' | 'return' | null
   setRetentionPreference: (pref: 'keep' | 'return' | null) => void
@@ -192,6 +203,21 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
   setReturnTime: (returnTime) => set({ returnTime }),
   multiDayItinerary: [],
   setMultiDayItinerary: (multiDayItinerary) => set({ multiDayItinerary }),
+
+  staffPickupDays: [],
+  setStaffPickupDays: (staffPickupDays) => set({ staffPickupDays }),
+  staffPickupTime: '07:00',
+  setStaffPickupTime: (staffPickupTime) => set({ staffPickupTime }),
+  staffDropOffTime: '17:00',
+  setStaffDropOffTime: (staffDropOffTime) => set({ staffDropOffTime }),
+  staffRoutes: [],
+  addStaffRoute: () => set((state) => ({ staffRoutes: [...state.staffRoutes, { pickup: null, destination: null }] })),
+  removeStaffRoute: (index) => set((state) => ({ staffRoutes: state.staffRoutes.filter((_, i) => i !== index) })),
+  updateStaffRoute: (index, field, loc) => set((state) => {
+    const newRoutes = [...state.staffRoutes]
+    newRoutes[index] = { ...newRoutes[index], [field]: loc }
+    return { staffRoutes: newRoutes }
+  }),
 
   retentionPreference: null,
   setRetentionPreference: (retentionPreference) => set({ retentionPreference }),
@@ -296,7 +322,11 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         returnTime: state.returnTime,
         retentionPreference: state.retentionPreference,
         vehicleMobility: state.vehicleMobility,
-        multiDayItinerary: state.multiDayItinerary.map(d => ({ date: d.date?.toISOString(), time: d.time }))
+        multiDayItinerary: state.multiDayItinerary.map(d => ({ date: d.date?.toISOString(), time: d.time })),
+        staffRoutes: state.staffRoutes,
+        staffPickupDays: state.staffPickupDays.map(d => d.toISOString()),
+        staffPickupTime: state.staffPickupTime,
+        staffDropOffTime: state.staffDropOffTime
       },
       estimatedInvestment: state.estimatedInvestment ? {
         total: state.estimatedInvestment.estimatedInvestment,
@@ -335,7 +365,9 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       
       // Calculate number of days for multi-day/recurring trips
       let numberOfDays = 1
-      if (state.tripType === 'Recurring') {
+      if (state.tripType === 'Staff Pickup') {
+        numberOfDays = Math.max(1, state.staffPickupDays.length)
+      } else if (state.tripType === 'Recurring') {
         numberOfDays = 1 + state.multiDayItinerary.length
       } else if ((state.tripType === 'Multi-Day' || state.tripType === 'Return') && state.travelDate && state.returnDate) {
         // Strip time to accurately calculate whole days difference
@@ -447,6 +479,10 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       returnDate: null,
       returnTime: '09:00',
       multiDayItinerary: [],
+      staffPickupDays: [],
+      staffPickupTime: '07:00',
+      staffDropOffTime: '17:00',
+      staffRoutes: [],
       retentionPreference: null,
       vehicleMobility: null,
       extras: [],

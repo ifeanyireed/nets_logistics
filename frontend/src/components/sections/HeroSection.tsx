@@ -24,7 +24,8 @@ export function HeroSection() {
     tripType, setTripType, travelDate, setTravelDate, 
     passengers, setPassengers, setRecommendedVehicleId, 
     recommendedVehicleId, generateReference, setStep,
-    setLeadModalOpen, setLeadModalNextAction
+    setLeadModalOpen, setLeadModalNextAction,
+    returnDate, setReturnDate
   } = useJourneyStore()
 
   const [errors, setErrors] = useState<string[]>([])
@@ -35,6 +36,12 @@ export function HeroSection() {
     }
   }
 
+  const handleReturnDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value) {
+      setReturnDate(new Date(e.target.value))
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const newErrors: string[] = []
@@ -42,6 +49,7 @@ export function HeroSection() {
     if (!pickup) newErrors.push('pickup')
     if (!destination) newErrors.push('destination')
     if (!travelDate) newErrors.push('travelDate')
+    if ((tripType === 'Return' || tripType === 'Multi-Day') && !returnDate) newErrors.push('returnDate')
     if (!passengers || passengers === 'Select Passengers') newErrors.push('passengers')
 
     if (newErrors.length > 0) {
@@ -258,7 +266,9 @@ export function HeroSection() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label htmlFor="hero-date" className="field-label-dark">Travel Date</label>
+                  <label htmlFor="hero-date" className="field-label-dark">
+                    {tripType === 'Return' ? 'Departure Date' : (tripType === 'Multi-Day' ? 'Start Date' : 'Travel Date')}
+                  </label>
                   <input 
                     id="hero-date" 
                     type="date" 
@@ -269,34 +279,83 @@ export function HeroSection() {
                   />
                   {errors.includes('travelDate') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Required</span>}
                 </div>
-                <div>
-                  <label htmlFor="hero-pax" className="field-label-dark">Passengers</label>
-                  <select 
-                    id="hero-pax" 
-                    className={`input-dark ${errors.includes('passengers') ? 'error-border' : ''}`}
-                    style={{ padding: '0.625rem 1rem', width: '100%' }}
-                    value={passengers || 'Select Passengers'}
-                    onChange={(e) => setPassengers(e.target.value)}
-                  >
-                    <option disabled>Select Passengers</option>
-                    {['1–3','4–7','8–14','15–18','19–30','31–50','50+'].map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                  {errors.includes('passengers') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Required</span>}
-                </div>
+
+                {(tripType === 'Return' || tripType === 'Multi-Day') ? (
+                  <div>
+                    <label htmlFor="hero-return-date" className="field-label-dark">
+                      {tripType === 'Multi-Day' ? 'End Date' : 'Return Date'}
+                    </label>
+                    <input 
+                      id="hero-return-date" 
+                      type="date" 
+                      className={`input-dark ${errors.includes('returnDate') ? 'error-border' : ''}`}
+                      style={{ padding: '0.625rem 1rem', width: '100%' }} 
+                      value={returnDate ? returnDate.toISOString().split('T')[0] : ''}
+                      onChange={handleReturnDateChange}
+                    />
+                    {errors.includes('returnDate') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Required</span>}
+                  </div>
+                ) : (
+                  <div>
+                    <label htmlFor="hero-pax" className="field-label-dark">Passengers</label>
+                    <select 
+                      id="hero-pax" 
+                      className={`input-dark ${errors.includes('passengers') ? 'error-border' : ''}`}
+                      style={{ padding: '0.625rem 1rem', width: '100%' }}
+                      value={passengers || 'Select Passengers'}
+                      onChange={(e) => setPassengers(e.target.value)}
+                    >
+                      <option disabled>Select Passengers</option>
+                      {['1–3','4–7','8–14','15–18','19–30','31–50','50+'].map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                    {errors.includes('passengers') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Required</span>}
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label htmlFor="hero-veh" className="field-label-dark">Preferred Vehicle</label>
-                <select 
-                  id="hero-veh" 
-                  className="input-dark" 
-                  style={{ padding: '0.625rem 1rem', width: '100%' }} 
-                  value={recommendedVehicleId || ''} 
-                  onChange={(e) => setRecommendedVehicleId(e.target.value === '' ? null : e.target.value)}
-                >
-                  {vehicleOptions.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-                </select>
-              </div>
+              {(tripType === 'Return' || tripType === 'Multi-Day') ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label htmlFor="hero-pax-2" className="field-label-dark">Passengers</label>
+                    <select 
+                      id="hero-pax-2" 
+                      className={`input-dark ${errors.includes('passengers') ? 'error-border' : ''}`}
+                      style={{ padding: '0.625rem 1rem', width: '100%' }}
+                      value={passengers || 'Select Passengers'}
+                      onChange={(e) => setPassengers(e.target.value)}
+                    >
+                      <option disabled>Select Passengers</option>
+                      {['1–3','4–7','8–14','15–18','19–30','31–50','50+'].map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                    {errors.includes('passengers') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Required</span>}
+                  </div>
+                  <div>
+                    <label htmlFor="hero-veh-2" className="field-label-dark">Preferred Vehicle</label>
+                    <select 
+                      id="hero-veh-2" 
+                      className="input-dark" 
+                      style={{ padding: '0.625rem 1rem', width: '100%' }} 
+                      value={recommendedVehicleId || ''} 
+                      onChange={(e) => setRecommendedVehicleId(e.target.value === '' ? null : e.target.value)}
+                    >
+                      {vehicleOptions.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label htmlFor="hero-veh" className="field-label-dark">Preferred Vehicle</label>
+                  <select 
+                    id="hero-veh" 
+                    className="input-dark" 
+                    style={{ padding: '0.625rem 1rem', width: '100%' }} 
+                    value={recommendedVehicleId || ''} 
+                    onChange={(e) => setRecommendedVehicleId(e.target.value === '' ? null : e.target.value)}
+                  >
+                    {vehicleOptions.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                  </select>
+                </div>
+              )}
 
               <button type="submit" className="btn btn-red btn-lg" style={{ width: '100%', justifyContent: 'center', marginTop: '0.25rem', padding: '0.75rem 1.5rem', border: 'none', cursor: 'pointer' }}>
                 Get Instant Quote
