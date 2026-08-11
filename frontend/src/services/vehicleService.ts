@@ -11,6 +11,11 @@ export class VehicleService {
     if (img.includes('suv.jpg')) {
       img = img.replace('suv.jpg', 'suv.png')
     }
+    // Force new imagery if the backend still returns the old suv.png placeholder for these models
+    if (img.includes('suv.png')) {
+      if (v.slug.includes('sedan')) img = '/vehicles/Sedan.jpeg'
+      else if (v.slug.includes('sienna')) img = '/vehicles/Sienna.jpeg'
+    }
     if (img.startsWith('/images/')) {
       img = img.replace('/images/', '/')
     }

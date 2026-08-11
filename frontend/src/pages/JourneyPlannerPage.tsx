@@ -18,6 +18,30 @@ export function JourneyPlannerPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [currentStep])
 
+  useEffect(() => {
+    // Initialize Meta (Facebook) Pixel with a placeholder ID
+    if (!(window as any).fbq) {
+      ;(function(f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
+        if (f.fbq) return;
+        n = f.fbq = function() {
+          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+        };
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = !0;
+        n.version = '2.0';
+        n.queue = [];
+        t = b.createElement(e);
+        t.async = !0;
+        t.src = v;
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s);
+      })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+      ;(window as any).fbq('init', 'YOUR_META_PIXEL_ID');
+    }
+    ;(window as any).fbq('track', 'PageView');
+  }, [])
+
   const isStep1Complete = state.pickup && state.destination
   const isStep2Complete = state.passengers && state.travelDate && state.departureTime && state.selectedVehicleId && state.additionalVehicleIds.every(id => id !== '') && (state.tripType === 'Recurring' ? state.multiDayItinerary.every(d => d.date) : true)
 
@@ -59,6 +83,15 @@ export function JourneyPlannerPage() {
 
     crmService.trackEvent('Payment_Completed', { reference: payRef, amount: paystackConfig.amount })
     
+    // Fire Meta Pixel Purchase event
+    if ((window as any).fbq) {
+      ;(window as any).fbq('track', 'Purchase', {
+        value: paystackConfig.amount / 100,
+        currency: 'NGN',
+        content_name: 'Vehicle Booking',
+      })
+    }
+    
     // Set current step to 4 (Step10Success) and scroll to top of page
     state.setStep(4)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -79,6 +112,11 @@ export function JourneyPlannerPage() {
     if (!paystackConfig.publicKey) {
       alert('Paystack public key is not configured. Please set VITE_PAYSTACK_PUBLIC_KEY in environment.')
       return
+    }
+
+    // Fire Meta Pixel InitiateCheckout event
+    if ((window as any).fbq) {
+      ;(window as any).fbq('track', 'InitiateCheckout')
     }
 
     initializePayment({
