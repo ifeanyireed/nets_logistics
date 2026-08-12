@@ -45,7 +45,7 @@ export function DashboardHome() {
   }, [])
 
   // KPIs derived directly from live database leads & bookings
-  const pendingQuotes = liveLeads.filter(q => q.status === 'Pending Review' || q.status === 'New Lead' || q.status === 'pending' || q.status === 'new').length
+  const pendingQuotes = liveLeads.filter(q => q.status === 'pending' || q.status === 'new').length
   const confirmedBookings = liveBookings.filter(b => b.operationalStatus === 'confirmed' || b.operationalStatus === 'dispatched' || b.paymentStatus === 'paid').length
   const fleetActive = vehicles.filter(v => v.available).length
 
@@ -64,7 +64,7 @@ export function DashboardHome() {
     description: `Quote request ${l.leadReference} submitted by ${l.customerName}`,
     userName: l.customerName || 'Customer',
     timestamp: l.createdAt,
-    action: (l.status === 'Pending Review' || l.status === 'New Lead' || l.status === 'pending') ? 'Lead Created' : `Status ${l.status}`,
+    action: l.status === 'pending' ? 'Lead Created' : `Status ${l.status}`,
   }))
 
   const bookingActivities = liveBookings.map(b => ({

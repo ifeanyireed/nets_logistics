@@ -34,7 +34,7 @@ export interface AdminQuote {
   customerEmail: string; customerPhone?: string; vehicleId: string; vehicleName: string
   pickup: string; destination: string; distanceKm: number; durationMins: number
   tripType: string; passengerCount: number; travelDate: string
-  estimatedInvestment: number; status: string
+  estimatedInvestment: number; status: 'new' | 'reviewed' | 'approved' | 'rejected' | 'converted'
   createdAt: string; notes: string
 }
 
