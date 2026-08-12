@@ -15,7 +15,7 @@ type Lead struct {
 	Destination            string    `json:"destination" gorm:"type:varchar(255)"`
 	EstimatedInvestmentMin float64   `json:"estimatedInvestmentMin" gorm:"default:0"`
 	EstimatedInvestmentMax float64   `json:"estimatedInvestmentMax" gorm:"default:0"`
-	Status                 string    `json:"status" gorm:"type:varchar(64);default:'pending'"`
+	Status                 string    `json:"status" gorm:"type:varchar(64);default:'Pending Review'"`
 	PayloadJSON            string    `json:"-" gorm:"type:longtext"`
 	Payload                any       `json:"payload,omitempty" gorm:"-"`
 	CreatedAt              time.Time `json:"createdAt"`

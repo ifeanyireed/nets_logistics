@@ -54,15 +54,12 @@ const fmtDateShort = (iso: string) => {
 }
 
 const statusBadges: Record<string, { label: string; class: string }> = {
-  new: { label: 'New Quote', class: 'admin-badge-accent' },
-  pending: { label: 'Pending Review', class: 'admin-badge-yellow' },
-  reviewed: { label: 'Reviewed', class: 'admin-badge-yellow' },
-  approved: { label: 'Approved', class: 'admin-badge-green' },
-  rejected: { label: 'Rejected', class: 'admin-badge-red' },
-  converted: { label: 'Converted to Booking', class: 'admin-badge-green' },
-  won: { label: 'Won & Paid', class: 'admin-badge-green' },
-  'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-green' },
-  lost: { label: 'Not Interested', class: 'admin-badge-red' },
+  'New Lead': { label: 'New Lead', class: 'admin-badge-yellow' },
+  'Pending Review': { label: 'Pending Review', class: 'admin-badge-yellow' },
+  'Contacted': { label: 'Contacted', class: 'admin-badge-accent' },
+  'Proposal Sent': { label: 'Proposal Sent', class: 'admin-badge-accent' },
+  'Won & Paid': { label: 'Won & Paid', class: 'admin-badge-green' },
+  'Not Interested': { label: 'Not Interested', class: 'admin-badge-red' },
 }
 
 export function QuotesPage() {
@@ -127,7 +124,7 @@ export function QuotesPage() {
       travelDate: l.createdAt,
       passengerCount: 1,
       estimatedInvestment: l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0,
-      status: (l.status === 'pending' ? 'new' : l.status) as any,
+      status: (l.status === 'pending' ? 'Pending Review' : l.status === 'new' ? 'New Lead' : l.status) as any,
       createdAt: l.createdAt,
       notes: '',
     }))
@@ -161,14 +158,11 @@ export function QuotesPage() {
       const quoteSt = String(q.status || '').toLowerCase()
       const filtSt = statusFilter.toLowerCase()
 
-      if (filtSt === 'pending' || filtSt === 'new') {
-        return matchSearch && (quoteSt === 'pending' || quoteSt === 'new')
+      if (filtSt === 'pending review' || filtSt === 'new lead') {
+        return matchSearch && (quoteSt === 'pending review' || quoteSt === 'new lead' || quoteSt === 'pending' || quoteSt === 'new')
       }
-      if (filtSt === 'approved') {
-        return matchSearch && quoteSt === 'approved'
-      }
-      if (filtSt === 'converted' || filtSt === 'won') {
-        return matchSearch && (quoteSt === 'converted' || quoteSt === 'won' || quoteSt.includes('paid'))
+      if (filtSt === 'won & paid') {
+        return matchSearch && (quoteSt === 'won & paid' || quoteSt === 'won' || quoteSt === 'converted' || quoteSt.includes('paid'))
       }
       return matchSearch && quoteSt === filtSt
     })
@@ -186,12 +180,12 @@ export function QuotesPage() {
   const totalValue = allQuotes.reduce((acc, q) => acc + (Number(q.estimatedInvestment) || 0), 0)
   const wonCount = allQuotes.filter((q) => {
     const st = String(q.status).toLowerCase()
-    return st === 'converted' || st === 'won' || st === 'approved' || st.includes('paid')
+    return st === 'won & paid' || st === 'won' || st === 'converted' || st.includes('paid')
   }).length
   const winRate = allQuotes.length > 0 ? Math.round((wonCount / allQuotes.length) * 100) : 0
   const pendingCount = allQuotes.filter((q) => {
     const st = String(q.status).toLowerCase()
-    return st === 'new' || st === 'pending' || st === 'reviewed'
+    return st === 'new lead' || st === 'pending review' || st === 'new' || st === 'pending'
   }).length
 
   // Generate page numbers
@@ -371,7 +365,7 @@ export function QuotesPage() {
           />
         </div>
         <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-          {['all', 'new', 'reviewed', 'approved', 'converted', 'rejected'].map((st) => (
+          {['all', 'New Lead', 'Pending Review', 'Contacted', 'Proposal Sent', 'Won & Paid', 'Not Interested'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
@@ -458,29 +452,29 @@ export function QuotesPage() {
                       </td>
                       <td onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                          {q.status === 'new' && (
+                          {(q.status === 'New Lead' || q.status === 'Pending Review' || q.status === 'new' || q.status === 'pending') && (
                             <>
                               <button
                                 className="admin-btn admin-btn-sm admin-btn-ghost"
                                 title="Approve Quote"
-                                onClick={() => handleUpdateStatus(q.id, 'approved')}
+                                onClick={() => handleUpdateStatus(q.id, 'Proposal Sent')}
                               >
                                 <Check size={12} />
                               </button>
                               <button
                                 className="admin-btn admin-btn-sm admin-btn-danger"
                                 title="Reject Quote"
-                                onClick={() => handleUpdateStatus(q.id, 'rejected')}
+                                onClick={() => handleUpdateStatus(q.id, 'Not Interested')}
                               >
                                 <X size={12} />
                               </button>
                             </>
                           )}
-                          {q.status === 'approved' && (
+                          {q.status === 'Proposal Sent' && (
                             <button
                               className="admin-btn admin-btn-sm admin-btn-primary"
                               title="Convert to Active Booking"
-                              onClick={() => handleUpdateStatus(q.id, 'converted')}
+                              onClick={() => handleUpdateStatus(q.id, 'Won & Paid')}
                               style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '0.25rem 0.5rem' }}
                             >
                               <RefreshCw size={11} /> Convert
@@ -970,30 +964,30 @@ export function QuotesPage() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {selectedQuote.status === 'new' && (
+                {(selectedQuote.status === 'New Lead' || selectedQuote.status === 'Pending Review' || selectedQuote.status === 'new' || selectedQuote.status === 'pending') && (
                   <>
                     <button
                       type="button"
                       className="admin-btn admin-btn-primary admin-btn-sm"
-                      onClick={() => handleUpdateStatus(selectedQuote.id, 'approved')}
+                      onClick={() => handleUpdateStatus(selectedQuote.id, 'Proposal Sent')}
                     >
                       <Check size={13} /> Approve
                     </button>
                     <button
                       type="button"
                       className="admin-btn admin-btn-danger admin-btn-sm"
-                      onClick={() => handleUpdateStatus(selectedQuote.id, 'rejected')}
+                      onClick={() => handleUpdateStatus(selectedQuote.id, 'Not Interested')}
                     >
                       <X size={13} /> Reject
                     </button>
                   </>
                 )}
 
-                {selectedQuote.status === 'approved' && (
+                {selectedQuote.status === 'Proposal Sent' && (
                   <button
                     type="button"
                     className="admin-btn admin-btn-primary admin-btn-sm"
-                    onClick={() => handleUpdateStatus(selectedQuote.id, 'converted')}
+                    onClick={() => handleUpdateStatus(selectedQuote.id, 'Won & Paid')}
                   >
                     <RefreshCw size={13} /> Convert to Booking
                   </button>

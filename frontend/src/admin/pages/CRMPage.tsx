@@ -13,16 +13,12 @@ const fmtDate = (iso: string) => {
 }
 
 const statusBadges: Record<string, { label: string; class: string }> = {
-  new: { label: 'New Lead', class: 'admin-badge-yellow' },
-  pending: { label: 'Pending Review', class: 'admin-badge-yellow' },
-  approved: { label: 'Approved', class: 'admin-badge-green' },
-  reviewed: { label: 'Reviewed', class: 'admin-badge-yellow' },
-  contacted: { label: 'Contacted', class: 'admin-badge-accent' },
-  proposal_sent: { label: 'Proposal Sent', class: 'admin-badge-accent' },
-  won: { label: 'Won & Paid', class: 'admin-badge-green' },
-  converted: { label: 'Converted to Booking', class: 'admin-badge-green' },
-  'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-green' },
-  lost: { label: 'Not Interested', class: 'admin-badge-red' },
+  'New Lead': { label: 'New Lead', class: 'admin-badge-yellow' },
+  'Pending Review': { label: 'Pending Review', class: 'admin-badge-yellow' },
+  'Contacted': { label: 'Contacted', class: 'admin-badge-accent' },
+  'Proposal Sent': { label: 'Proposal Sent', class: 'admin-badge-accent' },
+  'Won & Paid': { label: 'Won & Paid', class: 'admin-badge-green' },
+  'Not Interested': { label: 'Not Interested', class: 'admin-badge-red' },
 }
 
 export function CRMPage() {
@@ -79,11 +75,11 @@ export function CRMPage() {
       const leadSt = String(l?.status || '').toLowerCase()
       const filtSt = statusFilter.toLowerCase()
       
-      if (filtSt === 'pending' || filtSt === 'new') {
-        return matchSearch && (leadSt === 'pending' || leadSt === 'new')
+      if (filtSt === 'pending review' || filtSt === 'new lead') {
+        return matchSearch && (leadSt === 'pending review' || leadSt === 'new lead' || leadSt === 'pending' || leadSt === 'new')
       }
-      if (filtSt === 'won') {
-        return matchSearch && (leadSt === 'won' || leadSt === 'converted' || leadSt.includes('paid'))
+      if (filtSt === 'won & paid') {
+        return matchSearch && (leadSt === 'won & paid' || leadSt === 'won' || leadSt === 'converted' || leadSt.includes('paid'))
       }
       return matchSearch && (leadSt === filtSt)
     })
@@ -98,7 +94,10 @@ export function CRMPage() {
   const paginatedLeads = filteredLeads.slice(startIndex, endIndex)
 
   const totalValue = leads.reduce((acc, l) => acc + (Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0), 0)
-  const wonCount = leads.filter(l => l.status === 'won' || l.status === 'converted' || String(l.status).toLowerCase().includes('paid')).length
+  const wonCount = leads.filter(l => {
+    const s = String(l.status).toLowerCase()
+    return s === 'won & paid' || s === 'won' || s === 'converted' || s.includes('paid')
+  }).length
   const winRate = leads.length > 0 ? Math.round((wonCount / leads.length) * 100) : 0
 
   // Generate visible page numbers
@@ -172,7 +171,7 @@ export function CRMPage() {
           />
         </div>
         <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-          {['all', 'new', 'pending', 'contacted', 'proposal_sent', 'won', 'lost'].map(st => (
+          {['all', 'New Lead', 'Pending Review', 'Contacted', 'Proposal Sent', 'Won & Paid', 'Not Interested'].map(st => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}

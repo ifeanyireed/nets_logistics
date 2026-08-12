@@ -89,7 +89,7 @@ export class AdminService {
     }
 
     const leads = await this.getLeads()
-    const pendingLeads = leads.filter(l => l.status === 'new' || l.status === 'pending').length
+    const pendingLeads = leads.filter(l => l.status === 'New Lead' || l.status === 'Pending Review' || l.status === 'new' || l.status === 'pending').length
     const totalPipelineValue = leads.reduce((acc, l) => acc + (l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0), 0)
 
     return {
@@ -132,7 +132,7 @@ export class AdminService {
       destination: l.destination || 'Lagos, Nigeria',
       estimatedInvestmentMin: Number(l.estimatedInvestmentMin) || 0,
       estimatedInvestmentMax: Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0,
-      status: l.status || 'pending',
+      status: l.status || 'New Lead',
       createdAt: l.createdAt || new Date().toISOString(),
       payload: l.payload || null,
     }))
