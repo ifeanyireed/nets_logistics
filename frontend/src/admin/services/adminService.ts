@@ -139,6 +139,23 @@ export class AdminService {
   }
 
   /**
+   * Create a new lead directly in remote backend database.
+   */
+  public async createLead(payload: any): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      return res.ok
+    } catch (err) {
+      console.error('⚠️ [ADMIN SERVICE] Error creating lead:', err)
+      return false
+    }
+  }
+
+  /**
    * Update lead status directly in remote backend database.
    */
   public async updateLeadStatus(id: number | string, status: string): Promise<boolean> {

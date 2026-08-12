@@ -22,7 +22,7 @@ const statusBadges: Record<string, { label: string; class: string }> = {
   won: { label: 'Won & Paid', class: 'admin-badge-green' },
   converted: { label: 'Converted to Booking', class: 'admin-badge-green' },
   'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-green' },
-  lost: { label: 'Lost / Closed', class: 'admin-badge-red' },
+  lost: { label: 'Not Interested', class: 'admin-badge-red' },
 }
 
 export function CRMPage() {

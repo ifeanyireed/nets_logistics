@@ -18,6 +18,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Plus,
 } from 'lucide-react'
 import { useAdminStore, type AdminQuote } from '../store/useAdminStore'
 import { adminService, type AdminLead } from '../services/adminService'
@@ -61,7 +62,7 @@ const statusBadges: Record<string, { label: string; class: string }> = {
   converted: { label: 'Converted to Booking', class: 'admin-badge-green' },
   won: { label: 'Won & Paid', class: 'admin-badge-green' },
   'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-green' },
-  lost: { label: 'Lost / Closed', class: 'admin-badge-red' },
+  lost: { label: 'Not Interested', class: 'admin-badge-red' },
 }
 
 export function QuotesPage() {
@@ -73,6 +74,10 @@ export function QuotesPage() {
   const [selectedQuote, setSelectedQuote] = useState<AdminQuote | null>(null)
   const [noteInput, setNoteInput] = useState('')
   const [noteSaved, setNoteSaved] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [createForm, setCreateForm] = useState({
+    name: '', email: '', phone: '', vehicle: '', origin: '', destination: '', investment: 0
+  })
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -263,6 +268,35 @@ export function QuotesPage() {
     setNoteSaved(false)
   }
 
+  const handleCreateQuote = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    const ok = await adminService.createLead({
+      customerInformation: {
+        name: createForm.name,
+        email: createForm.email,
+        phone: createForm.phone
+      },
+      journeyInformation: {
+        journeyType: 'Standard Charter',
+        pickupLocation: createForm.origin,
+        destinationLocation: createForm.destination
+      },
+      estimatedInvestment: {
+        minimumEstimate: createForm.investment,
+        maximumEstimate: createForm.investment
+      }
+    })
+    if (ok) {
+      setShowCreateModal(false)
+      setCreateForm({ name: '', email: '', phone: '', vehicle: '', origin: '', destination: '', investment: 0 })
+      loadQuotesAndLeads()
+    } else {
+      setLoading(false)
+      alert("Failed to create quote. Please try again.")
+    }
+  }
+
   return (
     <>
       {/* Header */}
@@ -282,6 +316,14 @@ export function QuotesPage() {
           >
             <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
             {loading ? 'Refreshing…' : 'Refresh Quotes'}
+          </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="admin-btn admin-btn-primary admin-btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+          >
+            <Plus size={13} />
+            Create Quote
           </button>
         </div>
       </div>
@@ -984,6 +1026,87 @@ export function QuotesPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Create Quote Modal ── */}
+      {showCreateModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowCreateModal(false)
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.25rem',
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid var(--adm-border)',
+              borderRadius: 'var(--adm-radius)',
+              width: '100%',
+              maxWidth: '500px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 24px 64px rgba(0, 0, 0, 0.4)',
+              padding: '1.75rem',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--adm-text-1)' }}>Create Quote</h3>
+              <button className="admin-btn admin-btn-icon admin-btn-ghost" onClick={() => setShowCreateModal(false)} style={{ width: 32, height: 32, borderRadius: '50%' }}>
+                <X size={16} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateQuote} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="admin-grid-2">
+                <div className="admin-form-group">
+                  <label className="admin-label">Customer Name</label>
+                  <input required className="admin-input" value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} />
+                </div>
+                <div className="admin-form-group">
+                  <label className="admin-label">Email Address</label>
+                  <input required type="email" className="admin-input" value={createForm.email} onChange={e => setCreateForm({...createForm, email: e.target.value})} />
+                </div>
+              </div>
+              
+              <div className="admin-grid-2">
+                <div className="admin-form-group">
+                  <label className="admin-label">Phone Number</label>
+                  <input className="admin-input" value={createForm.phone} onChange={e => setCreateForm({...createForm, phone: e.target.value})} />
+                </div>
+                <div className="admin-form-group">
+                  <label className="admin-label">Estimated Price (₦)</label>
+                  <input required type="number" className="admin-input" value={createForm.investment || ''} onChange={e => setCreateForm({...createForm, investment: Number(e.target.value)})} />
+                </div>
+              </div>
+
+              <div className="admin-grid-2">
+                <div className="admin-form-group">
+                  <label className="admin-label">Pickup Location</label>
+                  <input required className="admin-input" value={createForm.origin} onChange={e => setCreateForm({...createForm, origin: e.target.value})} />
+                </div>
+                <div className="admin-form-group">
+                  <label className="admin-label">Destination</label>
+                  <input required className="admin-input" value={createForm.destination} onChange={e => setCreateForm({...createForm, destination: e.target.value})} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--adm-border)' }}>
+                <button type="button" className="admin-btn admin-btn-ghost" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                <button type="submit" disabled={loading} className="admin-btn admin-btn-primary">{loading ? 'Creating...' : 'Create Quote'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
