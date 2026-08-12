@@ -195,7 +195,8 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var body struct {
-		Status string `json:"status"`
+		Status    string `json:"status"`
+		CrmStatus string `json:"crmStatus"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		response.Error(w, http.StatusBadRequest, "Invalid JSON payload")
@@ -208,9 +209,18 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	updates := make(map[string]interface{})
 	if body.Status != "" {
 		lead.Status = body.Status
-		db.Model(&lead).Update("status", body.Status)
+		updates["status"] = body.Status
+	}
+	if body.CrmStatus != "" {
+		lead.CrmStatus = body.CrmStatus
+		updates["crm_status"] = body.CrmStatus
+	}
+
+	if len(updates) > 0 {
+		db.Model(&lead).Updates(updates)
 	}
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{

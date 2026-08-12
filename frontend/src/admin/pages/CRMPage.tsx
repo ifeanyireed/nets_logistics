@@ -13,16 +13,12 @@ const fmtDate = (iso: string) => {
 }
 
 const statusBadges: Record<string, { label: string; class: string }> = {
-  new: { label: 'New Lead', class: 'admin-badge-yellow' },
-  pending: { label: 'Pending Review', class: 'admin-badge-yellow' },
-  approved: { label: 'Approved', class: 'admin-badge-green' },
-  reviewed: { label: 'Reviewed', class: 'admin-badge-yellow' },
-  contacted: { label: 'Contacted', class: 'admin-badge-accent' },
-  proposal_sent: { label: 'Proposal Sent', class: 'admin-badge-accent' },
-  won: { label: 'Won & Paid', class: 'admin-badge-green' },
-  converted: { label: 'Converted to Booking', class: 'admin-badge-green' },
-  'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-green' },
-  lost: { label: 'Not Interested', class: 'admin-badge-red' },
+  'New Lead': { label: 'New Lead', class: 'admin-badge-yellow' },
+  'Pending Review': { label: 'Pending Review', class: 'admin-badge-yellow' },
+  'Contacted': { label: 'Contacted', class: 'admin-badge-accent' },
+  'Proposal Sent': { label: 'Proposal Sent', class: 'admin-badge-accent' },
+  'Won & Paid': { label: 'Won & Paid', class: 'admin-badge-green' },
+  'Not Interested': { label: 'Not Interested', class: 'admin-badge-red' },
 }
 
 export function CRMPage() {
@@ -56,10 +52,12 @@ export function CRMPage() {
   }, [search, statusFilter, pageSize])
 
   const handleUpdateStatus = async (id: number | string, newStatus: string) => {
-    await adminService.updateLeadStatus(id, newStatus)
-    loadLeads()
-    if (selectedLead && (selectedLead.id === id || selectedLead.leadReference === id)) {
-      setSelectedLead(prev => prev ? { ...prev, status: newStatus } : null)
+    const success = await adminService.updateCrmStatus(id, newStatus)
+    if (success) {
+      setLeads(prev => prev.map(l => l.id === id ? { ...l, crmStatus: newStatus } : l))
+      if (selectedLead && selectedLead.id === id) {
+        setSelectedLead({ ...selectedLead, crmStatus: newStatus })
+      }
     }
   }
 
@@ -76,15 +74,9 @@ export function CRMPage() {
       
       if (statusFilter === 'all') return matchSearch
 
-      const leadSt = String(l?.status || '').toLowerCase()
+      const leadSt = String(l?.crmStatus || l?.status || '').toLowerCase()
       const filtSt = statusFilter.toLowerCase()
       
-      if (filtSt === 'pending' || filtSt === 'new') {
-        return matchSearch && (leadSt === 'pending' || leadSt === 'new')
-      }
-      if (filtSt === 'won') {
-        return matchSearch && (leadSt === 'won' || leadSt === 'converted' || leadSt.includes('paid'))
-      }
       return matchSearch && (leadSt === filtSt)
     })
   }, [leads, search, statusFilter])
@@ -98,7 +90,7 @@ export function CRMPage() {
   const paginatedLeads = filteredLeads.slice(startIndex, endIndex)
 
   const totalValue = leads.reduce((acc, l) => acc + (Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0), 0)
-  const wonCount = leads.filter(l => l.status === 'won' || l.status === 'converted' || String(l.status).toLowerCase().includes('paid')).length
+  const wonCount = leads.filter(l => l.crmStatus === 'Won & Paid').length
   const winRate = leads.length > 0 ? Math.round((wonCount / leads.length) * 100) : 0
 
   // Generate visible page numbers
@@ -172,7 +164,7 @@ export function CRMPage() {
           />
         </div>
         <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-          {['all', 'new', 'pending', 'contacted', 'proposal_sent', 'won', 'lost'].map(st => (
+          {['all', 'New Lead', 'Pending Review', 'Contacted', 'Proposal Sent', 'Won & Paid', 'Not Interested'].map(st => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
@@ -209,7 +201,8 @@ export function CRMPage() {
                 </tr>
               ) : (
                 paginatedLeads.map(l => {
-                  const badge = statusBadges[l.status] || { label: l.status, class: 'admin-badge-gray' }
+                  const currentStatus = String(l.crmStatus || l.status)
+                  const badge = statusBadges[currentStatus] || { label: currentStatus, class: 'admin-badge-gray' }
                   const val = l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0
                   return (
                     <tr
@@ -394,8 +387,8 @@ export function CRMPage() {
                   <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: 'var(--adm-accent)', background: 'rgba(239, 68, 68, 0.1)', padding: '0.2rem 0.5rem', borderRadius: 4 }}>
                     {selectedLead.leadReference}
                   </span>
-                  <span className={`admin-badge ${(statusBadges[selectedLead.status] || { class: 'admin-badge-gray' }).class}`}>
-                    {(statusBadges[selectedLead.status] || { label: selectedLead.status }).label}
+                  <span className={`admin-badge ${(statusBadges[selectedLead.crmStatus || selectedLead.status] || { class: 'admin-badge-gray' }).class}`}>
+                    {(statusBadges[selectedLead.crmStatus || selectedLead.status] || { label: selectedLead.crmStatus || selectedLead.status }).label}
                   </span>
                 </div>
                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--adm-text-1)' }}>
@@ -489,9 +482,9 @@ export function CRMPage() {
                 <span className="admin-label" style={{ marginBottom: 0, whiteSpace: 'nowrap' }}>Change Status:</span>
                 <select
                   className="admin-select"
-                  value={selectedLead.status}
-                  onChange={e => handleUpdateStatus(selectedLead.id || selectedLead.leadReference, e.target.value)}
-                  style={{ minWidth: 180 }}
+                  value={selectedLead.crmStatus || selectedLead.status}
+                  onChange={e => handleUpdateStatus(selectedLead.id, e.target.value)}
+                  style={{ minWidth: 170 }}
                 >
                   {Object.entries(statusBadges).map(([val, info]) => (
                     <option key={val} value={val}>{info.label}</option>

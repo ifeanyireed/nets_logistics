@@ -22,6 +22,7 @@ export interface AdminLead {
   estimatedInvestmentMin?: number
   estimatedInvestmentMax?: number
   status: string
+  crmStatus: string
   createdAt: string
   payload?: any
 }
@@ -89,7 +90,7 @@ export class AdminService {
     }
 
     const leads = await this.getLeads()
-    const pendingLeads = leads.filter(l => l.status === 'new' || l.status === 'pending').length
+    const pendingLeads = leads.filter(l => l.crmStatus === 'New Lead' || l.crmStatus === 'Pending Review' || l.status === 'new' || l.status === 'pending').length
     const totalPipelineValue = leads.reduce((acc, l) => acc + (l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0), 0)
 
     return {
@@ -133,6 +134,7 @@ export class AdminService {
       estimatedInvestmentMin: Number(l.estimatedInvestmentMin) || 0,
       estimatedInvestmentMax: Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0,
       status: l.status || 'pending',
+      crmStatus: l.crmStatus || 'New Lead',
       createdAt: l.createdAt || new Date().toISOString(),
       payload: l.payload || null,
     }))
@@ -168,6 +170,23 @@ export class AdminService {
       return res.ok
     } catch (err) {
       console.error('⚠️ [ADMIN SERVICE] Error updating lead status:', err)
+      return false
+    }
+  }
+
+  /**
+   * Update CRM pipeline status directly in remote backend database.
+   */
+  public async updateCrmStatus(id: number | string, crmStatus: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/leads/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ crmStatus }),
+      })
+      return res.ok
+    } catch (err) {
+      console.error('⚠️ [ADMIN SERVICE] Error updating CRM status:', err)
       return false
     }
   }
