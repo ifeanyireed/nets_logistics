@@ -185,16 +185,27 @@ export function LiveTripPage() {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
                 <div style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: 0,
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
                   background: 'var(--color-nets-navy)',
-                  color: '#fff',
+                  border: '2px solid var(--color-nets-red)',
+                  flexShrink: 0,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
                 }}>
-                  <UserCheck size={24} />
+                  <img
+                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80"
+                    alt={booking.driverName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none'
+                    }}
+                  />
+                  <UserCheck size={24} color="#fff" />
                 </div>
                 <div>
                   <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>{booking.driverName}</div>
