@@ -80,7 +80,7 @@ export function BookingConfirmationPage() {
             background: 'linear-gradient(135deg, var(--color-nets-navy) 0%, var(--color-nets-navy-dark) 100%)',
             color: '#fff',
             padding: '1.25rem 1.5rem',
-            borderRadius: '12px',
+            borderRadius: 0,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -96,7 +96,7 @@ export function BookingConfirmationPage() {
             <button
               onClick={() => navigate(`/shuttles/live/${booking.id}`)}
               className="btn btn-red btn-sm"
-              style={{ border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+              style={{ border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', borderRadius: 0 }}
             >
               <span>Track Shuttle Live</span>
               <ArrowRight size={14} />
@@ -104,7 +104,7 @@ export function BookingConfirmationPage() {
           </div>
 
           {/* Paystack Payment Verification Ribbon */}
-          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '1rem 1.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '1rem 1.25rem', borderRadius: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <ShieldCheck size={20} color="#166534" />
               <div>
@@ -112,7 +112,7 @@ export function BookingConfirmationPage() {
                 <div style={{ fontSize: '0.75rem', color: '#15803d' }}>Ref: PSK-{booking.bookingRef} • Amount: ₦{booking.totalFare.toLocaleString()}</div>
               </div>
             </div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534', background: '#dcfce7', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534', background: '#dcfce7', padding: '0.2rem 0.5rem', borderRadius: 0 }}>
               PAID
             </span>
           </div>
@@ -122,11 +122,11 @@ export function BookingConfirmationPage() {
 
           {/* Account & History Buttons */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <Link to="/shuttles/account" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Link to="/shuttles/account" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', borderRadius: 0 }}>
               <ListOrdered size={16} />
               <span>View All My Shuttle Bookings</span>
             </Link>
-            <Link to="/shuttles" className="btn btn-navy" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Link to="/shuttles" className="btn btn-navy" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', borderRadius: 0 }}>
               <Bus size={16} />
               <span>Book Another Shuttle</span>
             </Link>

@@ -35,7 +35,7 @@ export function QRCodeDisplay({ booking }: QRCodeDisplayProps) {
     <div style={{
       background: '#fff',
       border: '1px solid var(--color-nets-border)',
-      borderRadius: '12px',
+      borderRadius: 0,
       overflow: 'hidden',
       boxShadow: '0 10px 30px rgba(0,0,0,0.08)'
     }}>
@@ -68,11 +68,11 @@ export function QRCodeDisplay({ booking }: QRCodeDisplayProps) {
       <div style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
         {/* QR Code and Instructions */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', background: '#f8fafc', padding: '1.5rem', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', background: '#f8fafc', padding: '1.5rem', borderRadius: 0, border: '1px dashed #cbd5e1' }}>
           <img 
             src={booking.qrCodeUrl} 
             alt={`QR Code for ${booking.bookingRef}`}
-            style={{ width: '180px', height: '180px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+            style={{ width: '180px', height: '180px', borderRadius: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
           />
           <p style={{ fontSize: '0.8125rem', color: '#64748b', marginTop: '1rem', maxWidth: '300px' }}>
             Show this QR code to the shuttle driver or conductor at boarding for instant check-in.
@@ -80,7 +80,7 @@ export function QRCodeDisplay({ booking }: QRCodeDisplayProps) {
         </div>
 
         {/* Journey Details */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', background: '#f1f5f9', padding: '1.25rem', borderRadius: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', background: '#f1f5f9', padding: '1.25rem', borderRadius: 0 }}>
           <div>
             <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Passenger Name</span>
             <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#0f172a' }}>{booking.passengerName}</div>
@@ -125,7 +125,7 @@ export function QRCodeDisplay({ booking }: QRCodeDisplayProps) {
           <button
             onClick={handleAddToCalendar}
             className="btn btn-outline"
-            style={{ width: '100%', justifyContent: 'center', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+            style={{ width: '100%', justifyContent: 'center', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', borderRadius: 0 }}
           >
             <Calendar size={16} />
             <span>Add to Calendar</span>
@@ -133,7 +133,7 @@ export function QRCodeDisplay({ booking }: QRCodeDisplayProps) {
           <button
             onClick={handleShare}
             className="btn btn-red"
-            style={{ width: '100%', justifyContent: 'center', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+            style={{ width: '100%', justifyContent: 'center', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', borderRadius: 0 }}
           >
             <Share2 size={16} />
             <span>Share Trip Pass</span>
