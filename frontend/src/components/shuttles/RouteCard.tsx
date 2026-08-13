@@ -83,24 +83,29 @@ export function RouteCard({ route, isFavorite, onSelect, onToggleFavorite }: Rou
             <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 500 }}>Fixed Corridor</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            {route.stops.map((stop, i) => (
-              <div key={stop.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem' }}>
-                <div style={{
-                  width: '7px',
-                  height: '7px',
-                  borderRadius: '50%',
-                  background: i === 0 ? '#10b981' : (i === route.stops.length - 1 ? 'var(--color-nets-red)' : '#94a3b8'),
-                  flexShrink: 0
-                }} />
-                <span style={{
-                  fontWeight: i === 0 || i === route.stops.length - 1 ? 700 : 500,
-                  color: i === 0 || i === route.stops.length - 1 ? '#0f172a' : '#475569'
-                }}>
-                  {stop.name}
-                </span>
-              </div>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            {route.stops.map((stop, i) => {
+              const isTerminal = i === 0 || i === route.stops.length - 1
+              return (
+                <div key={stop.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', lineHeight: 1.25 }}>
+                  <div style={{
+                    width: isTerminal ? '6px' : '4px',
+                    height: isTerminal ? '6px' : '4px',
+                    borderRadius: '50%',
+                    background: i === 0 ? '#10b981' : (i === route.stops.length - 1 ? 'var(--color-nets-red)' : '#94a3b8'),
+                    flexShrink: 0,
+                    marginLeft: isTerminal ? 0 : '1px'
+                  }} />
+                  <span style={{
+                    fontSize: isTerminal ? '0.75rem' : '0.71875rem',
+                    fontWeight: isTerminal ? 700 : 500,
+                    color: isTerminal ? '#0f172a' : '#64748b'
+                  }}>
+                    {stop.name}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
