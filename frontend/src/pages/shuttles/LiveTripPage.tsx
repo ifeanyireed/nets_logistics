@@ -15,15 +15,36 @@ export function LiveTripPage() {
     advanceLiveVehicle 
   } = useShuttleStore()
 
-  const booking = bookings.find(b => b.id === bookingId) || latestBooking
-
-  if (!booking) {
-    return (
-      <div style={{ paddingTop: '100px', textAlign: 'center', minHeight: '80vh', padding: '4rem 1rem' }}>
-        <h2>Trip Not Found</h2>
-        <Link to="/shuttles" className="btn btn-red" style={{ marginTop: '1rem' }}>Back to Shuttles</Link>
-      </div>
-    )
+  const existingBooking = bookings.find(b => b.id === bookingId || b.bookingRef === bookingId || b.bookingRef === `NETS-${bookingId?.toUpperCase()}`)
+  
+  // Fallback payload for custom URLs like /shuttles/live/book-7841
+  const booking = existingBooking || latestBooking || {
+    id: bookingId || 'book-7841',
+    bookingRef: bookingId ? (bookingId.startsWith('NETS-') ? bookingId.toUpperCase() : `NETS-${bookingId.replace(/[^0-9A-Z]/gi, '').toUpperCase()}`) : 'NETS-BOOK7841',
+    routeId: 'route-1',
+    routeName: 'Lekki – Victoria Island – Marina Express',
+    pickupStop: { id: 'stop-101', name: 'Lekki Phase 1 Gate', address: 'Admiralty Way, Lekki', lat: 6.4474, lng: 3.4723, timeOffsetMins: 0 },
+    dropoffStop: { id: 'stop-105', name: 'Marina Bus Terminal', address: 'Marina Lagos Island', lat: 6.4531, lng: 3.3882, timeOffsetMins: 45 },
+    origin: 'Lekki Phase 1 Gate',
+    destination: 'Marina Bus Terminal',
+    travelDate: new Date().toISOString().split('T')[0],
+    departureTime: '07:30 AM',
+    arrivalTime: '08:15 AM',
+    vehicleType: 'NETS Executive Coach (AC)',
+    vehiclePlate: 'LSD-892-XY',
+    driverName: 'Captain Tunde Bakare',
+    driverPhone: '+2348031234567',
+    passengerName: 'Authenticated Passenger',
+    passengerEmail: 'passenger@nets.ng',
+    passengerPhone: '+234 809 123 4567',
+    seatCount: 1,
+    baseFare: 1500,
+    discount: 0,
+    totalFare: 1500,
+    paymentMethod: 'paystack' as const,
+    status: 'confirmed' as const,
+    qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=NETS-BOOK7841',
+    createdAt: new Date().toISOString()
   }
 
   const handleCompleteTrip = () => {
@@ -55,7 +76,7 @@ export function LiveTripPage() {
                 color: '#fff',
                 border: '2px solid #fff',
                 padding: '0.625rem 1.25rem',
-                borderRadius: '8px',
+                borderRadius: 0,
                 fontWeight: 800,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
@@ -84,13 +105,14 @@ export function LiveTripPage() {
               progressPct={liveVehicleProgressPct}
               etaMins={liveVehicleEtaMins}
               onAdvanceSimulation={advanceLiveVehicle}
+              borderRadius="0"
             />
 
             {/* ETA & Status Bar */}
             <div style={{
               background: '#fff',
               border: '1px solid #e2e8f0',
-              borderRadius: '12px',
+              borderRadius: 0,
               padding: '1.5rem',
               display: 'flex',
               justifyContent: 'space-between',
@@ -113,7 +135,7 @@ export function LiveTripPage() {
                 <button
                   onClick={handleCompleteTrip}
                   className="btn btn-red btn-lg"
-                  style={{ border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                  style={{ border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', borderRadius: 0 }}
                 >
                   <Check size={18} />
                   <span>Complete & Arrive Trip</span>
@@ -122,7 +144,7 @@ export function LiveTripPage() {
                 <button
                   onClick={handleCompleteTrip}
                   className="btn btn-outline-white"
-                  style={{ background: '#f1f5f9', color: '#0f172a', borderColor: '#cbd5e1' }}
+                  style={{ background: '#f1f5f9', color: '#0f172a', borderColor: '#cbd5e1', borderRadius: 0 }}
                 >
                   Simulate Trip Completion
                 </button>
@@ -135,7 +157,7 @@ export function LiveTripPage() {
           <div className="col-span-12 lg:col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             
             {/* Notify Me Before Stop Toggle */}
-            <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ background: '#fff', padding: '1.5rem', borderRadius: 0, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -156,7 +178,7 @@ export function LiveTripPage() {
             </div>
 
             {/* Driver & Shuttle Info Card */}
-            <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ background: '#fff', padding: '1.5rem', borderRadius: 0, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
               <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-nets-navy)', marginBottom: '1rem' }}>
                 Shuttle Driver & Vehicle
               </h4>
@@ -165,7 +187,7 @@ export function LiveTripPage() {
                 <div style={{
                   width: '52px',
                   height: '52px',
-                  borderRadius: '50%',
+                  borderRadius: 0,
                   background: 'var(--color-nets-navy)',
                   color: '#fff',
                   display: 'flex',
@@ -187,7 +209,7 @@ export function LiveTripPage() {
                 <a
                   href={`tel:${booking.driverPhone}`}
                   className="btn btn-outline"
-                  style={{ justifyContent: 'center', fontSize: '0.8125rem', padding: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                  style={{ justifyContent: 'center', fontSize: '0.8125rem', padding: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', borderRadius: 0 }}
                 >
                   <Phone size={14} />
                   <span>Call Driver</span>
@@ -197,7 +219,7 @@ export function LiveTripPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-navy"
-                  style={{ justifyContent: 'center', fontSize: '0.8125rem', padding: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                  style={{ justifyContent: 'center', fontSize: '0.8125rem', padding: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', borderRadius: 0 }}
                 >
                   <MessageCircle size={14} />
                   <span>WhatsApp</span>
@@ -206,7 +228,7 @@ export function LiveTripPage() {
             </div>
 
             {/* Emergency SOS Quick Trigger */}
-            <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #fee2e2', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ background: '#fff', padding: '1.5rem', borderRadius: 0, border: '1px solid #fee2e2', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
               <h4 style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#991b1b', marginBottom: '0.5rem' }}>
                 Safety & Emergency
               </h4>
@@ -216,7 +238,7 @@ export function LiveTripPage() {
               <button
                 onClick={() => setIsSosModalOpen(true)}
                 className="btn btn-red"
-                style={{ width: '100%', justifyContent: 'center', padding: '0.625rem', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                style={{ width: '100%', justifyContent: 'center', padding: '0.625rem', fontSize: '0.875rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', borderRadius: 0 }}
               >
                 <ShieldAlert size={16} />
                 <span>Trigger SOS Emergency Alert</span>

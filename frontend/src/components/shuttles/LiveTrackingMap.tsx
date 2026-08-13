@@ -8,6 +8,7 @@ interface LiveTrackingMapProps {
   progressPct: number
   etaMins: number
   onAdvanceSimulation: () => void
+  borderRadius?: string
 }
 
 function ShuttleMapDirections({ pickup, dropoff }: { pickup: { lat: number; lng: number }; dropoff: { lat: number; lng: number } }) {
@@ -58,7 +59,7 @@ function ShuttleMapDirections({ pickup, dropoff }: { pickup: { lat: number; lng:
   return null
 }
 
-export function LiveTrackingMap({ booking, progressPct, etaMins, onAdvanceSimulation }: LiveTrackingMapProps) {
+export function LiveTrackingMap({ booking, progressPct, etaMins, onAdvanceSimulation, borderRadius = '0' }: LiveTrackingMapProps) {
   useEffect(() => {
     const timer = setInterval(() => {
       onAdvanceSimulation()
@@ -82,7 +83,7 @@ export function LiveTrackingMap({ booking, progressPct, etaMins, onAdvanceSimula
       width: '100%',
       height: '380px',
       background: 'var(--color-nets-navy-dark)',
-      borderRadius: '12px',
+      borderRadius,
       overflow: 'hidden',
       border: '1px solid rgba(255,255,255,0.15)',
       boxShadow: '0 10px 30px rgba(0,0,0,0.15)'
@@ -105,7 +106,7 @@ export function LiveTrackingMap({ booking, progressPct, etaMins, onAdvanceSimula
               background: '#10b981',
               color: '#fff',
               padding: '0.2rem 0.5rem',
-              borderRadius: '4px',
+              borderRadius: '0',
               fontSize: '0.7rem',
               fontWeight: 700,
               boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
@@ -125,7 +126,7 @@ export function LiveTrackingMap({ booking, progressPct, etaMins, onAdvanceSimula
               background: 'var(--color-nets-red)',
               color: '#fff',
               padding: '0.2rem 0.5rem',
-              borderRadius: '4px',
+              borderRadius: '0',
               fontSize: '0.7rem',
               fontWeight: 700,
               boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
@@ -146,7 +147,7 @@ export function LiveTrackingMap({ booking, progressPct, etaMins, onAdvanceSimula
               border: '1px solid #4ade80',
               color: '#4ade80',
               padding: '0.2rem 0.6rem',
-              borderRadius: '4px',
+              borderRadius: '0',
               fontSize: '0.75rem',
               fontWeight: 800,
               boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
@@ -184,7 +185,7 @@ export function LiveTrackingMap({ booking, progressPct, etaMins, onAdvanceSimula
         background: 'rgba(13, 16, 96, 0.9)',
         backdropFilter: 'blur(8px)',
         padding: '0.5rem 1rem',
-        borderRadius: '20px',
+        borderRadius: '0',
         border: '1px solid rgba(255,255,255,0.15)',
         display: 'flex',
         alignItems: 'center',
@@ -203,7 +204,7 @@ export function LiveTrackingMap({ booking, progressPct, etaMins, onAdvanceSimula
             color: '#fff',
             fontSize: '0.7rem',
             padding: '0.2rem 0.5rem',
-            borderRadius: '4px',
+            borderRadius: '0',
             cursor: 'pointer',
             marginLeft: '0.5rem',
             display: 'inline-flex',
