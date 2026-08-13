@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Star, ArrowRight } from 'lucide-react'
+import { Star, ArrowRight, MapPin } from 'lucide-react'
 import type { ShuttleRoute } from '../../types/shuttle'
 
 interface RouteCardProps {
@@ -73,16 +73,34 @@ export function RouteCard({ route, isFavorite, onSelect, onToggleFavorite }: Rou
           {route.name}
         </h3>
 
-        {/* Origin & Destination Display */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#f9fafb', padding: '0.875rem', borderRadius: '6px', marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
-            <div style={{ width: '2px', height: '20px', background: '#e5e7eb' }} />
-            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-nets-red)' }} />
+        {/* List of En-Route Stops */}
+        <div style={{ background: '#f8fafc', padding: '0.875rem 1rem', borderRadius: '6px', marginBottom: '1.25rem', border: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-nets-navy)', marginBottom: '0.625rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+              <MapPin size={13} color="var(--color-nets-red)" />
+              <span>Route Stops ({route.stops.length})</span>
+            </span>
+            <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 500 }}>Fixed Corridor</span>
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937' }}>{route.origin}</div>
-            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '12px' }}>{route.destination}</div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {route.stops.map((stop, i) => (
+              <div key={stop.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem' }}>
+                <div style={{
+                  width: '7px',
+                  height: '7px',
+                  borderRadius: '50%',
+                  background: i === 0 ? '#10b981' : (i === route.stops.length - 1 ? 'var(--color-nets-red)' : '#94a3b8'),
+                  flexShrink: 0
+                }} />
+                <span style={{
+                  fontWeight: i === 0 || i === route.stops.length - 1 ? 700 : 500,
+                  color: i === 0 || i === route.stops.length - 1 ? '#0f172a' : '#475569'
+                }}>
+                  {stop.name}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 

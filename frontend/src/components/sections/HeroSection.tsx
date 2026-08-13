@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { staggerContainer, staggerItem, slideInRight } from '@/lib/motion'
 import { useJourneyStore, type LocationData } from '@/store/useJourneyStore'
 import { GooglePlacesAutocomplete } from '@/components/planner/GooglePlacesAutocomplete'
@@ -177,13 +178,19 @@ export function HeroSection() {
             </button>
           </motion.div>
 
-          {/* Trust badges (Compact and understated) */}
-          <motion.div variants={staggerItem} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <div style={{ color: 'var(--color-nets-red)', fontSize: '1rem', letterSpacing: '0.1em' }}>★★★★★</div>
-            <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#fff' }}>4.9/5</div>
-            <div style={{ width: '4px', height: '4px', background: 'rgba(255,255,255,0.3)', borderRadius: '50%', flexShrink: 0 }} />
-            <div style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.5)', maxWidth: '280px', lineHeight: 1.4 }}>
-              Trusted by businesses, organisations and private travellers across Nigeria.
+          {/* Trust badges & checkmark features with reduced stroke */}
+          <motion.div variants={staggerItem} style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)' }}>
+              <Check size={15} strokeWidth={1.25} color="#4ade80" />
+              <span>100% Guaranteed Departures</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)' }}>
+              <Check size={15} strokeWidth={1.25} color="#4ade80" />
+              <span>Verified Captain Drivers</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.85)' }}>
+              <Check size={15} strokeWidth={1.25} color="#4ade80" />
+              <span>Air-Conditioned Comfort</span>
             </div>
           </motion.div>
         </motion.div>
