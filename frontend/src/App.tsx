@@ -6,6 +6,18 @@ import { HomePage } from './pages/HomePage'
 import { FleetPage } from './pages/FleetPage'
 import { VehicleDetailPage } from './pages/VehicleDetailPage'
 import { JourneyPlannerPage } from './pages/JourneyPlannerPage'
+
+// Shuttle Floor Pages
+import { ShuttleRoutesPage } from './pages/shuttles/ShuttleRoutesPage'
+import { SelectStopsPage } from './pages/shuttles/SelectStopsPage'
+import { AvailableTripsPage } from './pages/shuttles/AvailableTripsPage'
+import { TripDetailsPage } from './pages/shuttles/TripDetailsPage'
+import { PaymentPage } from './pages/shuttles/PaymentPage'
+import { BookingConfirmationPage } from './pages/shuttles/BookingConfirmationPage'
+import { LiveTripPage } from './pages/shuttles/LiveTripPage'
+import { TripCompletePage } from './pages/shuttles/TripCompletePage'
+import { ShuttleAccountPage } from './pages/shuttles/ShuttleAccountPage'
+
 import { LeadCaptureModal } from './components/sections/LeadCaptureModal'
 import { AdminRouter } from './admin/AdminRouter'
 import { APIProvider } from '@vis.gl/react-google-maps'
@@ -83,6 +95,17 @@ function AppContent() {
           <Route path="/fleet" element={<FleetPage />} />
           <Route path="/fleet/:vehicleSlug" element={<VehicleDetailPage />} />
           <Route path="/plan" element={<JourneyPlannerPage />} />
+
+          {/* Shuttle Booking Floor Routes */}
+          <Route path="/shuttles" element={<ShuttleRoutesPage />} />
+          <Route path="/shuttles/stops" element={<SelectStopsPage />} />
+          <Route path="/shuttles/trips" element={<AvailableTripsPage />} />
+          <Route path="/shuttles/details" element={<TripDetailsPage />} />
+          <Route path="/shuttles/payment" element={<PaymentPage />} />
+          <Route path="/shuttles/confirmation/:bookingId" element={<BookingConfirmationPage />} />
+          <Route path="/shuttles/live/:bookingId" element={<LiveTripPage />} />
+          <Route path="/shuttles/complete/:bookingId" element={<TripCompletePage />} />
+          <Route path="/shuttles/account" element={<ShuttleAccountPage />} />
         </Routes>
       </main>
 

@@ -1,6 +1,7 @@
 import { HeroSection } from '../components/sections/HeroSection'
 import { StatsBar } from '../components/sections/StatsBar'
 import { ServicesGrid } from '../components/sections/ServicesGrid'
+import { ShuttleHeroCard } from '../components/shuttles/ShuttleHeroCard'
 import { FleetShowcase } from '../components/sections/FleetShowcase'
 import { WhyNETS } from '../components/sections/WhyNETS'
 import { IndustriesSection } from '../components/sections/IndustriesSection'
@@ -14,6 +15,7 @@ export function HomePage() {
       <HeroSection />
       <StatsBar />
       <ServicesGrid />
+      <ShuttleHeroCard />
       <FleetShowcase />
       <WhyNETS />
       <IndustriesSection />

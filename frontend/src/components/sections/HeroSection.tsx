@@ -165,10 +165,13 @@ export function HeroSection() {
           </motion.p>
 
           {/* CTAs (Moved higher) */}
-          <motion.div variants={staggerItem} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+          <motion.div variants={staggerItem} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem', alignItems: 'center' }}>
             <button onClick={() => document.getElementById('quote')?.scrollIntoView({ behavior: 'smooth' })} className="btn btn-red btn-lg">
               Get Instant Quote
             </button>
+            <Link to="/shuttles" className="btn btn-outline-white btn-lg">
+              Book a Shuttle
+            </Link>
             <button onClick={handlePlanJourneyClick} className="btn btn-outline-white btn-lg">
               Plan Your Journey
             </button>

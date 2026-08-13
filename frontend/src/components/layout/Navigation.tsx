@@ -4,17 +4,17 @@ import { Link, useLocation } from 'react-router-dom'
 import { useJourneyStore } from '../../store/useJourneyStore'
 
 const desktopNavLinks = [
-  { label: 'Services',   href: '/#services', isHash: true },
-  { label: 'Fleet',      href: '/fleet',     isHash: false },
-  { label: 'About',      href: '/#about',    isHash: true },
-  { label: 'Industries', href: '/#industries', isHash: true },
-  { label: 'Contact',    href: '/#contact',  isHash: true },
+  { label: 'Book Shuttle', href: '/shuttles',  isHash: false },
+  { label: 'Services',     href: '/#services', isHash: true },
+  { label: 'Fleet',        href: '/fleet',     isHash: false },
+  { label: 'About',        href: '/#about',    isHash: true },
+  { label: 'Contact',      href: '/#contact',  isHash: true },
 ]
 
 const mobileNavLinks = [
+  { label: 'Book Shuttle',      href: '/shuttles',  isHash: false },
   { label: 'Services',          href: '/#services', isHash: true },
   { label: 'Fleet',             href: '/fleet',     isHash: false },
-  { label: 'Industries',        href: '/#industries', isHash: true },
   { label: 'About Us',          href: '/#about',    isHash: true },
   { label: 'Contact',           href: '/#contact',  isHash: true },
   { label: 'Plan Your Journey', href: '/plan',      isHash: false },
