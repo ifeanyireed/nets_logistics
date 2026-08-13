@@ -118,7 +118,7 @@ export function AvailableTripsPage() {
                   borderRadius: 0,
                   padding: '1.5rem',
                   display: 'flex',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
                   flexWrap: 'wrap',
                   gap: '1.5rem',

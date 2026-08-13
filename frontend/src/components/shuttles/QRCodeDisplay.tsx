@@ -45,7 +45,7 @@ export function QRCodeDisplay({ booking }: QRCodeDisplayProps) {
         color: '#fff',
         padding: '1.5rem',
         display: 'flex',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         alignItems: 'center'
       }}>
         <div>

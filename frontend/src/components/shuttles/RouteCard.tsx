@@ -21,7 +21,7 @@ export function RouteCard({ route, isFavorite, onSelect, onToggleFavorite }: Rou
         padding: '1.5rem',
         display: 'flex',
         flexDirection: 'column',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         position: 'relative'
       }}
     >
@@ -58,7 +58,7 @@ export function RouteCard({ route, isFavorite, onSelect, onToggleFavorite }: Rou
               padding: '0.25rem',
               display: 'flex',
               alignItems: 'center',
-              justify: 'center'
+              justifyContent: 'center'
             }}
           >
             <Star 

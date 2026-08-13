@@ -101,7 +101,7 @@ Support: info@neweratransports.com
             color: '#fff',
             display: 'flex',
             alignItems: 'center',
-            justify: 'center',
+            justifyContent: 'center',
             margin: '0 auto 1rem'
           }}>
             <CheckCircle size={36} />
@@ -242,7 +242,7 @@ Support: info@neweratransports.com
           background: 'rgba(0,0,0,0.6)',
           display: 'flex',
           alignItems: 'center',
-          justify: 'center',
+          justifyContent: 'center',
           padding: '1rem'
         }}>
           <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', maxWidth: '480px', width: '100%' }}>

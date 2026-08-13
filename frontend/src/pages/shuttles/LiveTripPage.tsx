@@ -93,7 +93,7 @@ export function LiveTripPage() {
               borderRadius: '12px',
               padding: '1.5rem',
               display: 'flex',
-              justify: 'space-between',
+              justifyContent: 'space-between',
               alignItems: 'center',
               flexWrap: 'wrap',
               gap: '1rem',
@@ -170,7 +170,7 @@ export function LiveTripPage() {
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
-                  justify: 'center'
+                  justifyContent: 'center'
                 }}>
                   <UserCheck size={24} />
                 </div>

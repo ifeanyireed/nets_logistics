@@ -61,7 +61,7 @@ export function StopTimeline({ stops, pickupStop, dropoffStop, onSelectPickup, o
                 flex: 1, 
                 paddingBottom: '1.75rem',
                 display: 'flex',
-                justify: 'space-between',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 flexWrap: 'wrap',
                 gap: '0.5rem'

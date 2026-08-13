@@ -118,7 +118,7 @@ export function TripDetailsPage() {
                   <label key={pax.id} style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justify: 'space-between',
+                    justifyContent: 'space-between',
                     padding: '1rem',
                     borderRadius: '8px',
                     border: selectedPassengerId === pax.id ? '2px solid var(--color-nets-navy)' : '1px solid #e2e8f0',

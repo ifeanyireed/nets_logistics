@@ -163,7 +163,7 @@ export function LiveTrackingMap({ booking, progressPct, etaMins, onAdvanceSimula
               border: '3px solid #fff',
               display: 'flex',
               alignItems: 'center',
-              justify: 'center',
+              justifyContent: 'center',
               color: '#fff',
               fontWeight: 900,
               fontSize: '0.75rem',

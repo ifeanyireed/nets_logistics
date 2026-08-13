@@ -137,7 +137,7 @@ export function PaymentPage() {
                 <label style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   padding: '1.25rem',
                   borderRadius: '8px',
                   border: paymentMethod === 'paystack' ? '2px solid var(--color-nets-red)' : '1px solid #e2e8f0',
@@ -171,7 +171,7 @@ export function PaymentPage() {
                 <label style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   padding: '1.25rem',
                   borderRadius: '8px',
                   border: paymentMethod === 'wallet' ? '2px solid var(--color-nets-navy)' : '1px solid #e2e8f0',
@@ -209,7 +209,7 @@ export function PaymentPage() {
                 <label style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   padding: '1.25rem',
                   borderRadius: '8px',
                   border: paymentMethod === 'card' ? '2px solid var(--color-nets-navy)' : '1px solid #e2e8f0',

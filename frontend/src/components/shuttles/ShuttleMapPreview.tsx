@@ -149,7 +149,7 @@ export function ShuttleMapPreview({ stops, pickupStop, dropoffStop, height = '38
                   boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
                   display: 'flex',
                   alignItems: 'center',
-                  justify: 'center',
+                  justifyContent: 'center',
                   color: '#fff',
                   fontSize: '0.65rem',
                   fontWeight: 800

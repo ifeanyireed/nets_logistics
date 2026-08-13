@@ -57,7 +57,7 @@ export function SosModal({ isOpen, booking, onClose }: SosModalProps) {
                 color: 'var(--color-nets-red)',
                 display: 'flex',
                 alignItems: 'center',
-                justify: 'center',
+                justifyContent: 'center',
                 margin: '0 auto 1rem'
               }}>
                 <ShieldAlert size={32} />

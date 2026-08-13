@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { CheckCircle, Radio, ListOrdered, Bus, ArrowRight, ShieldCheck } from 'lucide-react'
 import { useShuttleStore } from '../../store/useShuttleStore'
 import { QRCodeDisplay } from '../../components/shuttles/QRCodeDisplay'
@@ -22,18 +22,21 @@ export function BookingConfirmationPage() {
     destination: 'Marina Bus Terminal',
     travelDate: new Date().toISOString().split('T')[0],
     departureTime: '07:30 AM',
+    arrivalTime: '08:15 AM',
     vehicleType: 'NETS Executive Coach (AC)',
     vehiclePlate: 'LSD-892-XY',
     driverName: 'Captain Tunde Bakare',
     driverPhone: '+2348031234567',
     passengerName: 'Authenticated Passenger',
+    passengerEmail: 'passenger@nets.ng',
     passengerPhone: '+234 809 123 4567',
     seatCount: 1,
     baseFare: 1500,
     discount: 0,
     totalFare: 1500,
-    paymentMethod: 'Paystack Gateway',
+    paymentMethod: 'paystack' as const,
     status: 'confirmed' as const,
+    qrCodeUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=NETS-BOOK7841',
     createdAt: new Date().toISOString()
   }
 
@@ -51,7 +54,7 @@ export function BookingConfirmationPage() {
             color: '#fff',
             display: 'flex',
             alignItems: 'center',
-            justify: 'center',
+            justifyContent: 'center',
             margin: '0 auto 1rem'
           }}>
             <CheckCircle size={32} />
@@ -79,7 +82,7 @@ export function BookingConfirmationPage() {
             padding: '1.25rem 1.5rem',
             borderRadius: '12px',
             display: 'flex',
-            justify: 'space-between',
+            justifyContent: 'space-between',
             alignItems: 'center',
             boxShadow: '0 10px 25px rgba(0,0,0,0.15)'
           }}>
