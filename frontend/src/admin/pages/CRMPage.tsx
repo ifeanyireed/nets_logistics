@@ -256,7 +256,7 @@ export function CRMPage() {
             flexWrap: 'wrap',
             gap: '1rem',
             padding: '0.75rem 1rem',
-            background: 'var(--adm-surface-1)',
+            background: '#ffffff',
             border: '1px solid var(--adm-border)',
             borderRadius: 'var(--adm-radius-sm)',
             fontSize: 13,
@@ -372,7 +372,7 @@ export function CRMPage() {
         >
           <div
             style={{
-              background: 'var(--adm-surface-1)',
+              background: '#ffffff',
               border: '1px solid var(--adm-border)',
               borderRadius: 'var(--adm-radius)',
               width: '100%',
