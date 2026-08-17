@@ -44,17 +44,6 @@ export function AdminLoginPage() {
     }
   }
 
-  const handleQuickLogin = (role: 'admin' | 'staff') => {
-    const targetEmail = role === 'admin' ? 'admin@netsnigeria.com' : 'olateju.daniel@neweratransports.com'
-    setEmail(targetEmail)
-    setPassword('nets2026')
-    setLoading(true)
-    setTimeout(() => {
-      login(targetEmail, 'nets2026')
-      navigate('/admin', { replace: true })
-    }, 300)
-  }
-
   // ── Forgot Password Handlers ──────────────────────────────────────────────
   const handleSendResetCode = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -193,31 +182,6 @@ export function AdminLoginPage() {
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
-
-          <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--adm-surface-2)', border: '1px solid var(--adm-border)', borderRadius: 'var(--adm-radius-sm)', fontSize: 12, color: 'var(--adm-text-2)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div>
-              <strong style={{ color: 'var(--adm-text-1)' }}>Quick Demo Logins:</strong><br />
-              Default password: <code style={{ color: 'var(--adm-accent)', fontWeight: 600 }}>nets2026</code>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.25rem' }}>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin')}
-                className="admin-btn admin-btn-ghost admin-btn-sm"
-                style={{ justifyContent: 'center' }}
-              >
-                ⚡ Sign in (Admin)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('staff')}
-                className="admin-btn admin-btn-ghost admin-btn-sm"
-                style={{ justifyContent: 'center' }}
-              >
-                ⚡ Sign in (Staff)
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
