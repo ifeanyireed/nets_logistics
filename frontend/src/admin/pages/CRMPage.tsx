@@ -2,7 +2,7 @@
 // NETS Admin — CRM & Lead Pipeline Management
 // ============================================================================
 import { useState, useEffect } from 'react'
-import { Search, Users, DollarSign, Filter, CheckCircle2, Clock, Phone, Mail, MapPin, Calendar, FileText, ArrowRight, X } from 'lucide-react'
+import { Search, Users, DollarSign, Filter, CheckCircle2, Clock, Phone, Mail, MapPin, Calendar, FileText, ArrowRight, X, RefreshCw } from 'lucide-react'
 import { adminService, type AdminLead } from '../services/adminService'
 import { useAdminStore } from '../store/useAdminStore'
 
@@ -18,11 +18,13 @@ const fmtDate = (iso: string) => {
 const statusBadges: Record<string, { label: string; class: string }> = {
   new: { label: 'New Lead', class: 'admin-badge-yellow' },
   pending: { label: 'Pending Review', class: 'admin-badge-yellow' },
+  approved: { label: 'Approved', class: 'admin-badge-green' },
+  reviewed: { label: 'Reviewed', class: 'admin-badge-yellow' },
   contacted: { label: 'Contacted', class: 'admin-badge-accent' },
   proposal_sent: { label: 'Proposal Sent', class: 'admin-badge-accent' },
   won: { label: 'Won & Paid', class: 'admin-badge-green' },
   converted: { label: 'Converted to Booking', class: 'admin-badge-green' },
-  'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-white' },
+  'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-green' },
   lost: { label: 'Lost / Closed', class: 'admin-badge-red' },
 }
 
@@ -37,6 +39,8 @@ export function CRMPage() {
     setLoading(true)
     adminService.getLeads().then((list) => {
       setLeads(list || [])
+      setLoading(false)
+    }).catch(() => {
       setLoading(false)
     })
   }
@@ -54,16 +58,31 @@ export function CRMPage() {
   }
 
   const filteredLeads = leads.filter(l => {
-    const matchSearch = !search ||
-      l.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      l.customerEmail.toLowerCase().includes(search.toLowerCase()) ||
-      l.leadReference.toLowerCase().includes(search.toLowerCase())
-    const matchStatus = statusFilter === 'all' || l.status === statusFilter
-    return matchSearch && matchStatus
+    const name = String(l?.customerName || '').toLowerCase()
+    const email = String(l?.customerEmail || '').toLowerCase()
+    const ref = String(l?.leadReference || '').toLowerCase()
+    const origin = String(l?.origin || '').toLowerCase()
+    const dest = String(l?.destination || '').toLowerCase()
+    const term = search.trim().toLowerCase()
+
+    const matchSearch = !term || name.includes(term) || email.includes(term) || ref.includes(term) || origin.includes(term) || dest.includes(term)
+    
+    if (statusFilter === 'all') return matchSearch
+
+    const leadSt = String(l?.status || '').toLowerCase()
+    const filtSt = statusFilter.toLowerCase()
+    
+    if (filtSt === 'pending' || filtSt === 'new') {
+      return matchSearch && (leadSt === 'pending' || leadSt === 'new')
+    }
+    if (filtSt === 'won') {
+      return matchSearch && (leadSt === 'won' || leadSt === 'converted' || leadSt.includes('paid'))
+    }
+    return matchSearch && (leadSt === filtSt)
   })
 
-  const totalValue = leads.reduce((acc, l) => acc + (l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0), 0)
-  const wonCount = leads.filter(l => l.status === 'won' || l.status === 'converted').length
+  const totalValue = leads.reduce((acc, l) => acc + (Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0), 0)
+  const wonCount = leads.filter(l => l.status === 'won' || l.status === 'converted' || String(l.status).toLowerCase().includes('paid')).length
   const winRate = leads.length > 0 ? Math.round((wonCount / leads.length) * 100) : 0
 
   return (
@@ -74,6 +93,17 @@ export function CRMPage() {
           <div className="admin-page-desc">
             Track customer requests, manage quotes, and convert leads into active bookings.
           </div>
+        </div>
+        <div className="admin-page-actions">
+          <button
+            onClick={loadLeads}
+            disabled={loading}
+            className="admin-btn admin-btn-ghost admin-btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+          >
+            <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+            {loading ? 'Refreshing…' : 'Refresh Leads'}
+          </button>
         </div>
       </div>
 

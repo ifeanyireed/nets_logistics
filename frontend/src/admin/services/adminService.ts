@@ -107,7 +107,7 @@ export class AdminService {
   public async getLeads(): Promise<AdminLead[]> {
     let remoteLeads: AdminLead[] = []
     try {
-      const res = await fetch(`${API_URL}/leads`)
+      const res = await fetch(`${API_URL}/leads`, { cache: 'no-store' })
       if (res.ok) {
         const json = await res.json()
         if (json.data && Array.isArray(json.data.leads)) {
@@ -118,18 +118,36 @@ export class AdminService {
       console.warn('⚠️ [ADMIN SERVICE] Could not fetch leads from backend:', err)
     }
 
+    let allLeads = remoteLeads
     try {
       if (typeof window !== 'undefined') {
         const localLeads: AdminLead[] = JSON.parse(localStorage.getItem('nets_local_leads') || '[]')
-        const remoteRefs = new Set(remoteLeads.map(l => l.leadReference || String(l.id)))
-        const unsynced = localLeads.filter(l => !remoteRefs.has(l.leadReference || String(l.id)))
-        return [...unsynced, ...remoteLeads]
+        const remoteRefs = new Set(remoteLeads.map(l => String(l.leadReference || l.id)))
+        const unsynced = localLeads.filter(l => !remoteRefs.has(String(l.leadReference || l.id)))
+        allLeads = [...unsynced, ...remoteLeads]
       }
     } catch (e) {
       console.warn('⚠️ [ADMIN SERVICE] Local storage read error:', e)
     }
 
-    return remoteLeads
+    // Normalize all leads to guarantee safe rendering
+    return allLeads.map((l, idx) => ({
+      id: l.id || `lead-${idx}`,
+      leadReference: l.leadReference || `NETS-LEAD-${String(l.id || idx).padStart(4, '0')}`,
+      customerName: l.customerName || 'Valued Customer',
+      customerEmail: l.customerEmail || 'N/A',
+      customerPhone: l.customerPhone || 'N/A',
+      company: l.company || '',
+      heardAboutUs: l.heardAboutUs || '',
+      journeyType: l.journeyType || 'Standard Charter',
+      origin: l.origin || 'Lagos, Nigeria',
+      destination: l.destination || 'Lagos, Nigeria',
+      estimatedInvestmentMin: Number(l.estimatedInvestmentMin) || 0,
+      estimatedInvestmentMax: Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0,
+      status: l.status || 'pending',
+      createdAt: l.createdAt || new Date().toISOString(),
+      payload: l.payload || null,
+    }))
   }
 
   /**
