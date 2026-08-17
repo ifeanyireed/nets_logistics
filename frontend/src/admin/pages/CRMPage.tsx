@@ -184,254 +184,340 @@ export function CRMPage() {
         </div>
       </div>
 
-      {/* Leads Table & Detail Sidebar */}
-      <div style={{ display: 'grid', gridTemplateColumns: selectedLead ? '1fr 380px' : '1fr', gap: '1.25rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
+      {/* Leads Table */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Client</th>
+                <th>Journey / Route</th>
+                <th>Value (Est.)</th>
+                <th>Date Received</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
                 <tr>
-                  <th>Reference</th>
-                  <th>Client</th>
-                  <th>Journey / Route</th>
-                  <th>Value (Est.)</th>
-                  <th>Date Received</th>
-                  <th>Status</th>
+                  <td colSpan={6} className="admin-table-empty">Loading CRM leads…</td>
                 </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={6} className="admin-table-empty">Loading CRM leads…</td>
-                  </tr>
-                ) : paginatedLeads.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="admin-table-empty">No leads found matching your search.</td>
-                  </tr>
-                ) : (
-                  paginatedLeads.map(l => {
-                    const badge = statusBadges[l.status] || { label: l.status, class: 'admin-badge-gray' }
-                    const val = l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0
-                    return (
-                      <tr
-                        key={l.id || l.leadReference}
-                        style={{ cursor: 'pointer', background: selectedLead?.id === l.id ? 'var(--adm-surface-2)' : undefined }}
-                        onClick={() => setSelectedLead(l)}
-                      >
-                        <td>
-                          <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--adm-text-2)', fontWeight: 600 }}>
-                            {l.leadReference || `LEAD-${l.id}`}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ fontWeight: 600, fontSize: 13 }}>{l.customerName}</div>
-                          <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{l.customerEmail}</div>
-                        </td>
-                        <td style={{ fontSize: 12 }}>
-                          <div>{l.journeyType || 'Standard Charter'}</div>
-                          <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>
-                            {l.origin ? `${l.origin.split(',')[0]} → ${l.destination?.split(',')[0] || ''}` : 'Charter Route'}
-                          </div>
-                        </td>
-                        <td style={{ fontWeight: 700, color: 'var(--adm-text-1)' }}>
-                          {val > 0 ? fmtCurrency(val) : '₦---,---'}
-                        </td>
-                        <td style={{ fontSize: 12 }}>{fmtDate(l.createdAt)}</td>
-                        <td>
-                          <span className={`admin-badge ${badge.class}`}>{badge.label}</span>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ── Pagination Controls ── */}
-          {totalItems > 0 && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '1rem',
-              padding: '0.75rem 1rem',
-              background: 'var(--adm-surface-1)',
-              border: '1px solid var(--adm-border)',
-              borderRadius: 'var(--adm-radius-sm)',
-              fontSize: 13,
-              color: 'var(--adm-text-2)'
-            }}>
-              {/* Range Info */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>
-                  Showing <strong style={{ color: 'var(--adm-text-1)' }}>{startIndex + 1}</strong>–<strong style={{ color: 'var(--adm-text-1)' }}>{endIndex}</strong> of <strong style={{ color: 'var(--adm-text-1)' }}>{totalItems}</strong> leads
-                </span>
-              </div>
-
-              {/* Controls & Page size */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                {/* Page Size Select */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                  <span>Per page:</span>
-                  <select
-                    value={pageSize}
-                    onChange={e => setPageSize(Number(e.target.value))}
-                    style={{
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: 'var(--adm-radius-sm)',
-                      border: '1px solid var(--adm-border)',
-                      background: 'var(--adm-surface-2)',
-                      color: 'var(--adm-text-1)',
-                      fontSize: 12,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                  </select>
-                </div>
-
-                {/* Page Navigation Buttons */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <button
-                    onClick={() => setCurrentPage(1)}
-                    disabled={safePage <= 1}
-                    className="admin-btn admin-btn-ghost admin-btn-sm"
-                    style={{ padding: '0.35rem 0.5rem', opacity: safePage <= 1 ? 0.4 : 1 }}
-                    title="First page"
-                  >
-                    <ChevronsLeft size={14} />
-                  </button>
-
-                  <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={safePage <= 1}
-                    className="admin-btn admin-btn-ghost admin-btn-sm"
-                    style={{ padding: '0.35rem 0.5rem', opacity: safePage <= 1 ? 0.4 : 1 }}
-                    title="Previous page"
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-
-                  {pageNumbers.map(p => (
-                    <button
-                      key={p}
-                      onClick={() => setCurrentPage(p)}
-                      className={`admin-btn admin-btn-sm ${safePage === p ? 'admin-btn-primary' : 'admin-btn-ghost'}`}
-                      style={{ minWidth: 28, height: 28, padding: 0, justifyContent: 'center', fontSize: 12, fontWeight: safePage === p ? 700 : 500 }}
+              ) : paginatedLeads.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="admin-table-empty">No leads found matching your search.</td>
+                </tr>
+              ) : (
+                paginatedLeads.map(l => {
+                  const badge = statusBadges[l.status] || { label: l.status, class: 'admin-badge-gray' }
+                  const val = l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0
+                  return (
+                    <tr
+                      key={l.id || l.leadReference}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setSelectedLead(l)}
                     >
-                      {p}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={safePage >= totalPages}
-                    className="admin-btn admin-btn-ghost admin-btn-sm"
-                    style={{ padding: '0.35rem 0.5rem', opacity: safePage >= totalPages ? 0.4 : 1 }}
-                    title="Next page"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    disabled={safePage >= totalPages}
-                    className="admin-btn admin-btn-ghost admin-btn-sm"
-                    style={{ padding: '0.35rem 0.5rem', opacity: safePage >= totalPages ? 0.4 : 1 }}
-                    title="Last page"
-                  >
-                    <ChevronsRight size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+                      <td>
+                        <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--adm-text-2)', fontWeight: 600 }}>
+                          {l.leadReference || `LEAD-${l.id}`}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{l.customerName}</div>
+                        <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{l.customerEmail}</div>
+                      </td>
+                      <td style={{ fontSize: 12 }}>
+                        <div>{l.journeyType || 'Standard Charter'}</div>
+                        <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>
+                          {l.origin ? `${l.origin.split(',')[0]} → ${l.destination?.split(',')[0] || ''}` : 'Charter Route'}
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: 700, color: 'var(--adm-text-1)' }}>
+                        {val > 0 ? fmtCurrency(val) : '₦---,---'}
+                      </td>
+                      <td style={{ fontSize: 12 }}>{fmtDate(l.createdAt)}</td>
+                      <td>
+                        <span className={`admin-badge ${badge.class}`}>{badge.label}</span>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Selected Lead Detail Drawer */}
-        {selectedLead && (
-          <div className="admin-card" style={{ height: 'fit-content' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <span style={{ fontWeight: 700, fontSize: 15 }}>Lead Details</span>
-              <button className="admin-btn admin-btn-icon admin-btn-ghost" onClick={() => setSelectedLead(null)}>
-                <X size={14} />
-              </button>
+        {/* ── Pagination Controls ── */}
+        {totalItems > 0 && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '1rem',
+            padding: '0.75rem 1rem',
+            background: 'var(--adm-surface-1)',
+            border: '1px solid var(--adm-border)',
+            borderRadius: 'var(--adm-radius-sm)',
+            fontSize: 13,
+            color: 'var(--adm-text-2)'
+          }}>
+            {/* Range Info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>
+                Showing <strong style={{ color: 'var(--adm-text-1)' }}>{startIndex + 1}</strong>–<strong style={{ color: 'var(--adm-text-1)' }}>{endIndex}</strong> of <strong style={{ color: 'var(--adm-text-1)' }}>{totalItems}</strong> leads
+              </span>
             </div>
 
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--adm-text-3)' }}>
-                {selectedLead.leadReference}
+            {/* Controls & Page size */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              {/* Page Size Select */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                <span>Per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={e => setPageSize(Number(e.target.value))}
+                  style={{
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: 'var(--adm-radius-sm)',
+                    border: '1px solid var(--adm-border)',
+                    background: 'var(--adm-surface-2)',
+                    color: 'var(--adm-text-1)',
+                    fontSize: 12,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
               </div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--adm-accent)', marginTop: '0.25rem' }}>
-                {fmtCurrency(selectedLead.estimatedInvestmentMax || selectedLead.estimatedInvestmentMin || 0)}
-              </div>
-              <div style={{ marginTop: '0.5rem' }}>
-                <span className={`admin-badge ${(statusBadges[selectedLead.status] || { class: 'admin-badge-gray' }).class}`}>
-                  {(statusBadges[selectedLead.status] || { label: selectedLead.status }).label}
-                </span>
-              </div>
-            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--adm-border)', paddingBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 13 }}>
-                <Users size={14} color="var(--adm-accent)" />
-                <span style={{ fontWeight: 600 }}>{selectedLead.customerName}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, color: 'var(--adm-text-2)' }}>
-                <Mail size={14} />
-                <span>{selectedLead.customerEmail}</span>
-              </div>
-              {selectedLead.customerPhone && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, color: 'var(--adm-text-2)' }}>
-                  <Phone size={14} />
-                  <span>{selectedLead.customerPhone}</span>
-                </div>
-              )}
-              {selectedLead.heardAboutUs && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, color: 'var(--adm-text-2)', marginTop: '0.25rem' }}>
-                  <strong style={{ color: 'var(--adm-text-3)' }}>Source:</strong>
-                  <span>{selectedLead.heardAboutUs}</span>
-                </div>
-              )}
-            </div>
+              {/* Page Navigation Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={safePage <= 1}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ padding: '0.35rem 0.5rem', opacity: safePage <= 1 ? 0.4 : 1 }}
+                  title="First page"
+                >
+                  <ChevronsLeft size={14} />
+                </button>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-text-3)', letterSpacing: '0.05em' }}>
-                Journey Details
-              </div>
-              <div style={{ fontSize: 12, display: 'flex', gap: '0.5rem' }}>
-                <MapPin size={14} color="var(--adm-text-3)" style={{ flexShrink: 0, marginTop: 2 }} />
-                <div>
-                  <div><strong>Pickup:</strong> {selectedLead.origin || 'N/A'}</div>
-                  <div style={{ marginTop: 4 }}><strong>Destination:</strong> {selectedLead.destination || 'N/A'}</div>
-                </div>
-              </div>
-              <div style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Calendar size={14} color="var(--adm-text-3)" />
-                <span><strong>Received:</strong> {fmtDate(selectedLead.createdAt)}</span>
-              </div>
-            </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={safePage <= 1}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ padding: '0.35rem 0.5rem', opacity: safePage <= 1 ? 0.4 : 1 }}
+                  title="Previous page"
+                >
+                  <ChevronLeft size={14} />
+                </button>
 
-            <div style={{ marginTop: '1rem', borderTop: '1px solid var(--adm-border)', paddingTop: '1rem' }}>
-              <div className="admin-label" style={{ marginBottom: '0.5rem' }}>Update Pipeline Stage</div>
-              <select
-                className="admin-select"
-                value={selectedLead.status}
-                onChange={e => handleUpdateStatus(selectedLead.id || selectedLead.leadReference, e.target.value)}
-              >
-                {Object.entries(statusBadges).map(([val, info]) => (
-                  <option key={val} value={val}>{info.label}</option>
+                {pageNumbers.map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`admin-btn admin-btn-sm ${safePage === p ? 'admin-btn-primary' : 'admin-btn-ghost'}`}
+                    style={{ minWidth: 28, height: 28, padding: 0, justifyContent: 'center', fontSize: 12, fontWeight: safePage === p ? 700 : 500 }}
+                  >
+                    {p}
+                  </button>
                 ))}
-              </select>
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={safePage >= totalPages}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ padding: '0.35rem 0.5rem', opacity: safePage >= totalPages ? 0.4 : 1 }}
+                  title="Next page"
+                >
+                  <ChevronRight size={14} />
+                </button>
+
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={safePage >= totalPages}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ padding: '0.35rem 0.5rem', opacity: safePage >= totalPages ? 0.4 : 1 }}
+                  title="Last page"
+                >
+                  <ChevronsRight size={14} />
+                </button>
+              </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* ── Floating Lead Details Modal ── */}
+      {selectedLead && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedLead(null)
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.25rem',
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--adm-surface-1)',
+              border: '1px solid var(--adm-border)',
+              borderRadius: 'var(--adm-radius)',
+              width: '100%',
+              maxWidth: '640px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 24px 64px rgba(0, 0, 0, 0.4)',
+              padding: '1.75rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem',
+              position: 'relative'
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--adm-border)', paddingBottom: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: 'var(--adm-accent)', background: 'rgba(239, 68, 68, 0.1)', padding: '0.2rem 0.5rem', borderRadius: 4 }}>
+                    {selectedLead.leadReference}
+                  </span>
+                  <span className={`admin-badge ${(statusBadges[selectedLead.status] || { class: 'admin-badge-gray' }).class}`}>
+                    {(statusBadges[selectedLead.status] || { label: selectedLead.status }).label}
+                  </span>
+                </div>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--adm-text-1)' }}>
+                  {selectedLead.customerName}
+                </h3>
+              </div>
+
+              <button
+                className="admin-btn admin-btn-icon admin-btn-ghost"
+                onClick={() => setSelectedLead(null)}
+                style={{ borderRadius: '50%', width: 32, height: 32 }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Estimated Value Banner */}
+            <div style={{ background: 'var(--adm-surface-2)', padding: '1rem 1.25rem', borderRadius: 'var(--adm-radius-sm)', border: '1px solid var(--adm-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 700, color: 'var(--adm-text-3)', letterSpacing: '0.05em' }}>
+                  Estimated Opportunity Value
+                </div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--adm-accent)', marginTop: 2 }}>
+                  {fmtCurrency(selectedLead.estimatedInvestmentMax || selectedLead.estimatedInvestmentMin || 0)}
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--adm-text-2)', textAlign: 'right' }}>
+                <div><strong>Received:</strong></div>
+                <div>{fmtDate(selectedLead.createdAt)}</div>
+              </div>
+            </div>
+
+            {/* 2-Column Details Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+              {/* Customer Info Card */}
+              <div style={{ background: 'var(--adm-surface-2)', padding: '1rem', borderRadius: 'var(--adm-radius-sm)', border: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-text-3)', letterSpacing: '0.05em', marginBottom: 2 }}>
+                  Client Profile
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 13 }}>
+                  <Users size={14} color="var(--adm-accent)" />
+                  <span style={{ fontWeight: 600, color: 'var(--adm-text-1)' }}>{selectedLead.customerName}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, color: 'var(--adm-text-2)' }}>
+                  <Mail size={14} />
+                  <a href={`mailto:${selectedLead.customerEmail}`} style={{ color: 'var(--adm-text-2)', textDecoration: 'none' }}>
+                    {selectedLead.customerEmail}
+                  </a>
+                </div>
+                {selectedLead.customerPhone && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, color: 'var(--adm-text-2)' }}>
+                    <Phone size={14} />
+                    <a href={`tel:${selectedLead.customerPhone}`} style={{ color: 'var(--adm-text-2)', textDecoration: 'none' }}>
+                      {selectedLead.customerPhone}
+                    </a>
+                  </div>
+                )}
+                {selectedLead.company && (
+                  <div style={{ fontSize: 12, color: 'var(--adm-text-2)', marginTop: 2 }}>
+                    <strong style={{ color: 'var(--adm-text-3)' }}>Company:</strong> {selectedLead.company}
+                  </div>
+                )}
+                {selectedLead.heardAboutUs && (
+                  <div style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>
+                    <strong style={{ color: 'var(--adm-text-3)' }}>Source:</strong> {selectedLead.heardAboutUs}
+                  </div>
+                )}
+              </div>
+
+              {/* Journey Details Card */}
+              <div style={{ background: 'var(--adm-surface-2)', padding: '1rem', borderRadius: 'var(--adm-radius-sm)', border: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-text-3)', letterSpacing: '0.05em', marginBottom: 2 }}>
+                  Journey & Logistics
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--adm-text-1)' }}>
+                  {selectedLead.journeyType || 'Standard Charter'}
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', fontSize: 12 }}>
+                  <MapPin size={14} color="var(--adm-accent)" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <div>
+                    <div style={{ color: 'var(--adm-text-2)' }}><strong style={{ color: 'var(--adm-text-1)' }}>From:</strong> {selectedLead.origin || 'Lagos'}</div>
+                    <div style={{ color: 'var(--adm-text-2)', marginTop: 4 }}><strong style={{ color: 'var(--adm-text-1)' }}>To:</strong> {selectedLead.destination || 'Lagos'}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pipeline Stage Updater */}
+            <div style={{ borderTop: '1px solid var(--adm-border)', paddingTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span className="admin-label" style={{ marginBottom: 0, whiteSpace: 'nowrap' }}>Change Status:</span>
+                <select
+                  className="admin-select"
+                  value={selectedLead.status}
+                  onChange={e => handleUpdateStatus(selectedLead.id || selectedLead.leadReference, e.target.value)}
+                  style={{ minWidth: 180 }}
+                >
+                  {Object.entries(statusBadges).map(([val, info]) => (
+                    <option key={val} value={val}>{info.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <a
+                  href={`mailto:${selectedLead.customerEmail}?subject=NETS Logistics Quote Reference ${selectedLead.leadReference}`}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                >
+                  <Mail size={13} /> Email Client
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setSelectedLead(null)}
+                  className="admin-btn admin-btn-primary admin-btn-sm"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
