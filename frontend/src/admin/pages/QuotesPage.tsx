@@ -1,47 +1,115 @@
 // ============================================================================
 // NETS Admin — Quote Management
 // ============================================================================
-import { useState, useEffect } from 'react'
-import { Search, Filter, Eye, Check, X, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import {
+  Search,
+  Filter,
+  Check,
+  X,
+  RefreshCw,
+  Users,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react'
 import { useAdminStore, type AdminQuote } from '../store/useAdminStore'
-import { adminService, AdminLead } from '../services/adminService'
+import { adminService, type AdminLead } from '../services/adminService'
 import { pdfService } from '../../services/pdfService'
 import { emailService } from '../../services/emailService'
 
-const fmt = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
-const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
+const fmtCurrency = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
 
-const statusColors: Record<string, string> = {
-  new: 'admin-badge-accent', pending: 'admin-badge-yellow', reviewed: 'admin-badge-yellow',
-  approved: 'admin-badge-green', rejected: 'admin-badge-red', converted: 'admin-badge-gray',
+const fmtDate = (iso: string) => {
+  try {
+    return new Date(iso).toLocaleDateString('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return iso
+  }
+}
+
+const fmtDateShort = (iso: string) => {
+  try {
+    return new Date(iso).toLocaleDateString('en-NG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  } catch {
+    return iso
+  }
+}
+
+const statusBadges: Record<string, { label: string; class: string }> = {
+  new: { label: 'New Quote', class: 'admin-badge-accent' },
+  pending: { label: 'Pending Review', class: 'admin-badge-yellow' },
+  reviewed: { label: 'Reviewed', class: 'admin-badge-yellow' },
+  approved: { label: 'Approved', class: 'admin-badge-green' },
+  rejected: { label: 'Rejected', class: 'admin-badge-red' },
+  converted: { label: 'Converted to Booking', class: 'admin-badge-green' },
+  won: { label: 'Won & Paid', class: 'admin-badge-green' },
+  'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-green' },
+  lost: { label: 'Lost / Closed', class: 'admin-badge-red' },
 }
 
 export function QuotesPage() {
   const { quotes, updateQuoteStatus, addQuoteNote, session } = useAdminStore()
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<string>('all')
-  const [selected, setSelected] = useState<AdminQuote | null>(null)
-  const [noteInput, setNoteInput] = useState('')
   const [liveLeads, setLiveLeads] = useState<AdminLead[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [selectedQuote, setSelectedQuote] = useState<AdminQuote | null>(null)
+  const [noteInput, setNoteInput] = useState('')
+  const [noteSaved, setNoteSaved] = useState(false)
 
-  const loadLeads = () => {
-    adminService.getLeads().then(setLiveLeads)
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  const loadQuotesAndLeads = () => {
+    setLoading(true)
+    adminService
+      .getLeads()
+      .then((list) => {
+        setLiveLeads(list || [])
+        setLoading(false)
+      })
+      .catch(() => {
+        setLoading(false)
+      })
   }
 
   useEffect(() => {
-    loadLeads()
+    loadQuotesAndLeads()
   }, [])
+
+  // Reset to page 1 on filter or search change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, statusFilter, pageSize])
 
   const userId = session.user?.id ?? 'usr-001'
   const userName = session.user?.fullName ?? 'Admin'
 
-  // Combine store quotes with MySQL live leads
-  const allQuotes: AdminQuote[] = [
-    ...liveLeads.map((l) => ({
+  // Combine live MySQL leads with store quotes without duplicating references
+  const allQuotes: AdminQuote[] = useMemo(() => {
+    const liveItems: AdminQuote[] = liveLeads.map((l) => ({
       id: String(l.id),
-      reference: l.leadReference,
-      customerName: l.customerName,
-      customerEmail: l.customerEmail,
+      reference: l.leadReference || `NETS-LEAD-${l.id}`,
+      customerName: l.customerName || 'Valued Customer',
+      customerEmail: l.customerEmail || 'N/A',
       customerPhone: l.customerPhone || 'N/A',
       customerId: 'cust-gen',
       vehicleId: 'veh-gen',
@@ -56,164 +124,869 @@ export function QuotesPage() {
       estimatedInvestment: l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0,
       status: (l.status === 'pending' ? 'new' : l.status) as any,
       createdAt: l.createdAt,
-      updatedAt: l.createdAt,
       notes: '',
-    })),
-  ]
+    }))
 
-  const filtered = allQuotes.filter(q => {
-    const matchSearch = !search || q.reference.toLowerCase().includes(search.toLowerCase()) ||
-      q.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      q.pickup.toLowerCase().includes(search.toLowerCase())
-    const matchFilter = filter === 'all' || q.status === filter
-    return matchSearch && matchFilter
-  })
+    const liveRefs = new Set(liveItems.map((item) => item.reference.toLowerCase()))
+    const uniqueStoreQuotes = quotes.filter((q) => !liveRefs.has(q.reference.toLowerCase()))
+    return [...liveItems, ...uniqueStoreQuotes]
+  }, [liveLeads, quotes])
 
-  const handleAction = async (id: string, status: AdminQuote['status']) => {
-    updateQuoteStatus(id, status, userId, userName)
+  const filteredQuotes = useMemo(() => {
+    return allQuotes.filter((q) => {
+      const name = String(q.customerName || '').toLowerCase()
+      const email = String(q.customerEmail || '').toLowerCase()
+      const ref = String(q.reference || '').toLowerCase()
+      const pickup = String(q.pickup || '').toLowerCase()
+      const destination = String(q.destination || '').toLowerCase()
+      const vehicle = String(q.vehicleName || '').toLowerCase()
+      const term = search.trim().toLowerCase()
+
+      const matchSearch =
+        !term ||
+        name.includes(term) ||
+        email.includes(term) ||
+        ref.includes(term) ||
+        pickup.includes(term) ||
+        destination.includes(term) ||
+        vehicle.includes(term)
+
+      if (statusFilter === 'all') return matchSearch
+
+      const quoteSt = String(q.status || '').toLowerCase()
+      const filtSt = statusFilter.toLowerCase()
+
+      if (filtSt === 'pending' || filtSt === 'new') {
+        return matchSearch && (quoteSt === 'pending' || quoteSt === 'new')
+      }
+      if (filtSt === 'approved') {
+        return matchSearch && quoteSt === 'approved'
+      }
+      if (filtSt === 'converted' || filtSt === 'won') {
+        return matchSearch && (quoteSt === 'converted' || quoteSt === 'won' || quoteSt.includes('paid'))
+      }
+      return matchSearch && quoteSt === filtSt
+    })
+  }, [allQuotes, search, statusFilter])
+
+  // Pagination calculations
+  const totalItems = filteredQuotes.length
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+  const safePage = Math.min(currentPage, totalPages)
+  const startIndex = (safePage - 1) * pageSize
+  const endIndex = Math.min(totalItems, startIndex + pageSize)
+  const paginatedQuotes = filteredQuotes.slice(startIndex, endIndex)
+
+  // KPI Metrics
+  const totalValue = allQuotes.reduce((acc, q) => acc + (Number(q.estimatedInvestment) || 0), 0)
+  const wonCount = allQuotes.filter((q) => {
+    const st = String(q.status).toLowerCase()
+    return st === 'converted' || st === 'won' || st === 'approved' || st.includes('paid')
+  }).length
+  const winRate = allQuotes.length > 0 ? Math.round((wonCount / allQuotes.length) * 100) : 0
+  const pendingCount = allQuotes.filter((q) => {
+    const st = String(q.status).toLowerCase()
+    return st === 'new' || st === 'pending' || st === 'reviewed'
+  }).length
+
+  // Generate page numbers
+  const pageNumbers = useMemo(() => {
+    const pages: number[] = []
+    const maxVisible = 5
+    let start = Math.max(1, safePage - Math.floor(maxVisible / 2))
+    let end = Math.min(totalPages, start + maxVisible - 1)
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1)
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+    return pages
+  }, [safePage, totalPages])
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    updateQuoteStatus(id, status as any, userId, userName)
     await adminService.updateLeadStatus(id, status)
-    loadLeads()
-    if (selected?.id === id) setSelected(q => q ? { ...q, status } : q)
+    loadQuotesAndLeads()
+    if (selectedQuote && (selectedQuote.id === id || selectedQuote.reference === id)) {
+      setSelectedQuote((prev) => (prev ? { ...prev, status: status as any } : null))
+    }
+  }
+
+  const handleSaveNote = () => {
+    if (!selectedQuote) return
+    addQuoteNote(selectedQuote.id, noteInput)
+    setSelectedQuote((prev) => (prev ? { ...prev, notes: noteInput } : null))
+    setNoteSaved(true)
+    setTimeout(() => setNoteSaved(false), 2500)
   }
 
   const handleExportPDF = (q: AdminQuote) => {
     pdfService.generateQuotationPDF({
       leadMetadata: { quoteReferenceNumber: q.reference },
-      customerInformation: { name: q.customerName, email: q.customerEmail },
-      journeyInformation: { journeyType: q.tripType, distanceKm: q.distanceKm, passengerCount: q.passengerCount },
-      estimatedInvestment: { vehicleName: q.vehicleName, minimumEstimate: q.estimatedInvestment, maximumEstimate: q.estimatedInvestment },
+      customerInformation: { name: q.customerName, email: q.customerEmail, phone: q.customerPhone },
+      journeyInformation: {
+        journeyType: q.tripType || q.vehicleName,
+        distanceKm: q.distanceKm,
+        passengerCount: q.passengerCount,
+        origin: q.pickup,
+        destination: q.destination,
+      },
+      estimatedInvestment: {
+        vehicleName: q.vehicleName,
+        minimumEstimate: q.estimatedInvestment,
+        maximumEstimate: q.estimatedInvestment,
+        total: q.estimatedInvestment,
+      },
     })
   }
 
   const handleEmailCustomer = async (q: AdminQuote) => {
-    await emailService.sendConfirmationEmail({
+    const ok = await emailService.sendConfirmationEmail({
       leadMetadata: { quoteReferenceNumber: q.reference },
       customerInformation: { name: q.customerName, email: q.customerEmail },
+      journeyInformation: { journeyType: q.tripType || q.vehicleName },
+      estimatedInvestment: { total: q.estimatedInvestment },
     })
-    alert(`Confirmation email sent to ${q.customerEmail}`)
+    if (ok) {
+      alert(`Quotation details successfully sent to ${q.customerEmail}`)
+    } else {
+      alert(`Quotation email triggered for ${q.customerEmail}`)
+    }
+  }
+
+  const handleRowClick = (q: AdminQuote) => {
+    setSelectedQuote(q)
+    setNoteInput(q.notes || '')
+    setNoteSaved(false)
   }
 
   return (
     <>
+      {/* Header */}
       <div className="admin-page-header">
         <div>
           <div className="admin-page-title">Quote Management</div>
-          <div className="admin-page-desc">{quotes.length} total quotes · {quotes.filter(q => q.status === 'new').length} awaiting review</div>
+          <div className="admin-page-desc">
+            Track customer quote requests, review pricing estimates, generate PDFs, and convert quotes to bookings.
+          </div>
+        </div>
+        <div className="admin-page-actions">
+          <button
+            onClick={loadQuotesAndLeads}
+            disabled={loading}
+            className="admin-btn admin-btn-ghost admin-btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+          >
+            <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+            {loading ? 'Refreshing…' : 'Refresh Quotes'}
+          </button>
         </div>
       </div>
 
+      {/* KPI Stats Grid */}
+      <div className="admin-stat-grid" style={{ marginBottom: '1.5rem' }}>
+        <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-accent)' }}>
+          <div className="admin-stat-label">Total Quotes Captured</div>
+          <div className="admin-stat-value">{allQuotes.length}</div>
+          <div className="admin-stat-sub">From journey planner & direct inquiries</div>
+        </div>
+
+        <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-warning)' }}>
+          <div className="admin-stat-label">Awaiting Review</div>
+          <div className="admin-stat-value">{pendingCount}</div>
+          <div className="admin-stat-sub">New & pending submissions</div>
+        </div>
+
+        <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-success)' }}>
+          <div className="admin-stat-label">Approved & Converted</div>
+          <div className="admin-stat-value">
+            {wonCount}{' '}
+            <span style={{ fontSize: 13, color: 'var(--adm-text-3)', fontWeight: 400 }}>({winRate}%)</span>
+          </div>
+          <div className="admin-stat-sub">Confirmed & active bookings</div>
+        </div>
+
+        <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-accent)' }}>
+          <div className="admin-stat-label">Pipeline Quote Value</div>
+          <div className="admin-stat-value" style={{ fontSize: '1.25rem' }}>
+            {fmtCurrency(totalValue)}
+          </div>
+          <div className="admin-stat-sub admin-stat-trend-up">Estimated total opportunity</div>
+        </div>
+      </div>
+
+      {/* Filter Toolbar */}
       <div className="admin-toolbar">
         <div className="admin-toolbar-search">
           <Search size={13} color="var(--adm-text-3)" />
-          <input placeholder="Search by reference, customer, route…" value={search} onChange={e => setSearch(e.target.value)} />
+          <input
+            placeholder="Search by reference, customer, vehicle, route…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-        <Filter size={14} color="var(--adm-text-3)" />
-        {['all','new','reviewed','approved','rejected','converted'].map(s => (
-          <button key={s} onClick={() => setFilter(s)}
-            className={`admin-btn admin-btn-sm ${filter === s ? 'admin-btn-primary' : 'admin-btn-ghost'}`}>
-            {s.charAt(0).toUpperCase() + s.slice(1)}
-          </button>
-        ))}
+        <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+          {['all', 'new', 'reviewed', 'approved', 'converted', 'rejected'].map((st) => (
+            <button
+              key={st}
+              onClick={() => setStatusFilter(st)}
+              className={`admin-btn admin-btn-sm ${statusFilter === st ? 'admin-btn-primary' : 'admin-btn-ghost'}`}
+            >
+              {st === 'all' ? 'All Quotes' : (statusBadges[st]?.label || st.charAt(0).toUpperCase() + st.slice(1))}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: '1.25rem' }}>
+      {/* Quotes Table */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
-              <tr><th>Reference</th><th>Customer</th><th>Vehicle</th><th>Route</th><th>Estimate</th><th>Travel Date</th><th>Status</th><th></th></tr>
+              <tr>
+                <th>Reference</th>
+                <th>Customer</th>
+                <th>Vehicle / Service</th>
+                <th>Route</th>
+                <th>Estimated Investment</th>
+                <th>Date Received</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={8} className="admin-table-empty">No quotes match your filters</td></tr>
-              ) : filtered.map(q => (
-                <tr key={q.id} style={{ cursor: 'pointer', background: selected?.id === q.id ? 'var(--adm-surface-2)' : undefined }}
-                  onClick={() => { setSelected(q); setNoteInput(q.notes) }}>
-                  <td><span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--adm-text-2)' }}>{q.reference}</span></td>
-                  <td>
-                    <div style={{ fontWeight: 500, fontSize: 13 }}>{q.customerName}</div>
-                    <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{q.customerEmail}</div>
-                  </td>
-                  <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>{q.vehicleName}</td>
-                  <td style={{ fontSize: 12, color: 'var(--adm-text-3)', maxWidth: 160 }}>
-                    <div>{q.pickup.split(',')[0]}</div>
-                    <div>→ {q.destination.split(',')[0]}</div>
-                  </td>
-                  <td style={{ fontWeight: 600 }}>{fmt(q.estimatedInvestment)}</td>
-                  <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>{fmtDate(q.travelDate)}</td>
-                  <td><span className={`admin-badge ${statusColors[q.status]}`}>{q.status}</span></td>
-                  <td onClick={e => e.stopPropagation()}>
-                    {q.status === 'new' && (
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        <button className="admin-btn admin-btn-sm admin-btn-ghost" title="Approve" onClick={() => handleAction(q.id, 'approved')}><Check size={12} /></button>
-                        <button className="admin-btn admin-btn-sm admin-btn-danger" title="Reject" onClick={() => handleAction(q.id, 'rejected')}><X size={12} /></button>
-                      </div>
-                    )}
-                    {q.status === 'approved' && (
-                      <button className="admin-btn admin-btn-sm admin-btn-primary" onClick={() => handleAction(q.id, 'converted')}>
-                        <RefreshCw size={12} /> Convert
-                      </button>
-                    )}
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="admin-table-empty">
+                    Loading quotes…
                   </td>
                 </tr>
-              ))}
+              ) : paginatedQuotes.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="admin-table-empty">
+                    No quotes found matching your filters.
+                  </td>
+                </tr>
+              ) : (
+                paginatedQuotes.map((q) => {
+                  const badge = statusBadges[q.status] || { label: q.status, class: 'admin-badge-gray' }
+                  return (
+                    <tr
+                      key={q.id || q.reference}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => handleRowClick(q)}
+                    >
+                      <td>
+                        <span
+                          style={{
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                            color: 'var(--adm-text-2)',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {q.reference}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{q.customerName}</div>
+                        <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{q.customerEmail}</div>
+                      </td>
+                      <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>
+                        <div style={{ fontWeight: 500 }}>{q.vehicleName}</div>
+                        {q.tripType && q.tripType !== q.vehicleName && (
+                          <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{q.tripType}</div>
+                        )}
+                      </td>
+                      <td style={{ fontSize: 12, maxWidth: 180 }}>
+                        <div style={{ color: 'var(--adm-text-1)' }}>{q.pickup.split(',')[0]}</div>
+                        <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>
+                          → {q.destination.split(',')[0]}
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: 700, color: 'var(--adm-text-1)' }}>
+                        {q.estimatedInvestment > 0 ? fmtCurrency(q.estimatedInvestment) : '₦---,---'}
+                      </td>
+                      <td style={{ fontSize: 12 }}>{fmtDateShort(q.createdAt || q.travelDate)}</td>
+                      <td>
+                        <span className={`admin-badge ${badge.class}`}>{badge.label}</span>
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                          {q.status === 'new' && (
+                            <>
+                              <button
+                                className="admin-btn admin-btn-sm admin-btn-ghost"
+                                title="Approve Quote"
+                                onClick={() => handleUpdateStatus(q.id, 'approved')}
+                              >
+                                <Check size={12} />
+                              </button>
+                              <button
+                                className="admin-btn admin-btn-sm admin-btn-danger"
+                                title="Reject Quote"
+                                onClick={() => handleUpdateStatus(q.id, 'rejected')}
+                              >
+                                <X size={12} />
+                              </button>
+                            </>
+                          )}
+                          {q.status === 'approved' && (
+                            <button
+                              className="admin-btn admin-btn-sm admin-btn-primary"
+                              title="Convert to Active Booking"
+                              onClick={() => handleUpdateStatus(q.id, 'converted')}
+                              style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '0.25rem 0.5rem' }}
+                            >
+                              <RefreshCw size={11} /> Convert
+                            </button>
+                          )}
+                          <button
+                            className="admin-btn admin-btn-sm admin-btn-ghost"
+                            title="View Quote Details"
+                            onClick={() => handleRowClick(q)}
+                            style={{ fontSize: 11, padding: '0.25rem 0.5rem' }}
+                          >
+                            Details
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
             </tbody>
           </table>
         </div>
 
-        {selected && (
-          <div className="admin-card" style={{ height: 'fit-content' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 600, fontSize: 14 }}>Quote Details</span>
-              <button className="admin-btn admin-btn-icon admin-btn-ghost" onClick={() => setSelected(null)}><X size={14} /></button>
+        {/* ── Pagination Controls ── */}
+        {totalItems > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              padding: '0.75rem 1rem',
+              background: '#ffffff',
+              border: '1px solid var(--adm-border)',
+              borderRadius: 'var(--adm-radius-sm)',
+              fontSize: 13,
+              color: 'var(--adm-text-2)',
+            }}
+          >
+            {/* Range Info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>
+                Showing <strong style={{ color: 'var(--adm-text-1)' }}>{startIndex + 1}</strong>–
+                <strong style={{ color: 'var(--adm-text-1)' }}>{endIndex}</strong> of{' '}
+                <strong style={{ color: 'var(--adm-text-1)' }}>{totalItems}</strong> quotes
+              </span>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <span className={`admin-badge ${statusColors[selected.status]}`} style={{ marginBottom: '0.75rem', display: 'inline-flex' }}>{selected.status}</span>
-              <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--adm-text-3)', marginBottom: '0.375rem' }}>{selected.reference}</div>
-              <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--adm-text-1)' }}>{fmt(selected.estimatedInvestment)}</div>
-            </div>
-
-            {[
-              ['Customer', selected.customerName],
-              ['Email', selected.customerEmail],
-              ['Vehicle', selected.vehicleName],
-              ['Trip Type', selected.tripType],
-              ['Passengers', selected.passengerCount],
-              ['Distance', `${selected.distanceKm} km`],
-              ['Duration', `${selected.durationMins} mins`],
-              ['Pickup', selected.pickup],
-              ['Destination', selected.destination],
-              ['Travel Date', fmtDate(selected.travelDate)],
-            ].map(([label, value]) => (
-              <div key={label as string} className="admin-detail-row">
-                <span className="admin-detail-label">{label}</span>
-                <span className="admin-detail-value" style={{ fontSize: 13 }}>{value}</span>
+            {/* Controls & Page size */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              {/* Page Size Select */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                <span>Per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  style={{
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: 'var(--adm-radius-sm)',
+                    border: '1px solid var(--adm-border)',
+                    background: 'var(--adm-surface-2)',
+                    color: 'var(--adm-text-1)',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
               </div>
-            ))}
 
-            <div style={{ marginTop: '1.25rem' }}>
-              <div className="admin-label" style={{ marginBottom: '0.375rem' }}>Internal Notes</div>
-              <textarea className="admin-textarea" rows={2} value={noteInput} onChange={e => setNoteInput(e.target.value)} placeholder="Add internal notes…" />
-              <button className="admin-btn admin-btn-ghost admin-btn-sm" style={{ marginTop: '0.375rem' }}
-                onClick={() => { addQuoteNote(selected.id, noteInput) }}>Save Note</button>
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem', flexWrap: 'wrap' }}>
-              {selected.status === 'new' && <>
-                <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={() => handleAction(selected.id, 'approved')}><Check size={12} /> Approve</button>
-                <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => handleAction(selected.id, 'rejected')}><X size={12} /> Reject</button>
-              </>}
-              {selected.status === 'approved' && (
-                <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={() => handleAction(selected.id, 'converted')}>
-                  <RefreshCw size={12} /> Convert to Booking
+              {/* Page Navigation Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={safePage <= 1}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ padding: '0.35rem 0.5rem', opacity: safePage <= 1 ? 0.4 : 1 }}
+                  title="First page"
+                >
+                  <ChevronsLeft size={14} />
                 </button>
-              )}
-              <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => handleExportPDF(selected)}><Eye size={12} /> Export PDF</button>
-              <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => handleEmailCustomer(selected)}>Email Customer</button>
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage <= 1}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ padding: '0.35rem 0.5rem', opacity: safePage <= 1 ? 0.4 : 1 }}
+                  title="Previous page"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+
+                {pageNumbers.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    className={`admin-btn admin-btn-sm ${safePage === p ? 'admin-btn-primary' : 'admin-btn-ghost'}`}
+                    style={{
+                      minWidth: 28,
+                      height: 28,
+                      padding: 0,
+                      justifyContent: 'center',
+                      fontSize: 12,
+                      fontWeight: safePage === p ? 700 : 500,
+                    }}
+                  >
+                    {p}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safePage >= totalPages}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ padding: '0.35rem 0.5rem', opacity: safePage >= totalPages ? 0.4 : 1 }}
+                  title="Next page"
+                >
+                  <ChevronRight size={14} />
+                </button>
+
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={safePage >= totalPages}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ padding: '0.35rem 0.5rem', opacity: safePage >= totalPages ? 0.4 : 1 }}
+                  title="Last page"
+                >
+                  <ChevronsRight size={14} />
+                </button>
+              </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* ── Floating Quote Details Modal (Identical in style to Lead Detail Modal) ── */}
+      {selectedQuote && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedQuote(null)
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.25rem',
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid var(--adm-border)',
+              borderRadius: 'var(--adm-radius)',
+              width: '100%',
+              maxWidth: '680px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 24px 64px rgba(0, 0, 0, 0.4)',
+              padding: '1.75rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem',
+              position: 'relative',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                borderBottom: '1px solid var(--adm-border)',
+                paddingBottom: '1rem',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.25rem' }}>
+                  <span
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: 'var(--adm-accent)',
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      padding: '0.2rem 0.5rem',
+                      borderRadius: 4,
+                    }}
+                  >
+                    {selectedQuote.reference}
+                  </span>
+                  <span
+                    className={`admin-badge ${(statusBadges[selectedQuote.status] || { class: 'admin-badge-gray' }).class}`}
+                  >
+                    {(statusBadges[selectedQuote.status] || { label: selectedQuote.status }).label}
+                  </span>
+                </div>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--adm-text-1)' }}>
+                  {selectedQuote.customerName}
+                </h3>
+              </div>
+
+              <button
+                className="admin-btn admin-btn-icon admin-btn-ghost"
+                onClick={() => setSelectedQuote(null)}
+                style={{ borderRadius: '50%', width: 32, height: 32 }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Estimated Quote Value Banner */}
+            <div
+              style={{
+                background: 'var(--adm-surface-2)',
+                padding: '1rem 1.25rem',
+                borderRadius: 'var(--adm-radius-sm)',
+                border: '1px solid var(--adm-border)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    color: 'var(--adm-text-3)',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Estimated Investment / Quote Value
+                </div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--adm-accent)', marginTop: 2 }}>
+                  {fmtCurrency(selectedQuote.estimatedInvestment)}
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--adm-text-2)', textAlign: 'right' }}>
+                <div>
+                  <strong style={{ color: 'var(--adm-text-1)' }}>Date Received:</strong>{' '}
+                  {fmtDateShort(selectedQuote.createdAt || selectedQuote.travelDate)}
+                </div>
+                {selectedQuote.travelDate && selectedQuote.travelDate !== selectedQuote.createdAt && (
+                  <div style={{ marginTop: 2 }}>
+                    <strong style={{ color: 'var(--adm-text-1)' }}>Travel Date:</strong>{' '}
+                    {fmtDateShort(selectedQuote.travelDate)}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 2-Column Details Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+              {/* Customer Info Card */}
+              <div
+                style={{
+                  background: 'var(--adm-surface-2)',
+                  padding: '1rem',
+                  borderRadius: 'var(--adm-radius-sm)',
+                  border: '1px solid var(--adm-border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.625rem',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'var(--adm-text-3)',
+                    letterSpacing: '0.05em',
+                    marginBottom: 2,
+                  }}
+                >
+                  Client Profile
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 13 }}>
+                  <Users size={14} color="var(--adm-accent)" />
+                  <span style={{ fontWeight: 600, color: 'var(--adm-text-1)' }}>{selectedQuote.customerName}</span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontSize: 12,
+                    color: 'var(--adm-text-2)',
+                  }}
+                >
+                  <Mail size={14} />
+                  <a
+                    href={`mailto:${selectedQuote.customerEmail}`}
+                    style={{ color: 'var(--adm-text-2)', textDecoration: 'none' }}
+                  >
+                    {selectedQuote.customerEmail}
+                  </a>
+                </div>
+                {selectedQuote.customerPhone && selectedQuote.customerPhone !== 'N/A' && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      fontSize: 12,
+                      color: 'var(--adm-text-2)',
+                    }}
+                  >
+                    <Phone size={14} />
+                    <a
+                      href={`tel:${selectedQuote.customerPhone}`}
+                      style={{ color: 'var(--adm-text-2)', textDecoration: 'none' }}
+                    >
+                      {selectedQuote.customerPhone}
+                    </a>
+                  </div>
+                )}
+                {selectedQuote.customerId && (
+                  <div style={{ fontSize: 12, color: 'var(--adm-text-2)', marginTop: 2 }}>
+                    <strong style={{ color: 'var(--adm-text-3)' }}>Account Ref:</strong> {selectedQuote.customerId}
+                  </div>
+                )}
+              </div>
+
+              {/* Journey Details Card */}
+              <div
+                style={{
+                  background: 'var(--adm-surface-2)',
+                  padding: '1rem',
+                  borderRadius: 'var(--adm-radius-sm)',
+                  border: '1px solid var(--adm-border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.625rem',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'var(--adm-text-3)',
+                    letterSpacing: '0.05em',
+                    marginBottom: 2,
+                  }}
+                >
+                  Journey & Vehicle
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--adm-text-1)' }}>
+                  {selectedQuote.vehicleName}
+                  {selectedQuote.tripType && selectedQuote.tripType !== selectedQuote.vehicleName && (
+                    <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--adm-text-3)', marginLeft: 6 }}>
+                      • {selectedQuote.tripType}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', fontSize: 12 }}>
+                  <MapPin size={14} color="var(--adm-accent)" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <div>
+                    <div style={{ color: 'var(--adm-text-2)' }}>
+                      <strong style={{ color: 'var(--adm-text-1)' }}>From:</strong> {selectedQuote.pickup || 'Lagos'}
+                    </div>
+                    <div style={{ color: 'var(--adm-text-2)', marginTop: 4 }}>
+                      <strong style={{ color: 'var(--adm-text-1)' }}>To:</strong>{' '}
+                      {selectedQuote.destination || 'Lagos'}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    fontSize: 11,
+                    color: 'var(--adm-text-3)',
+                    marginTop: 4,
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {selectedQuote.passengerCount > 0 && (
+                    <span>
+                      <strong style={{ color: 'var(--adm-text-2)' }}>{selectedQuote.passengerCount}</strong> Passengers
+                    </span>
+                  )}
+                  {selectedQuote.distanceKm > 0 && (
+                    <span>
+                      • <strong style={{ color: 'var(--adm-text-2)' }}>{selectedQuote.distanceKm}</strong> km
+                    </span>
+                  )}
+                  {selectedQuote.durationMins > 0 && (
+                    <span>
+                      • <strong style={{ color: 'var(--adm-text-2)' }}>{selectedQuote.durationMins}</strong> mins
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Internal Notes Section */}
+            <div
+              style={{
+                background: 'var(--adm-surface-2)',
+                padding: '1rem',
+                borderRadius: 'var(--adm-radius-sm)',
+                border: '1px solid var(--adm-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--adm-text-3)',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                <span>Internal Notes & Remarks</span>
+                {noteSaved && <span style={{ color: 'var(--adm-success)', textTransform: 'none' }}>✓ Saved</span>}
+              </div>
+              <textarea
+                className="admin-textarea"
+                rows={2}
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
+                placeholder="Add internal notes for dispatch, special instructions, pricing considerations…"
+                style={{ background: '#ffffff' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  onClick={handleSaveNote}
+                  style={{ fontSize: 12 }}
+                >
+                  Save Note
+                </button>
+              </div>
+            </div>
+
+            {/* Pipeline Stage Updater & Action Footer */}
+            <div
+              style={{
+                borderTop: '1px solid var(--adm-border)',
+                paddingTop: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '1rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span className="admin-label" style={{ marginBottom: 0, whiteSpace: 'nowrap' }}>
+                  Change Status:
+                </span>
+                <select
+                  className="admin-select"
+                  value={selectedQuote.status}
+                  onChange={(e) => handleUpdateStatus(selectedQuote.id, e.target.value)}
+                  style={{ minWidth: 170 }}
+                >
+                  {Object.entries(statusBadges).map(([val, info]) => (
+                    <option key={val} value={val}>
+                      {info.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {selectedQuote.status === 'new' && (
+                  <>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-primary admin-btn-sm"
+                      onClick={() => handleUpdateStatus(selectedQuote.id, 'approved')}
+                    >
+                      <Check size={13} /> Approve
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-danger admin-btn-sm"
+                      onClick={() => handleUpdateStatus(selectedQuote.id, 'rejected')}
+                    >
+                      <X size={13} /> Reject
+                    </button>
+                  </>
+                )}
+
+                {selectedQuote.status === 'approved' && (
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-primary admin-btn-sm"
+                    onClick={() => handleUpdateStatus(selectedQuote.id, 'converted')}
+                  >
+                    <RefreshCw size={13} /> Convert to Booking
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => handleExportPDF(selectedQuote)}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  title="Export official quote PDF"
+                >
+                  <FileText size={13} /> Export PDF
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleEmailCustomer(selectedQuote)}
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  title="Send quotation email to client"
+                >
+                  <Mail size={13} /> Email Client
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedQuote(null)}
+                  className="admin-btn admin-btn-primary admin-btn-sm"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

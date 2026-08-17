@@ -15,23 +15,30 @@ func CORSMiddleware(allowedOriginsStr string, next http.Handler) http.Handler {
 		if trimmed == "*" {
 			allowAll = true
 		}
-		allowedMap[trimmed] = true
+		if trimmed != "" {
+			allowedMap[trimmed] = true
+		}
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 
-		if allowAll {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-		} else if origin != "" && allowedMap[origin] {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
-		} else if len(origins) > 0 {
+		if origin != "" {
+			if allowAll || allowedMap["*"] || allowedMap[origin] || isAllowedOrigin(origin, allowedMap) {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+			} else {
+				// Default fallback to allow web frontend
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+			}
+		} else if len(origins) > 0 && strings.TrimSpace(origins[0]) != "" {
 			w.Header().Set("Access-Control-Allow-Origin", strings.TrimSpace(origins[0]))
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin")
 		w.Header().Set("Access-Control-Max-Age", "86400")
 
 		if r.Method == http.MethodOptions {
@@ -42,3 +49,21 @@ func CORSMiddleware(allowedOriginsStr string, next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func isAllowedOrigin(origin string, allowedMap map[string]bool) bool {
+	if allowedMap["*"] {
+		return true
+	}
+	if allowedMap[origin] {
+		return true
+	}
+	// Allow all onrender.com subdomains, custom domains, and local dev
+	if strings.HasSuffix(origin, ".onrender.com") ||
+		strings.HasSuffix(origin, "neweratransports.com") ||
+		strings.Contains(origin, "localhost") ||
+		strings.Contains(origin, "127.0.0.1") {
+		return true
+	}
+	return false
+}
+

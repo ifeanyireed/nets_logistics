@@ -34,7 +34,7 @@ func LoadConfig() *Config {
 		Port:               port,
 		Env:                getEnv("ENV", getEnv("APP_ENV", "development")),
 		AppName:            getEnv("APP_NAME", "NETS Logistics REST API"),
-		CORSAllowedOrigins: getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://localhost:4173"),
+		CORSAllowedOrigins: getEnv("CORS_ALLOWED_ORIGINS", "*"),
 		DBDriver:           getEnv("DB_DRIVER", "mysql"),
 		DBHost:             getEnv("DB_HOST", "srv1427.hstgr.io"),
 		DBPort:             getEnv("DB_PORT", "3306"),
