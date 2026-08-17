@@ -1,8 +1,5 @@
-// ============================================================================
-// NETS Admin — CRM & Lead Pipeline Management
-// ============================================================================
-import { useState, useEffect } from 'react'
-import { Search, Users, DollarSign, Filter, CheckCircle2, Clock, Phone, Mail, MapPin, Calendar, FileText, ArrowRight, X, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Search, Users, DollarSign, Filter, CheckCircle2, Clock, Phone, Mail, MapPin, Calendar, FileText, ArrowRight, X, RefreshCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { adminService, type AdminLead } from '../services/adminService'
 import { useAdminStore } from '../store/useAdminStore'
 
@@ -35,6 +32,10 @@ export function CRMPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedLead, setSelectedLead] = useState<AdminLead | null>(null)
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
   const loadLeads = () => {
     setLoading(true)
     adminService.getLeads().then((list) => {
@@ -49,6 +50,11 @@ export function CRMPage() {
     loadLeads()
   }, [])
 
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, statusFilter, pageSize])
+
   const handleUpdateStatus = async (id: number | string, newStatus: string) => {
     await adminService.updateLeadStatus(id, newStatus)
     loadLeads()
@@ -57,33 +63,60 @@ export function CRMPage() {
     }
   }
 
-  const filteredLeads = leads.filter(l => {
-    const name = String(l?.customerName || '').toLowerCase()
-    const email = String(l?.customerEmail || '').toLowerCase()
-    const ref = String(l?.leadReference || '').toLowerCase()
-    const origin = String(l?.origin || '').toLowerCase()
-    const dest = String(l?.destination || '').toLowerCase()
-    const term = search.trim().toLowerCase()
+  const filteredLeads = useMemo(() => {
+    return leads.filter(l => {
+      const name = String(l?.customerName || '').toLowerCase()
+      const email = String(l?.customerEmail || '').toLowerCase()
+      const ref = String(l?.leadReference || '').toLowerCase()
+      const origin = String(l?.origin || '').toLowerCase()
+      const dest = String(l?.destination || '').toLowerCase()
+      const term = search.trim().toLowerCase()
 
-    const matchSearch = !term || name.includes(term) || email.includes(term) || ref.includes(term) || origin.includes(term) || dest.includes(term)
-    
-    if (statusFilter === 'all') return matchSearch
+      const matchSearch = !term || name.includes(term) || email.includes(term) || ref.includes(term) || origin.includes(term) || dest.includes(term)
+      
+      if (statusFilter === 'all') return matchSearch
 
-    const leadSt = String(l?.status || '').toLowerCase()
-    const filtSt = statusFilter.toLowerCase()
-    
-    if (filtSt === 'pending' || filtSt === 'new') {
-      return matchSearch && (leadSt === 'pending' || leadSt === 'new')
-    }
-    if (filtSt === 'won') {
-      return matchSearch && (leadSt === 'won' || leadSt === 'converted' || leadSt.includes('paid'))
-    }
-    return matchSearch && (leadSt === filtSt)
-  })
+      const leadSt = String(l?.status || '').toLowerCase()
+      const filtSt = statusFilter.toLowerCase()
+      
+      if (filtSt === 'pending' || filtSt === 'new') {
+        return matchSearch && (leadSt === 'pending' || leadSt === 'new')
+      }
+      if (filtSt === 'won') {
+        return matchSearch && (leadSt === 'won' || leadSt === 'converted' || leadSt.includes('paid'))
+      }
+      return matchSearch && (leadSt === filtSt)
+    })
+  }, [leads, search, statusFilter])
+
+  // Pagination calculations
+  const totalItems = filteredLeads.length
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+  const safePage = Math.min(currentPage, totalPages)
+  const startIndex = (safePage - 1) * pageSize
+  const endIndex = Math.min(totalItems, startIndex + pageSize)
+  const paginatedLeads = filteredLeads.slice(startIndex, endIndex)
 
   const totalValue = leads.reduce((acc, l) => acc + (Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0), 0)
   const wonCount = leads.filter(l => l.status === 'won' || l.status === 'converted' || String(l.status).toLowerCase().includes('paid')).length
   const winRate = leads.length > 0 ? Math.round((wonCount / leads.length) * 100) : 0
+
+  // Generate visible page numbers
+  const pageNumbers = useMemo(() => {
+    const pages: number[] = []
+    const maxVisible = 5
+    let start = Math.max(1, safePage - Math.floor(maxVisible / 2))
+    let end = Math.min(totalPages, start + maxVisible - 1)
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1)
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+    return pages
+  }, [safePage, totalPages])
 
   return (
     <>
@@ -153,65 +186,171 @@ export function CRMPage() {
 
       {/* Leads Table & Detail Sidebar */}
       <div style={{ display: 'grid', gridTemplateColumns: selectedLead ? '1fr 380px' : '1fr', gap: '1.25rem' }}>
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Reference</th>
-                <th>Client</th>
-                <th>Journey / Route</th>
-                <th>Value (Est.)</th>
-                <th>Date Received</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <td colSpan={6} className="admin-table-empty">Loading CRM leads…</td>
+                  <th>Reference</th>
+                  <th>Client</th>
+                  <th>Journey / Route</th>
+                  <th>Value (Est.)</th>
+                  <th>Date Received</th>
+                  <th>Status</th>
                 </tr>
-              ) : filteredLeads.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="admin-table-empty">No leads found matching your search.</td>
-                </tr>
-              ) : (
-                filteredLeads.map(l => {
-                  const badge = statusBadges[l.status] || { label: l.status, class: 'admin-badge-gray' }
-                  const val = l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0
-                  return (
-                    <tr
-                      key={l.id || l.leadReference}
-                      style={{ cursor: 'pointer', background: selectedLead?.id === l.id ? 'var(--adm-surface-2)' : undefined }}
-                      onClick={() => setSelectedLead(l)}
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="admin-table-empty">Loading CRM leads…</td>
+                  </tr>
+                ) : paginatedLeads.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="admin-table-empty">No leads found matching your search.</td>
+                  </tr>
+                ) : (
+                  paginatedLeads.map(l => {
+                    const badge = statusBadges[l.status] || { label: l.status, class: 'admin-badge-gray' }
+                    const val = l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0
+                    return (
+                      <tr
+                        key={l.id || l.leadReference}
+                        style={{ cursor: 'pointer', background: selectedLead?.id === l.id ? 'var(--adm-surface-2)' : undefined }}
+                        onClick={() => setSelectedLead(l)}
+                      >
+                        <td>
+                          <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--adm-text-2)', fontWeight: 600 }}>
+                            {l.leadReference || `LEAD-${l.id}`}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>{l.customerName}</div>
+                          <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{l.customerEmail}</div>
+                        </td>
+                        <td style={{ fontSize: 12 }}>
+                          <div>{l.journeyType || 'Standard Charter'}</div>
+                          <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>
+                            {l.origin ? `${l.origin.split(',')[0]} → ${l.destination?.split(',')[0] || ''}` : 'Charter Route'}
+                          </div>
+                        </td>
+                        <td style={{ fontWeight: 700, color: 'var(--adm-text-1)' }}>
+                          {val > 0 ? fmtCurrency(val) : '₦---,---'}
+                        </td>
+                        <td style={{ fontSize: 12 }}>{fmtDate(l.createdAt)}</td>
+                        <td>
+                          <span className={`admin-badge ${badge.class}`}>{badge.label}</span>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* ── Pagination Controls ── */}
+          {totalItems > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              padding: '0.75rem 1rem',
+              background: 'var(--adm-surface-1)',
+              border: '1px solid var(--adm-border)',
+              borderRadius: 'var(--adm-radius-sm)',
+              fontSize: 13,
+              color: 'var(--adm-text-2)'
+            }}>
+              {/* Range Info */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>
+                  Showing <strong style={{ color: 'var(--adm-text-1)' }}>{startIndex + 1}</strong>–<strong style={{ color: 'var(--adm-text-1)' }}>{endIndex}</strong> of <strong style={{ color: 'var(--adm-text-1)' }}>{totalItems}</strong> leads
+                </span>
+              </div>
+
+              {/* Controls & Page size */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                {/* Page Size Select */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <span>Per page:</span>
+                  <select
+                    value={pageSize}
+                    onChange={e => setPageSize(Number(e.target.value))}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      borderRadius: 'var(--adm-radius-sm)',
+                      border: '1px solid var(--adm-border)',
+                      background: 'var(--adm-surface-2)',
+                      color: 'var(--adm-text-1)',
+                      fontSize: 12,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+
+                {/* Page Navigation Buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={safePage <= 1}
+                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                    style={{ padding: '0.35rem 0.5rem', opacity: safePage <= 1 ? 0.4 : 1 }}
+                    title="First page"
+                  >
+                    <ChevronsLeft size={14} />
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={safePage <= 1}
+                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                    style={{ padding: '0.35rem 0.5rem', opacity: safePage <= 1 ? 0.4 : 1 }}
+                    title="Previous page"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+
+                  {pageNumbers.map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`admin-btn admin-btn-sm ${safePage === p ? 'admin-btn-primary' : 'admin-btn-ghost'}`}
+                      style={{ minWidth: 28, height: 28, padding: 0, justifyContent: 'center', fontSize: 12, fontWeight: safePage === p ? 700 : 500 }}
                     >
-                      <td>
-                        <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--adm-text-2)', fontWeight: 600 }}>
-                          {l.leadReference || `LEAD-${l.id}`}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>{l.customerName}</div>
-                        <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{l.customerEmail}</div>
-                      </td>
-                      <td style={{ fontSize: 12 }}>
-                        <div>{l.journeyType || 'Standard Charter'}</div>
-                        <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>
-                          {l.origin ? `${l.origin.split(',')[0]} → ${l.destination?.split(',')[0] || ''}` : 'Charter Route'}
-                        </div>
-                      </td>
-                      <td style={{ fontWeight: 700, color: 'var(--adm-text-1)' }}>
-                        {val > 0 ? fmtCurrency(val) : '₦---,---'}
-                      </td>
-                      <td style={{ fontSize: 12 }}>{fmtDate(l.createdAt)}</td>
-                      <td>
-                        <span className={`admin-badge ${badge.class}`}>{badge.label}</span>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
+                      {p}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={safePage >= totalPages}
+                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                    style={{ padding: '0.35rem 0.5rem', opacity: safePage >= totalPages ? 0.4 : 1 }}
+                    title="Next page"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={safePage >= totalPages}
+                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                    style={{ padding: '0.35rem 0.5rem', opacity: safePage >= totalPages ? 0.4 : 1 }}
+                    title="Last page"
+                  >
+                    <ChevronsRight size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Selected Lead Detail Drawer */}
