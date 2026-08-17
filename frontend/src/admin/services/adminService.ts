@@ -102,7 +102,7 @@ export class AdminService {
   }
 
   /**
-   * Fetch all leads/quotes from Go REST API backend combined with local persistence.
+   * Fetch all leads/quotes directly from the remote MySQL database.
    */
   public async getLeads(): Promise<AdminLead[]> {
     let remoteLeads: AdminLead[] = []
@@ -115,23 +115,11 @@ export class AdminService {
         }
       }
     } catch (err) {
-      console.warn('⚠️ [ADMIN SERVICE] Could not fetch leads from backend:', err)
+      console.error('⚠️ [ADMIN SERVICE] Could not fetch leads from backend:', err)
     }
 
-    let allLeads = remoteLeads
-    try {
-      if (typeof window !== 'undefined') {
-        const localLeads: AdminLead[] = JSON.parse(localStorage.getItem('nets_local_leads') || '[]')
-        const remoteRefs = new Set(remoteLeads.map(l => String(l.leadReference || l.id)))
-        const unsynced = localLeads.filter(l => !remoteRefs.has(String(l.leadReference || l.id)))
-        allLeads = [...unsynced, ...remoteLeads]
-      }
-    } catch (e) {
-      console.warn('⚠️ [ADMIN SERVICE] Local storage read error:', e)
-    }
-
-    // Normalize all leads to guarantee safe rendering
-    return allLeads.map((l, idx) => ({
+    // Normalize all database leads to guarantee safe rendering
+    return remoteLeads.map((l, idx) => ({
       id: l.id || `lead-${idx}`,
       leadReference: l.leadReference || `NETS-LEAD-${String(l.id || idx).padStart(4, '0')}`,
       customerName: l.customerName || 'Valued Customer',
@@ -151,17 +139,9 @@ export class AdminService {
   }
 
   /**
-   * Update lead status locally and in backend.
+   * Update lead status directly in remote backend database.
    */
   public async updateLeadStatus(id: number | string, status: string): Promise<boolean> {
-    try {
-      if (typeof window !== 'undefined') {
-        const localLeads: AdminLead[] = JSON.parse(localStorage.getItem('nets_local_leads') || '[]')
-        const updated = localLeads.map(l => (l.id === id || l.leadReference === id) ? { ...l, status } : l)
-        localStorage.setItem('nets_local_leads', JSON.stringify(updated))
-      }
-    } catch {}
-
     try {
       const res = await fetch(`${API_URL}/leads/${id}`, {
         method: 'PUT',
@@ -170,53 +150,33 @@ export class AdminService {
       })
       return res.ok
     } catch (err) {
-      return true
+      console.error('⚠️ [ADMIN SERVICE] Error updating lead status:', err)
+      return false
     }
   }
 
   /**
-   * Fetch all bookings from Go REST API backend combined with local persistence.
+   * Fetch all bookings directly from remote backend database.
    */
   public async getBookings(): Promise<AdminBookingDB[]> {
-    let remoteBookings: AdminBookingDB[] = []
     try {
-      const res = await fetch(`${API_URL}/bookings`)
+      const res = await fetch(`${API_URL}/bookings`, { cache: 'no-store' })
       if (res.ok) {
         const json = await res.json()
         if (json.data && Array.isArray(json.data.bookings)) {
-          remoteBookings = json.data.bookings
+          return json.data.bookings
         }
       }
     } catch (err) {
-      console.warn('⚠️ [ADMIN SERVICE] Could not fetch bookings from backend:', err)
+      console.error('⚠️ [ADMIN SERVICE] Could not fetch bookings from backend:', err)
     }
-
-    try {
-      if (typeof window !== 'undefined') {
-        const localBookings: AdminBookingDB[] = JSON.parse(localStorage.getItem('nets_local_bookings') || '[]')
-        const remoteRefs = new Set(remoteBookings.map(b => b.reference))
-        const unsynced = localBookings.filter(b => !remoteRefs.has(b.reference))
-        return [...unsynced, ...remoteBookings]
-      }
-    } catch (e) {
-      console.warn('⚠️ [ADMIN SERVICE] Local storage read error:', e)
-    }
-
-    return remoteBookings
+    return []
   }
 
   /**
-   * Update booking operational/payment status locally and in backend.
+   * Update booking operational/payment status directly in backend.
    */
   public async updateBooking(id: string, updates: Partial<AdminBookingDB>): Promise<boolean> {
-    try {
-      if (typeof window !== 'undefined') {
-        const localBookings: AdminBookingDB[] = JSON.parse(localStorage.getItem('nets_local_bookings') || '[]')
-        const updated = localBookings.map(b => b.id === id ? { ...b, ...updates } : b)
-        localStorage.setItem('nets_local_bookings', JSON.stringify(updated))
-      }
-    } catch {}
-
     try {
       const res = await fetch(`${API_URL}/bookings/${id}`, {
         method: 'PUT',
@@ -225,7 +185,8 @@ export class AdminService {
       })
       return res.ok
     } catch (err) {
-      return true
+      console.error('⚠️ [ADMIN SERVICE] Error updating booking:', err)
+      return false
     }
   }
 
