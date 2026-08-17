@@ -113,6 +113,8 @@ interface AdminStore {
   createBooking: (booking: Omit<AdminBooking, 'id' | 'reference' | 'createdAt'>) => void
   updateBookingStatus: (id: string, operationalStatus: AdminBooking['operationalStatus'], userId: string, userName: string) => void
   updatePaymentStatus: (id: string, paymentStatus: AdminBooking['paymentStatus']) => void
+  addBookingNote: (id: string, note: string) => void
+  assignBookingDriver: (id: string, driverId: string | null, driverName: string | null) => void
 
   // Vehicle Actions
   addVehicle: (v: Omit<AdminVehicle, 'id'>) => void
@@ -295,6 +297,12 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
 
   updatePaymentStatus: (id, paymentStatus) =>
     set(s => ({ bookings: s.bookings.map(x => x.id === id ? { ...x, paymentStatus } : x) })),
+
+  addBookingNote: (id, note) =>
+    set(s => ({ bookings: s.bookings.map(x => x.id === id ? { ...x, notes: note } : x) })),
+
+  assignBookingDriver: (id, driverId, driverName) =>
+    set(s => ({ bookings: s.bookings.map(x => x.id === id ? { ...x, driverId, driverName } : x) })),
 
   // ── Vehicles ──
   addVehicle: (v) => {
