@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { CreditCard, Wallet, ShieldCheck, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { useShuttleStore } from '../../store/useShuttleStore'
 import { PAYSTACK_PUBLIC_KEY } from '../../config/api'
+import { emailService } from '../../services/emailService'
 
 export function PaymentPage() {
   const navigate = useNavigate()
@@ -77,6 +78,7 @@ export function PaymentPage() {
             callback: (response: any) => {
               console.log('Paystack Payment Success:', response)
               const newBooking = confirmBooking()
+              emailService.sendNewBookingNotification(newBooking)
               setIsProcessing(false)
               navigate(`/shuttles/confirmation/${newBooking.id}`)
             },
@@ -95,6 +97,7 @@ export function PaymentPage() {
     // Default simulation fallback for Wallet or offline mode
     setTimeout(() => {
       const newBooking = confirmBooking()
+      emailService.sendNewBookingNotification(newBooking)
       setIsProcessing(false)
       navigate(`/shuttles/confirmation/${newBooking.id}`)
     }, 1200)

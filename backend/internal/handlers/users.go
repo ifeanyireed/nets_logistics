@@ -98,3 +98,30 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"user":    existing,
 	})
 }
+
+// Delete DELETE /api/v1/users/{id}
+func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/users/")
+
+	db := database.DB
+	if db == nil || id == "" {
+		response.Error(w, http.StatusNotFound, "User not found.")
+		return
+	}
+
+	var existing models.User
+	if err := db.Where("id = ? OR email = ?", id, id).First(&existing).Error; err != nil {
+		response.Error(w, http.StatusNotFound, "User not found.")
+		return
+	}
+
+	if err := db.Delete(&existing).Error; err != nil {
+		response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to delete user: %v", err))
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]interface{}{
+		"message": "User deleted successfully",
+		"id":      id,
+	})
+}

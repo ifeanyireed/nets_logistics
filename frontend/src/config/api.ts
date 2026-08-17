@@ -18,6 +18,14 @@ export const PAYSTACK_PUBLIC_KEY =
   import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 
   'pk_live_744369c487505db8ecdde2f521781cfce2993ca2'
 
+export const EMAIL_PROXY_URL = 
+  import.meta.env.VITE_EMAIL_PROXY_URL || 
+  'https://mail.neweratransports.com/api/send-email.php'
+
+export const EMAIL_PROXY_KEY = 
+  import.meta.env.VITE_EMAIL_PROXY_KEY || 
+  'ep_live_6f3b92d8a4c1e7f50b4a1d9c2e8f7a3b'
+
 export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
   try {
     const query = encodeURIComponent(address)

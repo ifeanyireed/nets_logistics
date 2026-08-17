@@ -17,6 +17,7 @@ import { AnalyticsPage } from './pages/AnalyticsPage'
 import { UsersPage } from './pages/UsersPage'
 import { ActivityLogPage } from './pages/ActivityLogPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { ProfilePage } from './pages/ProfilePage'
 
 export function AdminRouter() {
   return (
@@ -36,6 +37,7 @@ export function AdminRouter() {
         <Route path="users" element={<UsersPage />} />
         <Route path="activity" element={<ActivityLogPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
     </Routes>

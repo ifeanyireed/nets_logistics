@@ -98,11 +98,10 @@ export const mockBookings: AdminBooking[] = [
 // ── Users ─────────────────────────────────────────────────────────────────────
 export const mockUsers: AdminUser[] = [
   { id: 'usr-001', fullName: 'Adebayo Ogundimu', email: 'admin@netsnigeria.com', role: 'admin', status: 'active', lastLogin: daysAgo(0) },
-  { id: 'usr-002', fullName: 'Kemi Adeyinka', email: 'staff@netsnigeria.com', role: 'staff', status: 'active', lastLogin: daysAgo(1) },
-  { id: 'usr-003', fullName: 'Tolu Obi', email: 'sales@netsnigeria.com', role: 'staff', status: 'active', lastLogin: daysAgo(0) },
-  { id: 'usr-004', fullName: 'Uche Nwachukwu', email: 'finance@netsnigeria.com', role: 'staff', status: 'active', lastLogin: daysAgo(3) },
-  { id: 'usr-005', fullName: 'Amaka Okafor', email: 'support@netsnigeria.com', role: 'staff', status: 'active', lastLogin: daysAgo(1) },
-  { id: 'usr-006', fullName: 'Rotimi Adesanya', email: 'marketing@netsnigeria.com', role: 'staff', status: 'inactive', lastLogin: daysAgo(14) },
+  { id: 'usr-002', fullName: 'Ifeanyi Reed', email: 'reedbreeddigital@gmail.com', role: 'admin', status: 'active', lastLogin: daysAgo(0) },
+  { id: 'usr-staff-01', fullName: 'Daniel Olateju', email: 'olateju.daniel@neweratransports.com', role: 'staff', status: 'active', lastLogin: daysAgo(0) },
+  { id: 'usr-staff-02', fullName: 'Supo', email: 'supo89@hotmail.com', role: 'staff', status: 'active', lastLogin: daysAgo(0) },
+  { id: 'usr-staff-03', fullName: 'Social Media Team', email: 'socialmedia@neweratransports.com', role: 'staff', status: 'active', lastLogin: daysAgo(0) },
 ]
 
 // ── Activity Log ──────────────────────────────────────────────────────────────

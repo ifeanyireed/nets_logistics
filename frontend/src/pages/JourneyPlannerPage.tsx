@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { usePaystackPayment } from 'react-paystack'
 import { PAYSTACK_PUBLIC_KEY } from '../config/api'
 import { crmService } from '../services/crmService'
+import { emailService } from '../services/emailService'
 
 export function JourneyPlannerPage() {
   const state = useJourneyStore()
@@ -85,9 +86,13 @@ export function JourneyPlannerPage() {
     }
 
     try {
-      await crmService.submitLead(payload)
+      await Promise.all([
+        crmService.submitLead(payload),
+        emailService.sendNewBookingNotification(payload),
+        emailService.sendConfirmationEmail(payload),
+      ])
     } catch (err) {
-      console.warn('Backend submission failed, proceeding to confirmation screen:', err)
+      console.warn('Backend submission / email notification failed, proceeding to confirmation screen:', err)
     }
 
     crmService.trackEvent('Payment_Completed', { reference: payRef, amount: paystackConfig.amount })

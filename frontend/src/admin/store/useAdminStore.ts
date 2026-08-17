@@ -2,6 +2,7 @@
 // NETS Admin — Central Zustand Store
 // ============================================================================
 import { create } from 'zustand'
+import { API_URL } from '../../config/api'
 import {
   mockQuotes, mockBookings, mockCustomers, mockUsers,
   mockAdminVehicles, mockActivityLog, mockPromotions, mockDrivers,
@@ -121,9 +122,10 @@ interface AdminStore {
   // Customer Actions
   addCustomerNote: (id: string, note: string) => void
 
-  // User Actions
+  // User & Profile Actions
   addUser: (u: Omit<AdminUser, 'id' | 'lastLogin'>) => void
   updateUserStatus: (id: string, status: AdminUser['status']) => void
+  updateProfile: (fullName: string, newPassword?: string) => Promise<boolean>
 
   // Promotions Actions
   addPromotion: (p: Omit<Promotion, 'id'>) => void
@@ -142,10 +144,10 @@ const MOCK_CREDENTIALS = [
   { email: 'admin@netsnigeria.com', password: 'nets2026', userId: 'usr-001' },
   { email: 'admin@neweratransports.com', password: 'nets2026', userId: 'usr-001' },
   { email: 'info@neweratransports.com', password: 'nets2026', userId: 'usr-001' },
-  { email: 'reedbreeddigital@gmail.com', password: 'nets2026', userId: 'usr-001' },
-  { email: 'staff@netsnigeria.com', password: 'nets2026', userId: 'usr-002' },
-  { email: 'ops@netsnigeria.com', password: 'nets2026', userId: 'usr-002' },
-  { email: 'sales@netsnigeria.com', password: 'nets2026', userId: 'usr-003' },
+  { email: 'reedbreeddigital@gmail.com', password: 'nets2026', userId: 'usr-002' },
+  { email: 'olateju.daniel@neweratransports.com', password: 'nets2026', userId: 'usr-staff-01' },
+  { email: 'supo89@hotmail.com', password: 'nets2026', userId: 'usr-staff-02' },
+  { email: 'socialmedia@neweratransports.com', password: 'nets2026', userId: 'usr-staff-03' },
 ]
 
 const defaultSettings: SystemSettings = {
@@ -204,16 +206,37 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
       set({ session: sessionObj })
     }
 
+    // Check user-updated custom passwords
+    try {
+      const customPasswords = JSON.parse(localStorage.getItem('nets_user_passwords') || '{}')
+      if (customPasswords[cleanEmail]) {
+        if (cleanPass === customPasswords[cleanEmail]) {
+          const user = mockUsers.find(u => u.email.toLowerCase() === cleanEmail) || {
+            id: `usr-${cleanEmail.replace(/[^a-zA-Z0-9]/g, '')}`,
+            fullName: cleanEmail.split('@')[0].replace('.', ' '),
+            email: cleanEmail,
+            role: cleanEmail.includes('admin') || cleanEmail === 'reedbreeddigital@gmail.com' ? 'admin' : 'staff',
+            status: 'active',
+            lastLogin: new Date().toISOString()
+          }
+          saveSession(user)
+          return true
+        } else {
+          return false
+        }
+      }
+    } catch (err) {}
+
     const cred = MOCK_CREDENTIALS.find(c => c.email.toLowerCase() === cleanEmail && c.password === cleanPass)
     if (cred) {
-      const user = mockUsers.find(u => u.id === cred.userId) ?? mockUsers[0]
+      const user = mockUsers.find(u => u.id === cred.userId || u.email.toLowerCase() === cleanEmail) ?? mockUsers[0]
       saveSession(user)
       return true
     }
 
-    // Flexible demo fallback: allow any admin email if password matches common demo variants
+    // Flexible demo fallback: allow any admin/staff email if password matches common demo variants
     if (['nets2026', 'admin', 'nets', '*reedb4b4'].includes(cleanPass.toLowerCase()) || cleanEmail.includes('admin') || cleanEmail.includes('nets')) {
-      const user = mockUsers[0]
+      const user = mockUsers.find(u => u.email.toLowerCase() === cleanEmail) || mockUsers[0]
       saveSession(user)
       return true
     }
@@ -301,6 +324,42 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
 
   updateUserStatus: (id, status) =>
     set(s => ({ users: s.users.map(x => x.id === id ? { ...x, status } : x) })),
+
+  updateProfile: async (fullName, newPassword) => {
+    const s = get()
+    if (!s.session.user) return false
+
+    const cleanName = fullName.trim()
+    const updatedUser = { ...s.session.user, fullName: cleanName }
+    const updatedSession = { ...s.session, user: updatedUser }
+
+    try {
+      localStorage.setItem('nets_admin_session', JSON.stringify(updatedSession))
+      if (newPassword && newPassword.trim()) {
+        const customPasswords = JSON.parse(localStorage.getItem('nets_user_passwords') || '{}')
+        customPasswords[s.session.user.email.toLowerCase()] = newPassword.trim()
+        localStorage.setItem('nets_user_passwords', JSON.stringify(customPasswords))
+      }
+    } catch (err) {
+      console.warn('Could not save updated profile in local storage', err)
+    }
+
+    set({
+      session: updatedSession,
+      users: s.users.map(u => u.id === updatedUser.id ? { ...u, fullName: cleanName } : u)
+    })
+
+    // Also persist name update to backend REST API
+    try {
+      await fetch(`${API_URL}/users/${updatedUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: cleanName }),
+      })
+    } catch (err) {}
+
+    return true
+  },
 
   // ── Promotions ──
   addPromotion: (p) => {

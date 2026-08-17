@@ -99,6 +99,8 @@ func main() {
 			switch r.Method {
 			case http.MethodPut, http.MethodPatch:
 				userHandler.Update(w, r)
+			case http.MethodDelete:
+				userHandler.Delete(w, r)
 			default:
 				response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
 			}

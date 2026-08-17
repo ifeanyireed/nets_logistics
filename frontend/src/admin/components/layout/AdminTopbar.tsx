@@ -1,9 +1,9 @@
 // ============================================================================
 // NETS Admin — Top Bar
 // ============================================================================
-import { Bell, Search } from 'lucide-react'
+import { Bell, Search, User } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 const pageTitles: Record<string, string> = {
   '/admin': 'Dashboard',
@@ -19,11 +19,13 @@ const pageTitles: Record<string, string> = {
   '/admin/users': 'User Management',
   '/admin/activity': 'Activity Log',
   '/admin/settings': 'System Settings',
+  '/admin/profile': 'My Profile & Security',
 }
 
 export function AdminTopbar() {
   const { session, setSearchOpen, quotes } = useAdminStore()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const title = pageTitles[pathname] ?? 'Control Center'
   const initials = session.user?.fullName.split(' ').map(n => n[0]).join('').slice(0, 2) ?? 'AD'
   const newQuotes = quotes.filter(q => q.status === 'new').length
@@ -52,7 +54,14 @@ export function AdminTopbar() {
             }}>{newQuotes}</span>
           )}
         </div>
-        <div className="admin-avatar">{initials}</div>
+        <div
+          className="admin-avatar"
+          style={{ cursor: 'pointer' }}
+          onClick={() => navigate('/admin/profile')}
+          title="My Profile & Security"
+        >
+          {initials}
+        </div>
       </div>
     </header>
   )

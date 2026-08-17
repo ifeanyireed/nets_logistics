@@ -119,15 +119,27 @@ export function AdminSidebar() {
             </div>
           </>
         )}
+
+        <div className="admin-nav-section">
+          <div className="admin-nav-label">Account</div>
+          <NavLink to="/admin/profile"
+            className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
+            <UserCog size={15} />My Profile & Security
+          </NavLink>
+        </div>
       </div>
 
-      <div className="admin-sidebar-user">
+      <div className="admin-sidebar-user" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/profile')} title="View My Profile">
         <div className="admin-avatar" style={{ width: 32, height: 32, fontSize: 12 }}>{initials}</div>
         <div className="admin-sidebar-user-info">
           <div className="admin-sidebar-user-name">{session.user?.fullName ?? 'User'}</div>
-          <div className="admin-sidebar-user-role">{roleDisplay}</div>
+          <div className="admin-sidebar-user-role">{roleDisplay} · Profile</div>
         </div>
-        <button onClick={handleLogout} className="admin-btn admin-btn-icon admin-btn-ghost" title="Sign out">
+        <button
+          onClick={(e) => { e.stopPropagation(); handleLogout() }}
+          className="admin-btn admin-btn-icon admin-btn-ghost"
+          title="Sign out"
+        >
           <LogOut size={14} />
         </button>
       </div>
