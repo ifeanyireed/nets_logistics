@@ -8,10 +8,10 @@ return [
     'api_key' => 'ep_live_6f3b92d8a4c1e7f50b4a1d9c2e8f7a3b',
 
     // SMTP Configuration (Hostinger / New Era Transport Services)
-    'smtp_host'     => 'mail.neweratransports.com', 
+    'smtp_host'     => 'smtp.hostinger.com', 
     'smtp_auth'     => true,                 
     'smtp_username' => 'hello@neweratransports.com',
-    'smtp_password' => '*Reedb4b4',
+    'smtp_password' => 'Newera1234@!',
     // ENCRYPTION_STARTTLS (587) or ENCRYPTION_SMTPS (465)
     'smtp_secure'   => PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS, 
     'smtp_port'     => 465,
