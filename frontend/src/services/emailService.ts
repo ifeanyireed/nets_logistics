@@ -56,7 +56,7 @@ class EmailService {
           subject: `Your Journey Quotation Request [${quoteRef}] — NETS`,
           html: htmlBody,
           text: `Thank you ${customerName}. We have received your journey quote request ${quoteRef}. Estimated Investment: ${estimate}.`,
-          from: 'info@neweratransports.com',
+          from: 'hello@neweratransports.com',
           from_name: 'NETS Logistics',
         }),
       })
@@ -115,7 +115,7 @@ class EmailService {
             subject: `[NEW LEAD] ${customerName} — ${quoteRef}`,
             html: htmlBody,
             text: `New Lead: ${customerName} (${customerEmail}, ${customerPhone}). Ref: ${quoteRef}. Estimate: ${estimate}.`,
-            from: 'info@neweratransports.com',
+            from: 'hello@neweratransports.com',
             from_name: 'NETS CRM Alert',
           }),
         })
@@ -192,7 +192,7 @@ class EmailService {
             subject: `🚘 [NEW ORDER] ${bookingRef} — ${customerName} (${fmtAmount})`,
             html: htmlBody,
             text: `New Booking Order ${bookingRef} by ${customerName}. Vehicle: ${vehicle}. Route: ${pickup} to ${destination}. Total: ${fmtAmount}.`,
-            from: 'info@neweratransports.com',
+            from: 'hello@neweratransports.com',
             from_name: 'NETS Booking Alert',
           }),
         })
@@ -248,7 +248,7 @@ class EmailService {
           subject: `Your NETS Portal Password Reset Code: ${resetCode}`,
           html: htmlBody,
           text: `Your password reset code for NETS Control Center is: ${resetCode}. Valid for 15 minutes.`,
-          from: 'info@neweratransports.com',
+          from: 'hello@neweratransports.com',
           from_name: 'NETS Security',
         }),
       })
