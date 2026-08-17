@@ -4,6 +4,8 @@ import { useJourneyStore, LocationData } from '@/store/useJourneyStore'
 import { useNavigate } from 'react-router-dom'
 import { geocodeAddress } from '@/config/api'
 import { useMapsLibrary } from '@vis.gl/react-google-maps'
+import { crmService } from '@/services/crmService'
+import { emailService } from '@/services/emailService'
 
 // Simple fallback distance calculation if Mapbox/Google fails
 function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -32,7 +34,10 @@ export function LeadCaptureModal() {
     setRouteCalculations,
     calculatePricing,
     estimatedInvestment,
-    customerPricingView
+    customerPricingView,
+    getCRMLeadPayload,
+    referenceNumber,
+    generateReference
   } = useJourneyStore()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -142,6 +147,15 @@ export function LeadCaptureModal() {
       return
     }
 
+    if (!referenceNumber) {
+      generateReference()
+    }
+
+    // 1. Immediately submit lead to database, CRM pipeline, and dispatch notifications
+    const payload = getCRMLeadPayload()
+    crmService.submitLead(payload).catch(err => console.warn('CRM lead submission error:', err))
+    emailService.sendInternalNotification(payload).catch(err => console.warn('Email alert error:', err))
+
     if (leadModalNextAction === 'quote') {
       // Calculate and show quote
       await calculateRouteAndPrice()
@@ -155,8 +169,11 @@ export function LeadCaptureModal() {
   }
 
   const handleCheckout = () => {
+    // Re-submit with calculated estimate
+    const payload = getCRMLeadPayload()
+    crmService.submitLead(payload).catch(() => {})
+
     setLeadModalOpen(false)
-    // For now, redirect to a checkout page or plan (Step 3)
     setStep(3)
     navigate('/plan')
   }

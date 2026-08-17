@@ -6,18 +6,14 @@ export function Step3Review() {
   const { 
     pickup, destination, travelDate, departureTime,
     passengers, selectedVehicleId, tripType,
-    customerPricingView, estimatedInvestment, calculatePricing, prevStep,
-    customerDetails, setCustomerDetails
+    customerPricingView, estimatedInvestment, calculatePricing,
+    customerDetails
   } = useJourneyStore()
 
   // Ensure pricing is up-to-date
   useEffect(() => {
     calculatePricing()
   }, [calculatePricing])
-
-  const handlePay = () => {
-    alert('Payment gateway integration goes here!')
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -49,7 +45,7 @@ export function Step3Review() {
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-nets-text-3)', textTransform: 'uppercase' }}>Date & Time</div>
             <div style={{ fontSize: '0.875rem', color: 'var(--color-nets-navy-dark)', fontWeight: 500 }}>
-              {travelDate?.toLocaleDateString()} at {departureTime}
+              {travelDate ? new Date(travelDate).toLocaleDateString() : 'Flexible'} at {departureTime}
             </div>
           </div>
           <div>
@@ -70,6 +66,22 @@ export function Step3Review() {
             <div style={{ fontSize: '0.875rem', color: 'var(--color-nets-navy-dark)', fontWeight: 500 }}>{estimatedInvestment?.vehicleName || selectedVehicleId}</div>
           </div>
         </div>
+
+        {customerDetails?.fullName && (
+          <>
+            <hr style={{ borderTop: '1px solid var(--color-nets-border)', margin: '0.5rem 0' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-nets-text-3)', textTransform: 'uppercase' }}>Customer</div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--color-nets-navy-dark)', fontWeight: 500 }}>{customerDetails.fullName}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-nets-text-3)', textTransform: 'uppercase' }}>Contact</div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--color-nets-navy-dark)', fontWeight: 500 }}>{customerDetails.email} · {customerDetails.phone}</div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <div style={{ background: 'var(--color-nets-light)', padding: '1.5rem', borderRadius: '8px', textAlign: 'center' }}>
@@ -78,8 +90,6 @@ export function Step3Review() {
           {customerPricingView?.estimatedInvestment || 'Calculating...'}
         </div>
       </div>
-
-
     </div>
   )
 }
