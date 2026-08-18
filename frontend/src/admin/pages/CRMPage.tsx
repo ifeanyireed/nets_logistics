@@ -32,6 +32,10 @@ export function CRMPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { session } = useAdminStore()
+  const isAdmin = session.user?.role === 'admin'
+
   const loadLeads = () => {
     setLoading(true)
     adminService.getLeads().then((list) => {
@@ -59,6 +63,19 @@ export function CRMPage() {
         setSelectedLead({ ...selectedLead, crmStatus: newStatus })
       }
     }
+  }
+
+  const handleDeleteLead = async (id: number | string) => {
+    if (!window.confirm('Are you sure you want to delete this lead? This action cannot be undone.')) return
+    setIsDeleting(true)
+    const success = await adminService.deleteLead(id)
+    if (success) {
+      setLeads(prev => prev.filter(l => l.id !== id))
+      setSelectedLead(null)
+    } else {
+      alert('Failed to delete lead. Please try again.')
+    }
+    setIsDeleting(false)
   }
 
   const filteredLeads = useMemo(() => {
@@ -396,13 +413,24 @@ export function CRMPage() {
                 </h3>
               </div>
 
-              <button
-                className="admin-btn admin-btn-icon admin-btn-ghost"
-                onClick={() => setSelectedLead(null)}
-                style={{ borderRadius: '50%', width: 32, height: 32 }}
-              >
-                <X size={16} />
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {isAdmin && (
+                  <button
+                    className="admin-btn admin-btn-danger admin-btn-sm"
+                    onClick={() => handleDeleteLead(selectedLead.id)}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </button>
+                )}
+                <button
+                  className="admin-btn admin-btn-icon admin-btn-ghost"
+                  onClick={() => setSelectedLead(null)}
+                  style={{ borderRadius: '50%', width: 32, height: 32 }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Estimated Value Banner */}

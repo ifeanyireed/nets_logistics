@@ -53,6 +53,8 @@ func main() {
 				leadHandler.Show(w, r)
 			case http.MethodPut, http.MethodPatch:
 				leadHandler.Update(w, r)
+			case http.MethodDelete:
+				leadHandler.Delete(w, r)
 			default:
 				response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
 			}

@@ -228,3 +228,29 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 		"lead":    lead,
 	})
 }
+
+// Delete DELETE /api/v1/leads/{id}
+func (h *LeadHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/api/v1/leads/")
+
+	db := database.DB
+	if db == nil || idStr == "" {
+		response.Error(w, http.StatusNotFound, "Lead not found.")
+		return
+	}
+
+	var lead models.Lead
+	if err := db.Where("id = ? OR lead_reference = ?", idStr, idStr).First(&lead).Error; err != nil {
+		response.Error(w, http.StatusNotFound, "Lead not found.")
+		return
+	}
+
+	if err := db.Delete(&lead).Error; err != nil {
+		response.Error(w, http.StatusInternalServerError, "Failed to delete lead")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Lead deleted successfully",
+	})
+}

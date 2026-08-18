@@ -79,6 +79,9 @@ export function QuotesPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
+  const [isDeleting, setIsDeleting] = useState(false)
+  const isAdmin = session.user?.role === 'admin'
+
   const loadQuotesAndLeads = () => {
     setLoading(true)
     adminService
@@ -214,6 +217,19 @@ export function QuotesPage() {
     if (selectedQuote && (selectedQuote.id === id || selectedQuote.reference === id)) {
       setSelectedQuote((prev) => (prev ? { ...prev, status: status as any } : null))
     }
+  }
+
+  const handleDeleteQuote = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this quote? This action cannot be undone.')) return
+    setIsDeleting(true)
+    const success = await adminService.deleteLead(id)
+    if (success) {
+      setLiveLeads(prev => prev.filter(l => String(l.id) !== id && l.leadReference !== id))
+      setSelectedQuote(null)
+    } else {
+      alert('Failed to delete quote. Please try again.')
+    }
+    setIsDeleting(false)
   }
 
   const handleSaveNote = () => {
@@ -687,13 +703,24 @@ export function QuotesPage() {
                 </h3>
               </div>
 
-              <button
-                className="admin-btn admin-btn-icon admin-btn-ghost"
-                onClick={() => setSelectedQuote(null)}
-                style={{ borderRadius: '50%', width: 32, height: 32 }}
-              >
-                <X size={16} />
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {isAdmin && (
+                  <button
+                    className="admin-btn admin-btn-danger admin-btn-sm"
+                    onClick={() => handleDeleteQuote(selectedQuote.id)}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </button>
+                )}
+                <button
+                  className="admin-btn admin-btn-icon admin-btn-ghost"
+                  onClick={() => setSelectedQuote(null)}
+                  style={{ borderRadius: '50%', width: 32, height: 32 }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Estimated Quote Value Banner */}

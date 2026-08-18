@@ -192,6 +192,21 @@ export class AdminService {
   }
 
   /**
+   * Delete a lead/quote.
+   */
+  public async deleteLead(id: number | string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/leads/${id}`, {
+        method: 'DELETE',
+      })
+      return res.ok
+    } catch (err) {
+      console.error('⚠️ [ADMIN SERVICE] Error deleting lead:', err)
+      return false
+    }
+  }
+
+  /**
    * Fetch all bookings directly from remote backend database.
    */
   public async getBookings(): Promise<AdminBookingDB[]> {
