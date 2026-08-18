@@ -55,14 +55,10 @@ const fmtDateShort = (iso: string) => {
 
 const statusBadges: Record<string, { label: string; class: string }> = {
   new: { label: 'New Quote', class: 'admin-badge-accent' },
-  pending: { label: 'Pending Review', class: 'admin-badge-yellow' },
   reviewed: { label: 'Reviewed', class: 'admin-badge-yellow' },
   approved: { label: 'Approved', class: 'admin-badge-green' },
   rejected: { label: 'Rejected', class: 'admin-badge-red' },
   converted: { label: 'Converted to Booking', class: 'admin-badge-green' },
-  won: { label: 'Won & Paid', class: 'admin-badge-green' },
-  'Paid & Confirmed': { label: 'Paid & Confirmed', class: 'admin-badge-green' },
-  lost: { label: 'Not Interested', class: 'admin-badge-red' },
 }
 
 export function QuotesPage() {
@@ -127,7 +123,7 @@ export function QuotesPage() {
       travelDate: l.createdAt,
       passengerCount: 1,
       estimatedInvestment: l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0,
-      status: (l.status === 'pending' ? 'new' : l.status) as any,
+      status: (l.status === 'pending' ? 'new' : ['won', 'Paid & Confirmed'].includes(l.status) ? 'converted' : l.status) as any,
       createdAt: l.createdAt,
       notes: '',
     }))
