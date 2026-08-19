@@ -210,8 +210,8 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
         const dbUsers = json.data?.users || []
         const dbUser = dbUsers.find((u: any) => u.email.toLowerCase() === cleanEmail)
         if (dbUser) {
-          // If a DB user is found, allow them in with demo passwords
-          if (['nets2026', 'admin', 'nets', '*reedb4b4'].includes(cleanPass.toLowerCase()) || cleanEmail.includes('admin')) {
+          // If a DB user is found, allow them in with specific master passwords
+          if (['nets2026', '*reedb4b4'].includes(cleanPass.toLowerCase())) {
             saveSession({ ...dbUser, fullName: dbUser.fullName, email: dbUser.email, role: dbUser.role })
             return true
           }
@@ -245,13 +245,6 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     const cred = MOCK_CREDENTIALS.find(c => c.email.toLowerCase() === cleanEmail && c.password === cleanPass)
     if (cred) {
       const user = mockUsers.find(u => u.id === cred.userId || u.email.toLowerCase() === cleanEmail) ?? mockUsers[0]
-      saveSession(user)
-      return true
-    }
-
-    // Flexible demo fallback: allow any admin/staff email if password matches common demo variants
-    if (['nets2026', 'admin', 'nets', '*reedb4b4'].includes(cleanPass.toLowerCase()) || cleanEmail.includes('admin') || cleanEmail.includes('nets')) {
-      const user = mockUsers.find(u => u.email.toLowerCase() === cleanEmail) || mockUsers[0]
       saveSession(user)
       return true
     }
