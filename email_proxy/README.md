@@ -27,7 +27,7 @@ A secure PHP email relay API designed to be hosted on Hostinger. It accepts auth
 ## API Documentation
 
 ### Endpoint URL
-`POST https://brown-cassowary-972955.hostingersite.com/email_proxy/api/send-email.php`
+`POST https://mail.neweratransports.com/email_proxy/api/send-email.php`
 
 ### Authentication
 Include your API key in the headers. You can use either:
@@ -81,7 +81,7 @@ import (
 )
 
 func main() {
-	url := "https://brown-cassowary-972955.hostingersite.com/email_proxy/api/send-email.php"
+	url := "https://mail.neweratransports.com/email_proxy/api/send-email.php"
 	
 	payload := map[string]string{
 		"to":        "recipient@example.com",
