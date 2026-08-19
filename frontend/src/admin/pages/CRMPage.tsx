@@ -269,7 +269,7 @@ export function CRMPage() {
                         {val > 0 ? fmtCurrency(val) : '—'}
                       </td>
                       <td style={{ fontSize: 12 }}>{fmtDate(l.createdAt)}</td>
-                      <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>{assignedUser ? assignedUser.name : (l.assignedTo ? 'Unknown User' : 'Unassigned')}</td>
+                      <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>{assignedUser ? assignedUser.fullName : (l.assignedTo ? 'Unknown User' : 'Unassigned')}</td>
                       <td>
                         <span className={`admin-badge ${badge.class}`}>{badge.label}</span>
                       </td>
@@ -555,7 +555,7 @@ export function CRMPage() {
                   >
                     <option value="">Unassigned</option>
                     {users.filter(u => u.role === 'sales_closer').map(u => (
-                      <option key={u.id} value={u.id}>{u.name}</option>
+                      <option key={u.id} value={u.id}>{u.fullName}</option>
                     ))}
                   </select>
                 </div>
