@@ -97,7 +97,7 @@ export function CRMPage() {
   const filteredLeads = useMemo(() => {
     return leads.filter(l => {
       // Sales closer can only see assigned leads
-      if (session.user?.role === 'sales_closer' && l.assignedTo !== session.user.id) {
+      if (session.user?.role === 'sales_closer' && String(l.assignedTo) !== String(session.user.id)) {
         return false
       }
 
