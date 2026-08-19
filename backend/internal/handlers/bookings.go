@@ -89,7 +89,7 @@ func (h *BookingHandler) Store(w http.ResponseWriter, r *http.Request) {
 				if adminEmails != "" {
 					fmt.Printf("=================================================================\n")
 					fmt.Printf("[EMAIL NOTIFICATION] To Admin: %s\n", adminEmails)
-					fmt.Printf("Subject: New Booking Created: %s\n", b.BookingReference)
+					fmt.Printf("Subject: New Booking Created: %s\n", b.Reference)
 					fmt.Printf("Body: A new booking has been created for %s.\nPlease log in to the admin dashboard to review and assign a driver.\n", b.CustomerName)
 					fmt.Printf("=================================================================\n")
 				}
