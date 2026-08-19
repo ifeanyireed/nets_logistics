@@ -200,8 +200,9 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var body struct {
-		Status    string `json:"status"`
-		CrmStatus string `json:"crmStatus"`
+		Status     string `json:"status"`
+		CrmStatus  string `json:"crmStatus"`
+		AssignedTo *string `json:"assignedTo"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		response.Error(w, http.StatusBadRequest, "Invalid JSON payload")
@@ -223,9 +224,27 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 		lead.CrmStatus = body.CrmStatus
 		updates["crm_status"] = body.CrmStatus
 	}
+	if body.AssignedTo != nil {
+		lead.AssignedTo = *body.AssignedTo
+		updates["assigned_to"] = *body.AssignedTo
+	}
 
 	if len(updates) > 0 {
 		db.Model(&lead).Updates(updates)
+	}
+
+	// Trigger email notification if a lead was assigned
+	if body.AssignedTo != nil && *body.AssignedTo != "" {
+		var user models.User
+		if err := db.Where("id = ?", *body.AssignedTo).First(&user).Error; err == nil && user.Email != "" {
+			// In production, this would use a real SMTP service (e.g. SendGrid, Mailgun, or net/smtp)
+			// For now, we simulate sending the email to the console to fulfill the ground rule
+			fmt.Printf("=================================================================\n")
+			fmt.Printf("[EMAIL NOTIFICATION] To: %s (%s)\n", user.FullName, user.Email)
+			fmt.Printf("Subject: New Lead Assigned: %s\n", lead.LeadReference)
+			fmt.Printf("Body: Hello %s,\n\nYou have been assigned a new lead (%s) from %s.\nLog in to your dashboard to review it.\n", user.FullName, lead.LeadReference, lead.CustomerName)
+			fmt.Printf("=================================================================\n")
+		}
 	}
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{
