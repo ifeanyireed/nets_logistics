@@ -398,9 +398,9 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     try {
       const res = await fetch(`${API_URL}/settings`)
       if (res.ok) {
-        const data = await res.json()
-        if (Object.keys(data).length > 0) {
-          set(s => ({ settings: { ...s.settings, ...data } }))
+        const json = await res.json()
+        if (json.data && Object.keys(json.data).length > 0) {
+          set(s => ({ settings: { ...s.settings, ...json.data } }))
         }
       }
     } catch (err) {

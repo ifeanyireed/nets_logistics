@@ -31,8 +31,8 @@ export function JourneyPlannerPage() {
       try {
         const res = await fetch(`${API_URL}/settings`)
         if (res.ok) {
-          const data = await res.json()
-          pixelId = data.metaPixelId || ''
+          const json = await res.json()
+          pixelId = json.data?.metaPixelId || ''
         }
       } catch (e) {}
 
