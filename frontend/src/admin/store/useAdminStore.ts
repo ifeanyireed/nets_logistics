@@ -73,7 +73,7 @@ export interface SystemSettings {
   businessWhatsApp: string; businessAddress: string; serviceAreas: string[]
   operatingHours: string; googleMapsApiKey: string; pricingEngineVersion: string
   metaPixelId: string
-  notificationNewLead: boolean
+  notificationNewBooking: boolean
   notificationLeadAssigned: boolean
   adminNotificationEmails: string
 }
@@ -166,7 +166,7 @@ const defaultSettings: SystemSettings = {
   googleMapsApiKey: '••••••••••••••••••••••••••••••••',
   pricingEngineVersion: '1.0.0',
   metaPixelId: '',
-  notificationNewLead: true,
+  notificationNewBooking: true,
   notificationLeadAssigned: true,
   adminNotificationEmails: 'admin@neweratransports.com',
 }

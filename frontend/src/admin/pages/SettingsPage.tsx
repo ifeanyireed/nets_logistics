@@ -118,8 +118,8 @@ export function SettingsPage() {
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: 13, color: 'var(--adm-text-1)' }}>
-                <input type="checkbox" checked={form.notificationNewLead !== false} onChange={e => setForm(f => ({ ...f, notificationNewLead: e.target.checked }))} style={{ width: 16, height: 16, accentColor: 'var(--adm-accent)' }} />
-                Notify Admin on New Lead/Quote Request
+                <input type="checkbox" checked={form.notificationNewBooking !== false} onChange={e => setForm(f => ({ ...f, notificationNewBooking: e.target.checked }))} style={{ width: 16, height: 16, accentColor: 'var(--adm-accent)' }} />
+                Notify Admin on New Booking
               </label>
               
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: 13, color: 'var(--adm-text-1)' }}>

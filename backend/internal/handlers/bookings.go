@@ -79,6 +79,24 @@ func (h *BookingHandler) Store(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch system settings to check if we should notify admin
+	var setting models.SystemSetting
+	if err := db.First(&setting).Error; err == nil {
+		var settingsMap map[string]interface{}
+		if err := json.Unmarshal([]byte(setting.SettingsJSON), &settingsMap); err == nil {
+			if notify, ok := settingsMap["notificationNewBooking"].(bool); ok && notify {
+				adminEmails, _ := settingsMap["adminNotificationEmails"].(string)
+				if adminEmails != "" {
+					fmt.Printf("=================================================================\n")
+					fmt.Printf("[EMAIL NOTIFICATION] To Admin: %s\n", adminEmails)
+					fmt.Printf("Subject: New Booking Created: %s\n", b.BookingReference)
+					fmt.Printf("Body: A new booking has been created for %s.\nPlease log in to the admin dashboard to review and assign a driver.\n", b.CustomerName)
+					fmt.Printf("=================================================================\n")
+				}
+			}
+		}
+	}
+
 	response.JSON(w, http.StatusCreated, map[string]interface{}{
 		"message": "Booking created successfully",
 		"booking": b,
