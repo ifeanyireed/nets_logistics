@@ -134,8 +134,8 @@ interface AdminStore {
   updatePromotion: (id: string, updates: Partial<Promotion>) => void
   deletePromotion: (id: string) => void
 
-  // Settings Actions
-  updateSettings: (updates: Partial<SystemSettings>) => void
+  fetchSettings: () => Promise<void>
+  updateSettings: (updates: Partial<SystemSettings>) => Promise<boolean>
 
   // Audit
   addActivityEntry: (entry: Omit<ActivityLogEntry, 'id' | 'timestamp'>) => void
@@ -166,12 +166,6 @@ const defaultSettings: SystemSettings = {
 }
 
 const loadInitialSettings = (): SystemSettings => {
-  try {
-    const stored = localStorage.getItem('nets_admin_settings')
-    if (stored) {
-      return { ...defaultSettings, ...JSON.parse(stored) }
-    }
-  } catch (err) {}
   return defaultSettings
 }
 
@@ -401,12 +395,34 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
     set(s => ({ promotions: s.promotions.filter(x => x.id !== id) })),
 
   // ── Settings ──
-  updateSettings: (updates) => {
-    set(s => {
-      const newSettings = { ...s.settings, ...updates }
-      localStorage.setItem('nets_admin_settings', JSON.stringify(newSettings))
-      return { settings: newSettings }
-    })
+  fetchSettings: async () => {
+    try {
+      const res = await fetch(`${API_URL}/settings`)
+      if (res.ok) {
+        const data = await res.json()
+        if (Object.keys(data).length > 0) {
+          set(s => ({ settings: { ...s.settings, ...data } }))
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load settings', err)
+    }
+  },
+
+  updateSettings: async (updates) => {
+    const s = get()
+    const newSettings = { ...s.settings, ...updates }
+    set({ settings: newSettings })
+    try {
+      const res = await fetch(`${API_URL}/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSettings)
+      })
+      return res.ok
+    } catch (err) {
+      return false
+    }
   },
 
   // ── Audit ──

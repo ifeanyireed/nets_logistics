@@ -105,3 +105,10 @@ type PricingConfig struct {
 	CreatedAt  time.Time `json:"createdAt"`
 	UpdatedAt  time.Time `json:"updatedAt"`
 }
+
+type SystemSetting struct {
+	ID           uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+	SettingsJSON string    `json:"settingsJson" gorm:"type:text"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}

@@ -34,6 +34,7 @@ func main() {
 	userHandler := handlers.NewUserHandler()
 	adminHandler := handlers.NewAdminHandler()
 	pricingHandler := handlers.NewPricingHandler()
+	settingsHandler := handlers.NewSettingsHandler()
 
 	// Root Route & Dynamic Sub-routes
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -188,6 +189,17 @@ func main() {
 			pricingHandler.GetConfig(w, r)
 		case http.MethodPut, http.MethodPost:
 			pricingHandler.UpdateConfig(w, r)
+		default:
+			response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+		}
+	})
+
+	mux.HandleFunc("/api/v1/settings", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			settingsHandler.GetSettings(w, r)
+		case http.MethodPut, http.MethodPost:
+			settingsHandler.UpdateSettings(w, r)
 		default:
 			response.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
 		}

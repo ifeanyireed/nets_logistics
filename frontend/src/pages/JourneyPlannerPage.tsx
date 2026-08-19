@@ -7,7 +7,7 @@ import { Step3Review } from '../components/planner/new_steps/Step3Review'
 import { Step10Success } from '../components/planner/steps/Step10Success'
 import { AnimatePresence, motion } from 'framer-motion'
 import { usePaystackPayment } from 'react-paystack'
-import { PAYSTACK_PUBLIC_KEY } from '../config/api'
+import { PAYSTACK_PUBLIC_KEY, API_URL } from '../config/api'
 import { crmService } from '../services/crmService'
 import { emailService } from '../services/emailService'
 
@@ -20,36 +20,40 @@ export function JourneyPlannerPage() {
   }, [currentStep])
 
   useEffect(() => {
-    let pixelId = ''
-    try {
-      const stored = localStorage.getItem('nets_admin_settings')
-      if (stored) {
-        pixelId = JSON.parse(stored).metaPixelId || ''
-      }
-    } catch (e) {}
+    const fetchSettings = async () => {
+      let pixelId = ''
+      try {
+        const res = await fetch(`${API_URL}/settings`)
+        if (res.ok) {
+          const data = await res.json()
+          pixelId = data.metaPixelId || ''
+        }
+      } catch (e) {}
 
-    if (pixelId) {
-      if (!(window as any).fbq) {
-        ;(function(f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
-          if (f.fbq) return;
-          n = f.fbq = function() {
-            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments)
-          };
-          if (!f._fbq) f._fbq = n;
-          n.push = n;
-          n.loaded = !0;
-          n.version = '2.0';
-          n.queue = [];
-          t = b.createElement(e);
-          t.async = !0;
-          t.src = v;
-          s = b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t, s);
-        })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-        ;(window as any).fbq('init', pixelId);
+      if (pixelId) {
+        if (!(window as any).fbq) {
+          ;(function(f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
+            if (f.fbq) return;
+            n = f.fbq = function() {
+              n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = '2.0';
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s);
+          })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+          ;(window as any).fbq('init', pixelId);
+        }
+        ;(window as any).fbq('track', 'PageView');
       }
-      ;(window as any).fbq('track', 'PageView');
     }
+    fetchSettings()
   }, [])
 
   const isStep1Complete = state.pickup && state.destination

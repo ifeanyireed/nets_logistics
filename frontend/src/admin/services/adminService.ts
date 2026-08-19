@@ -408,6 +408,37 @@ export class AdminService {
       return true
     }
   }
+
+  /**
+   * Fetch system settings
+   */
+  public async getSettings(): Promise<any> {
+    try {
+      const res = await fetch(`${API_URL}/settings`)
+      if (!res.ok) return null
+      return await res.json()
+    } catch (err) {
+      console.error(err)
+      return null
+    }
+  }
+
+  /**
+   * Update system settings
+   */
+  public async updateSettings(settings: any): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      })
+      return res.ok
+    } catch (err) {
+      console.error(err)
+      return false
+    }
+  }
 }
 
 export const adminService = new AdminService()
