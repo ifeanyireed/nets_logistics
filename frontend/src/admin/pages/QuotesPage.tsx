@@ -80,7 +80,7 @@ export function QuotesPage() {
   const [pageSize, setPageSize] = useState(10)
 
   const [isDeleting, setIsDeleting] = useState(false)
-  const isAdmin = session.user?.role === 'admin'
+  const isAdmin = session.user?.role === 'admin' || session.user?.role === 'super-admin'
 
   const loadQuotesAndLeads = () => {
     setLoading(true)
