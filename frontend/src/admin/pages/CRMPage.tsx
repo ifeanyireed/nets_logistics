@@ -554,8 +554,8 @@ export function CRMPage() {
                     style={{ minWidth: 170 }}
                   >
                     <option value="">Unassigned</option>
-                    {users.map(u => (
-                      <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                    {users.filter(u => u.role === 'sales_closer').map(u => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
                     ))}
                   </select>
                 </div>
