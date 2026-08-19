@@ -9,7 +9,7 @@ backend/
 # Secrets & Environment
 .env
 .env.*
-!.env.example
+!.env.local
 *.env
 
 # Logs & Debug
