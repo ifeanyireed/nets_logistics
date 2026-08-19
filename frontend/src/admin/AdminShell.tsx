@@ -1,7 +1,7 @@
 // ============================================================================
 // NETS Admin — Master Shell (Layout + Auth Guard)
 // ============================================================================
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import './admin.css'
 import { AdminSidebar } from './components/layout/AdminSidebar'
 import { AdminTopbar } from './components/layout/AdminTopbar'
@@ -10,9 +10,14 @@ import { useAdminStore } from './store/useAdminStore'
 
 export function AdminShell() {
   const { session } = useAdminStore()
+  const location = useLocation()
 
   if (!session.isAuthenticated) {
     return <Navigate to="/admin/login" replace />
+  }
+
+  if (session.user?.role === 'sales_closer' && location.pathname === '/admin') {
+    return <Navigate to="/admin/crm" replace />
   }
 
   return (

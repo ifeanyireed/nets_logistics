@@ -10,27 +10,30 @@ const roleLabels: Record<string, string> = {
   'admin': 'Admin', 'super-admin': 'Admin',
   'staff': 'Staff', 'ops-manager': 'Staff', 'sales-manager': 'Staff',
   'sales-exec': 'Staff', 'finance': 'Staff', 'support': 'Staff', 'marketing': 'Staff',
+  'sales_closer': 'Sales Closer',
 }
 const roleBadge: Record<string, string> = {
   'admin': 'admin-badge-accent', 'super-admin': 'admin-badge-accent',
   'staff': 'admin-badge-green', 'ops-manager': 'admin-badge-green',
   'sales-manager': 'admin-badge-green', 'sales-exec': 'admin-badge-green',
   'finance': 'admin-badge-green', 'support': 'admin-badge-green', 'marketing': 'admin-badge-green',
+  'sales_closer': 'admin-badge-yellow',
 }
 
-const permissionMatrix: { module: string; admin: boolean; staff: boolean }[] = [
-  { module: 'Dashboard', admin: true, staff: true },
-  { module: 'Quotes', admin: true, staff: true },
-  { module: 'Bookings', admin: true, staff: true },
-  { module: 'Customers', admin: true, staff: true },
-  { module: 'Fleet', admin: true, staff: false },
-  { module: 'Pricing', admin: true, staff: false },
-  { module: 'Media', admin: true, staff: false },
-  { module: 'Promotions', admin: true, staff: false },
-  { module: 'Analytics', admin: true, staff: false },
-  { module: 'User Management', admin: true, staff: false },
-  { module: 'Activity Log', admin: true, staff: false },
-  { module: 'Settings', admin: true, staff: false },
+const permissionMatrix: { module: string; admin: boolean; staff: boolean; sales_closer: boolean }[] = [
+  { module: 'Dashboard', admin: true, staff: true, sales_closer: false },
+  { module: 'Quotes', admin: true, staff: true, sales_closer: false },
+  { module: 'Bookings', admin: true, staff: true, sales_closer: false },
+  { module: 'Customers', admin: true, staff: true, sales_closer: false },
+  { module: 'Fleet', admin: true, staff: false, sales_closer: false },
+  { module: 'Pricing', admin: true, staff: false, sales_closer: false },
+  { module: 'Media', admin: true, staff: false, sales_closer: false },
+  { module: 'Promotions', admin: true, staff: false, sales_closer: false },
+  { module: 'Analytics', admin: true, staff: false, sales_closer: false },
+  { module: 'User Management', admin: true, staff: false, sales_closer: false },
+  { module: 'Activity Log', admin: true, staff: false, sales_closer: false },
+  { module: 'Settings', admin: true, staff: false, sales_closer: false },
+  { module: 'CRM Leads', admin: true, staff: true, sales_closer: true },
 ]
 
 export function UsersPage() {
@@ -156,6 +159,7 @@ export function UsersPage() {
                     <th>Module</th>
                     <th style={{ textAlign: 'center' }}>Admin</th>
                     <th style={{ textAlign: 'center' }}>Staff</th>
+                    <th style={{ textAlign: 'center' }}>Sales Closer</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -164,6 +168,7 @@ export function UsersPage() {
                       <td style={{ fontWeight: 500 }}>{row.module}</td>
                       <td style={{ textAlign: 'center', color: row.admin ? 'var(--adm-success)' : 'var(--adm-border)' }}>{row.admin ? '✓' : '✗'}</td>
                       <td style={{ textAlign: 'center', color: row.staff ? 'var(--adm-success)' : 'var(--adm-border)' }}>{row.staff ? '✓' : '✗'}</td>
+                      <td style={{ textAlign: 'center', color: row.sales_closer ? 'var(--adm-success)' : 'var(--adm-border)' }}>{row.sales_closer ? '✓' : '✗'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -219,6 +224,7 @@ function AddUserModal({ onClose, onSave, initialData, isEdit }: any) {
               <select className="admin-select" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
                 <option value="admin">Admin</option>
                 <option value="staff">Staff</option>
+                <option value="sales_closer">Sales Closer</option>
               </select>
             </div>
           </div>

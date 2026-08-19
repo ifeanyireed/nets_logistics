@@ -23,6 +23,7 @@ export interface AdminLead {
   estimatedInvestmentMax?: number
   status: string
   crmStatus: string
+  assignedTo?: string
   createdAt: string
   payload?: any
 }
@@ -135,6 +136,7 @@ export class AdminService {
       estimatedInvestmentMax: Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0,
       status: l.status || 'pending',
       crmStatus: l.crmStatus || 'New Lead',
+      assignedTo: l.assignedTo || '',
       createdAt: l.createdAt || new Date().toISOString(),
       payload: l.payload || null,
     }))
@@ -329,7 +331,7 @@ export class AdminService {
       })
       return res.ok
     } catch (err) {
-      return true
+      return false
     }
   }
 
@@ -345,7 +347,7 @@ export class AdminService {
       })
       return res.ok
     } catch (err) {
-      return true
+      return false
     }
   }
 
@@ -361,7 +363,7 @@ export class AdminService {
       })
       return res.ok
     } catch (err) {
-      return true
+      return false
     }
   }
 

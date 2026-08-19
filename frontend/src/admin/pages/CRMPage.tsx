@@ -80,6 +80,11 @@ export function CRMPage() {
 
   const filteredLeads = useMemo(() => {
     return leads.filter(l => {
+      // Sales closer can only see assigned leads
+      if (session.user?.role === 'sales_closer' && l.assignedTo !== session.user.id) {
+        return false
+      }
+
       const name = String(l?.customerName || '').toLowerCase()
       const email = String(l?.customerEmail || '').toLowerCase()
       const ref = String(l?.leadReference || '').toLowerCase()
@@ -96,7 +101,7 @@ export function CRMPage() {
       
       return matchSearch && (leadSt === filtSt)
     })
-  }, [leads, search, statusFilter])
+  }, [leads, search, statusFilter, session.user])
 
   // Pagination calculations
   const totalItems = filteredLeads.length

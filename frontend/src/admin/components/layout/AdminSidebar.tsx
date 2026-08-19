@@ -59,31 +59,38 @@ export function AdminSidebar() {
         <img src="/favicon.svg" alt="NETS Logo" style={{ height: '32px', width: '32px', objectFit: 'contain' }} />
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
           <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--adm-text-1)', letterSpacing: '-0.02em' }}>NETS</span>
-          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--adm-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{roleDisplay} Portal</span>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--adm-accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            {isAdmin ? 'Admin' : userRole === 'sales_closer' ? 'Sales' : 'Staff'} Portal
+          </span>
         </div>
       </div>
 
       <div className="admin-nav">
-        <div className="admin-nav-section">
-          {navItems.map(({ to, label, icon: Icon, end }) => (
-            <NavLink key={to} to={to} end={!!end}
-              className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
-              <Icon size={15} />{label}
-            </NavLink>
-          ))}
-        </div>
+        {userRole !== 'sales_closer' && (
+          <div className="admin-nav-section">
+            {navItems.map(({ to, label, icon: Icon, end }) => (
+              <NavLink key={to} to={to} end={!!end}
+                className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
+                <Icon size={15} />{label}
+              </NavLink>
+            ))}
+          </div>
+        )}
 
         <div className="admin-nav-section">
           <div className="admin-nav-label">Operations</div>
-          {operationsItems.map(({ to, label, icon: Icon, badge }) => (
-            <NavLink key={to} to={to}
-              className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
-              <Icon size={15} />{label}
-              {badge === 'new' && newQuotes > 0 && (
-                <span className="admin-nav-badge">{newQuotes}</span>
-              )}
-            </NavLink>
-          ))}
+          {operationsItems.map(({ to, label, icon: Icon, badge }) => {
+            if (userRole === 'sales_closer' && to !== '/admin/crm') return null
+            return (
+              <NavLink key={to} to={to}
+                className={({ isActive }) => `admin-nav-item${isActive ? ' active' : ''}`}>
+                <Icon size={15} />{label}
+                {badge === 'new' && newQuotes > 0 && (
+                  <span className="admin-nav-badge">{newQuotes}</span>
+                )}
+              </NavLink>
+            )
+          })}
         </div>
 
         {isAdmin && (

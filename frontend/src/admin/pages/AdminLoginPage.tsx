@@ -35,7 +35,7 @@ export function AdminLoginPage() {
     setError('')
     setSuccessMessage('')
     await new Promise(r => setTimeout(r, 400))
-    const ok = login(email, password)
+    const ok = await login(email, password)
     if (ok) {
       navigate('/admin', { replace: true })
     } else {

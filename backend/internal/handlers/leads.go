@@ -115,6 +115,11 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 
 	db := database.DB
 	if db != nil {
+		var closer models.User
+		if err := db.Where("role = ?", "sales_closer").Order("RAND()").First(&closer).Error; err == nil {
+			lead.AssignedTo = closer.ID
+		}
+		
 		if err := db.Create(&lead).Error; err != nil {
 			response.Error(w, http.StatusInternalServerError, fmt.Sprintf("Failed to store lead in DB: %v", err))
 			return
