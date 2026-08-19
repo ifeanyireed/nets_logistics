@@ -82,11 +82,14 @@ export function UsersPage() {
 
   const fmtDate = (iso?: string) => {
     if (!iso) return 'Never'
-    const d = new Date(iso), now = new Date()
-    const diff = Math.floor((now.getTime() - d.getTime()) / 86400000)
-    if (diff === 0) return 'Today'
-    if (diff === 1) return 'Yesterday'
-    return `${diff}d ago`
+    try {
+      return new Date(iso).toLocaleDateString('en-NG', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })
+    } catch {
+      return iso
+    }
   }
 
   return (
