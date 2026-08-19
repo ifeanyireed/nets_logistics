@@ -279,7 +279,7 @@ export const useAdminStore = create<AdminStore>((set, get) => ({
   vehicles: [],
   drivers: [...mockDrivers],
   users: [...mockUsers],
-  activityLog: [],
+  activityLog: [...mockActivityLog],
   promotions: [...mockPromotions],
   settings: loadInitialSettings(),
 
