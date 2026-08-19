@@ -17,6 +17,12 @@ export function JourneyPlannerPage() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    
+    // Trigger lead capture modal on load if not already filled
+    if (!state.customerDetails.email && !state.isLeadModalOpen) {
+      state.setLeadModalNextAction('planner')
+      state.setLeadModalOpen(true)
+    }
   }, [currentStep])
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { useJourneyStore, LocationData } from '@/store/useJourneyStore'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { geocodeAddress } from '@/config/api'
 import { useMapsLibrary } from '@vis.gl/react-google-maps'
 import { crmService } from '@/services/crmService'
@@ -20,6 +20,7 @@ function getFallbackDistanceKm(lat1: number, lon1: number, lat2: number, lon2: n
 
 export function LeadCaptureModal() {
   const navigate = useNavigate()
+  const location = useLocation()
   const routesLibrary = useMapsLibrary('routes')
   const { 
     isLeadModalOpen, 
@@ -205,13 +206,15 @@ export function LeadCaptureModal() {
             position: 'relative'
           }}
         >
-          {/* Close Button */}
-          <button 
-            onClick={() => { setLeadModalOpen(false); setShowQuote(false); }}
-            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1, color: 'var(--color-nets-text-2)' }}
-          >
-            &times;
-          </button>
+          {/* Close Button - Only show if not on the planner page to prevent bypassing */}
+          {location.pathname !== '/plan' && (
+            <button 
+              onClick={() => { setLeadModalOpen(false); setShowQuote(false); }}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.5rem', lineHeight: 1, color: 'var(--color-nets-text-2)' }}
+            >
+              &times;
+            </button>
+          )}
 
           {!showQuote ? (
             <div style={{ padding: '2rem' }}>

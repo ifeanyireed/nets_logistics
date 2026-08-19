@@ -68,8 +68,7 @@ export function HeroSection() {
 
   const handlePlanJourneyClick = (e: React.MouseEvent) => {
     e.preventDefault()
-    setLeadModalNextAction('planner')
-    setLeadModalOpen(true)
+    navigate('/plan')
   }
 
   return (

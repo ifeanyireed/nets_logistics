@@ -209,17 +209,18 @@ export function CRMPage() {
                 <th>Journey / Route</th>
                 <th>Value (Est.)</th>
                 <th>Date Received</th>
+                <th>Assigned To</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="admin-table-empty">Loading CRM leads…</td>
+                  <td colSpan={7} className="admin-table-empty">Loading CRM leads…</td>
                 </tr>
               ) : paginatedLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="admin-table-empty">No leads found matching your search.</td>
+                  <td colSpan={7} className="admin-table-empty">No leads found matching your search.</td>
                 </tr>
               ) : (
                 paginatedLeads.map(l => {
@@ -248,9 +249,10 @@ export function CRMPage() {
                         </div>
                       </td>
                       <td style={{ fontWeight: 700, color: 'var(--adm-text-1)' }}>
-                        {val > 0 ? fmtCurrency(val) : '₦---,---'}
+                        {val > 0 ? fmtCurrency(val) : '—'}
                       </td>
                       <td style={{ fontSize: 12 }}>{fmtDate(l.createdAt)}</td>
+                      <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>{l.assignedTo || 'Unassigned'}</td>
                       <td>
                         <span className={`admin-badge ${badge.class}`}>{badge.label}</span>
                       </td>
