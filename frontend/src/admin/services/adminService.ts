@@ -194,6 +194,23 @@ export class AdminService {
   }
 
   /**
+   * Update lead assignment directly in remote backend database.
+   */
+  public async updateLeadAssignment(id: number | string, assignedTo: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/leads/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignedTo }),
+      })
+      return res.ok
+    } catch (err) {
+      console.error('⚠️ [ADMIN SERVICE] Error updating lead assignment:', err)
+      return false
+    }
+  }
+
+  /**
    * Delete a lead/quote.
    */
   public async deleteLead(id: number | string): Promise<boolean> {

@@ -23,6 +23,7 @@ const statusBadges: Record<string, { label: string; class: string }> = {
 
 export function CRMPage() {
   const [leads, setLeads] = useState<AdminLead[]>([])
+  const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -35,11 +36,16 @@ export function CRMPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const { session } = useAdminStore()
   const isAdmin = session.user?.role === 'admin' || session.user?.role === 'super-admin'
+  const canAssign = isAdmin || session.user?.role === 'staff'
 
   const loadLeads = () => {
     setLoading(true)
-    adminService.getLeads().then((list) => {
-      setLeads(list || [])
+    Promise.all([
+      adminService.getLeads(),
+      adminService.getUsers()
+    ]).then(([leadList, userList]) => {
+      setLeads(leadList || [])
+      setUsers(userList || [])
       setLoading(false)
     }).catch(() => {
       setLoading(false)
@@ -61,6 +67,16 @@ export function CRMPage() {
       setLeads(prev => prev.map(l => l.id === id ? { ...l, crmStatus: newStatus } : l))
       if (selectedLead && selectedLead.id === id) {
         setSelectedLead({ ...selectedLead, crmStatus: newStatus })
+      }
+    }
+  }
+
+  const handleUpdateAssignment = async (id: number | string, assignedTo: string) => {
+    const success = await adminService.updateLeadAssignment(id, assignedTo)
+    if (success) {
+      setLeads(prev => prev.map(l => l.id === id ? { ...l, assignedTo } : l))
+      if (selectedLead && selectedLead.id === id) {
+        setSelectedLead({ ...selectedLead, assignedTo })
       }
     }
   }
@@ -227,6 +243,7 @@ export function CRMPage() {
                   const currentStatus = String(l.crmStatus || l.status)
                   const badge = statusBadges[currentStatus] || { label: currentStatus, class: 'admin-badge-gray' }
                   const val = l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0
+                  const assignedUser = users.find(u => String(u.id) === String(l.assignedTo))
                   return (
                     <tr
                       key={l.id || l.leadReference}
@@ -252,7 +269,7 @@ export function CRMPage() {
                         {val > 0 ? fmtCurrency(val) : '—'}
                       </td>
                       <td style={{ fontSize: 12 }}>{fmtDate(l.createdAt)}</td>
-                      <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>{l.assignedTo || 'Unassigned'}</td>
+                      <td style={{ fontSize: 12, color: 'var(--adm-text-2)' }}>{assignedUser ? assignedUser.name : (l.assignedTo ? 'Unknown User' : 'Unassigned')}</td>
                       <td>
                         <span className={`admin-badge ${badge.class}`}>{badge.label}</span>
                       </td>
@@ -526,6 +543,23 @@ export function CRMPage() {
                   ))}
                 </select>
               </div>
+
+              {canAssign && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span className="admin-label" style={{ marginBottom: 0, whiteSpace: 'nowrap' }}>Assign To:</span>
+                  <select
+                    className="admin-select"
+                    value={selectedLead.assignedTo || ''}
+                    onChange={e => handleUpdateAssignment(selectedLead.id, e.target.value)}
+                    style={{ minWidth: 170 }}
+                  >
+                    <option value="">Unassigned</option>
+                    {users.map(u => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <a
