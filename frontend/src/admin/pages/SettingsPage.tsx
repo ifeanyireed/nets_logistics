@@ -109,6 +109,26 @@ export function SettingsPage() {
             </div>
           </Section>
 
+          <Section title="Email Notifications">
+            <div className="admin-form-group">
+              <label className="admin-label">Admin Notification Emails</label>
+              <input className="admin-input" placeholder="e.g. admin@neweratransports.com, sales@neweratransports.com" value={form.adminNotificationEmails || ''} onChange={e => setForm(f => ({ ...f, adminNotificationEmails: e.target.value }))} />
+              <div style={{ color: 'var(--adm-text-3)', fontSize: 12, marginTop: 4 }}>Comma-separated list of emails to receive system alerts.</div>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: 13, color: 'var(--adm-text-1)' }}>
+                <input type="checkbox" checked={form.notificationNewLead !== false} onChange={e => setForm(f => ({ ...f, notificationNewLead: e.target.checked }))} style={{ width: 16, height: 16, accentColor: 'var(--adm-accent)' }} />
+                Notify Admin on New Lead/Quote Request
+              </label>
+              
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: 13, color: 'var(--adm-text-1)' }}>
+                <input type="checkbox" checked={form.notificationLeadAssigned !== false} onChange={e => setForm(f => ({ ...f, notificationLeadAssigned: e.target.checked }))} style={{ width: 16, height: 16, accentColor: 'var(--adm-accent)' }} />
+                Automatically Notify Sales Closer on Lead Assignment
+              </label>
+            </div>
+          </Section>
+
           <Section title="Email Templates">
             <div style={{ padding: '0.75rem', background: 'var(--adm-surface-2)', borderRadius: 'var(--adm-radius-sm)', fontSize: 13 }}>
               <div style={{ fontWeight: 500, color: 'var(--adm-text-1)', marginBottom: '0.375rem' }}>Customer Confirmation Email</div>
