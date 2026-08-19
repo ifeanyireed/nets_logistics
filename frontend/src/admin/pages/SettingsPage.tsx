@@ -1,15 +1,21 @@
 // ============================================================================
 // NETS Admin — System Settings
 // ============================================================================
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Save, Eye, EyeOff } from 'lucide-react'
 import { useAdminStore } from '../store/useAdminStore'
 
 export function SettingsPage() {
-  const { settings, updateSettings } = useAdminStore()
+  const { settings, updateSettings, fetchSettings } = useAdminStore()
   const [form, setForm] = useState({ ...settings })
   const [saved, setSaved] = useState(false)
   const [showKey, setShowKey] = useState(false)
+
+  useEffect(() => {
+    fetchSettings().then(() => {
+      setForm(useAdminStore.getState().settings)
+    })
+  }, [])
 
   const handleSave = () => {
     updateSettings(form)

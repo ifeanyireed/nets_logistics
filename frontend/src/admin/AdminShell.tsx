@@ -1,6 +1,7 @@
 // ============================================================================
 // NETS Admin — Master Shell (Layout + Auth Guard)
 // ============================================================================
+import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import './admin.css'
 import { AdminSidebar } from './components/layout/AdminSidebar'
@@ -9,8 +10,12 @@ import { GlobalSearch } from './components/layout/GlobalSearch'
 import { useAdminStore } from './store/useAdminStore'
 
 export function AdminShell() {
-  const { session } = useAdminStore()
+  const { session, fetchSettings } = useAdminStore()
   const location = useLocation()
+
+  useEffect(() => {
+    fetchSettings()
+  }, [])
 
   if (!session.isAuthenticated) {
     return <Navigate to="/admin/login" replace />
