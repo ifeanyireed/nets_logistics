@@ -20,7 +20,7 @@ export const PAYSTACK_PUBLIC_KEY =
 
 export const EMAIL_PROXY_URL = 
   import.meta.env.VITE_EMAIL_PROXY_URL || 
-  'https://mail.neweratransports.com/api/send-email.php'
+  'https://mail.neweratransports.com/email_proxy/api/send-email.php'
 
 export const EMAIL_PROXY_KEY = 
   import.meta.env.VITE_EMAIL_PROXY_KEY || 
