@@ -152,16 +152,20 @@ export function LeadCaptureModal() {
       generateReference()
     }
 
-    // 1. Immediately submit lead to database, CRM pipeline, and dispatch notifications
-    const payload = getCRMLeadPayload()
-    crmService.submitLead(payload).catch(err => console.warn('CRM lead submission error:', err))
-    emailService.sendInternalNotification(payload).catch(err => console.warn('Email alert error:', err))
-
     if (leadModalNextAction === 'quote') {
-      // Calculate and show quote
+      // Calculate and show quote FIRST so it gets included in the CRM lead
       await calculateRouteAndPrice()
       setShowQuote(true)
+      
+      const payload = getCRMLeadPayload()
+      crmService.submitLead(payload).catch(err => console.warn('CRM lead submission error:', err))
+      emailService.sendInternalNotification(payload).catch(err => console.warn('Email alert error:', err))
     } else {
+      // Just submit what we have and go to planner
+      const payload = getCRMLeadPayload()
+      crmService.submitLead(payload).catch(err => console.warn('CRM lead submission error:', err))
+      emailService.sendInternalNotification(payload).catch(err => console.warn('Email alert error:', err))
+      
       // Navigate to planner
       setLeadModalOpen(false)
       setStep(1)
