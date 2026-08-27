@@ -233,6 +233,39 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 		db.Model(&lead).Updates(updates)
 	}
 
+	// Auto-create booking when converted
+	if body.Status == "converted" || body.CrmStatus == "converted" {
+		var existingCount int64
+		db.Model(&models.Booking{}).Where("quote_reference = ?", lead.LeadReference).Count(&existingCount)
+
+		if existingCount == 0 {
+			randomBytes := make([]byte, 3)
+			rand.Read(randomBytes)
+			ref := fmt.Sprintf("NETS-BK-%s", strings.ToUpper(hex.EncodeToString(randomBytes)))
+
+			booking := models.Booking{
+				ID:                ref,
+				Reference:         ref,
+				QuoteReference:    lead.LeadReference,
+				CustomerName:      lead.CustomerName,
+				Pickup:            lead.Origin,
+				Destination:       lead.Destination,
+				TripType:          lead.JourneyType,
+				TotalAmount:       lead.EstimatedInvestmentMax,
+				PaymentStatus:     "pending",
+				OperationalStatus: "confirmed",
+				TravelDate:        time.Now(),
+				CreatedAt:         time.Now(),
+			}
+
+			if err := db.Create(&booking).Error; err != nil {
+				fmt.Printf("Failed to auto-create booking from converted lead: %v\n", err)
+			} else {
+				fmt.Printf("Successfully created booking %s from lead %s\n", ref, lead.LeadReference)
+			}
+		}
+	}
+
 	// Trigger email notification if a lead was assigned
 	if body.AssignedTo != nil && *body.AssignedTo != "" {
 		var user models.User
