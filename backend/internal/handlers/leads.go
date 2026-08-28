@@ -115,9 +115,24 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 
 	db := database.DB
 	if db != nil {
-		var closer models.User
-		if err := db.Where("role = ?", "sales_closer").Order("RAND()").First(&closer).Error; err == nil {
-			lead.AssignedTo = closer.ID
+		assignedTo := ""
+		if customerEmail != "" {
+			var existing models.Lead
+			// Check if same customer requested a quote today and it is assigned
+			err := db.Where("customer_email = ? AND DATE(created_at) = CURDATE() AND assigned_to != ''", customerEmail).
+				Order("created_at DESC").First(&existing).Error
+			if err == nil && existing.AssignedTo != "" {
+				assignedTo = existing.AssignedTo
+			}
+		}
+
+		if assignedTo != "" {
+			lead.AssignedTo = assignedTo
+		} else {
+			var closer models.User
+			if err := db.Where("role = ?", "sales_closer").Order("RAND()").First(&closer).Error; err == nil {
+				lead.AssignedTo = closer.ID
+			}
 		}
 		
 		if err := db.Create(&lead).Error; err != nil {
