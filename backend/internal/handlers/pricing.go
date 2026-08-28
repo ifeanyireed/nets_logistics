@@ -34,9 +34,8 @@ func (h *PricingHandler) GetConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{
-		"data": parsedConfig,
-	})
+	// response.JSON already wraps it in a "data" object, so just pass parsedConfig directly
+	response.JSON(w, http.StatusOK, parsedConfig)
 }
 
 // Update the pricing config
@@ -73,8 +72,6 @@ func (h *PricingHandler) UpdateConfig(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	response.JSON(w, http.StatusOK, map[string]interface{}{
-		"message": "Pricing config updated successfully",
-		"data":    payload,
-	})
+	// Just return the payload directly so frontend json.data maps cleanly
+	response.JSON(w, http.StatusOK, payload)
 }

@@ -71,14 +71,14 @@ export function PricingAdminPage() {
 
   const handleSave = async () => {
     setSaving(true)
-    const success = await savePricingConfig(config)
+    const result = await savePricingConfig(config)
     setSaving(false)
-    if (success) {
+    if (result.success) {
       setHistory(h => [{ timestamp: new Date().toISOString(), config: { ...config } }, ...h.slice(0, 4)])
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
     } else {
-      alert("Failed to save pricing configuration. Please try again.")
+      alert(`Failed to save pricing configuration: ${result.error}\nPlease try again.`)
     }
   }
 

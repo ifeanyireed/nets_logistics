@@ -73,8 +73,17 @@ export async function fetchPricingConfig(): Promise<PricingConfig> {
     const res = await fetch(`${API_URL}/pricing`)
     if (res.ok) {
       const json = await res.json()
-      if (json.data && Object.keys(json.data).length > 0) {
-        return { ...defaultPricingConfig, ...json.data }
+      // The backend wraps response in { success: true, data: { ... } }
+      // AND the pricing handler itself wrapped it in { data: config }
+      // So the actual config might be in json.data.data or json.data
+      const remoteConfig = json.data?.data || json.data
+      
+      if (remoteConfig && Object.keys(remoteConfig).length > 0) {
+        // Strip out the nested "data" key if it somehow got saved
+        const cleanConfig = { ...remoteConfig };
+        delete cleanConfig.data;
+        
+        return { ...defaultPricingConfig, ...cleanConfig }
       }
     }
   } catch (err) {
@@ -83,16 +92,20 @@ export async function fetchPricingConfig(): Promise<PricingConfig> {
   return { ...defaultPricingConfig }
 }
 
-export async function savePricingConfig(newConfig: PricingConfig): Promise<boolean> {
+export async function savePricingConfig(newConfig: PricingConfig): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetch(`${API_URL}/pricing`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newConfig)
     })
-    return res.ok
-  } catch (err) {
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      return { success: false, error: errData.error || `HTTP ${res.status}` };
+    }
+    return { success: true }
+  } catch (err: any) {
     console.error('⚠️ [PRICING CONFIG] Network error saving config:', err)
-    return false
+    return { success: false, error: err.message || 'Network error' }
   }
 }
