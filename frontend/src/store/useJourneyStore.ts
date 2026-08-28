@@ -50,6 +50,8 @@ interface JourneyState {
   setLeadModalOpen: (open: boolean) => void
   isQuoteModalOpen: boolean
   setQuoteModalOpen: (open: boolean) => void
+  isInternationalModalOpen: boolean
+  setInternationalModalOpen: (open: boolean) => void
   leadModalNextAction: 'quote' | 'planner' | null
   setLeadModalNextAction: (action: 'quote' | 'planner' | null) => void
 
@@ -166,6 +168,8 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
   setLeadModalOpen: (open) => set({ isLeadModalOpen: open }),
   isQuoteModalOpen: false,
   setQuoteModalOpen: (open) => set({ isQuoteModalOpen: open }),
+  isInternationalModalOpen: false,
+  setInternationalModalOpen: (open) => set({ isInternationalModalOpen: open }),
   leadModalNextAction: null,
   setLeadModalNextAction: (action) => set({ leadModalNextAction: action }),
 

@@ -2,6 +2,7 @@ import { API_URL } from '../config/api'
 
 export interface PricingConfig {
   fuelPricePerLitre: number;
+  billOneWayAsReturn: boolean;
   coasterFuelRatio: number;
   hiaceFuelRatio: number;
   saloonFuelRatio: number;

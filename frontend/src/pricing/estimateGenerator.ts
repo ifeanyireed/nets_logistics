@@ -63,7 +63,12 @@ export async function generateEstimate(input: JourneyPricingInput): Promise<Esti
     retentionMoving = adminConfig.saloonRetentionMoving
   }
 
-  const tripsPerDay = (input.tripType === 'Return' && input.numberOfDays === 1) ? 2 : 1
+  let tripsPerDay = 1
+  if (input.tripType === 'Return' && input.numberOfDays === 1) {
+    tripsPerDay = 2
+  } else if (input.tripType === 'One-Way' && adminConfig.billOneWayAsReturn) {
+    tripsPerDay = 2
+  }
   const dailyFuelCost = input.distanceKm * tripsPerDay * fuelRatio * adminConfig.fuelPricePerLitre
   
   const isOutstation = input.tripType === 'Multi-Day' || input.tripType === 'Recurring' || input.numberOfDays > 1

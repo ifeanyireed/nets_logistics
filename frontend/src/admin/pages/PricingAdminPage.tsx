@@ -57,6 +57,7 @@ export function PricingAdminPage() {
   const [error, setError] = useState<string | null>(null)
   const [history, setHistory] = useState<{ timestamp: string; config: PricingConfig }[]>([])
   const [activeTab, setActiveTab] = useState<VehicleTab>('hiace')
+  const [previewTripType, setPreviewTripType] = useState<'One-Way' | 'Return'>('One-Way')
 
   useEffect(() => {
     let mounted = true
@@ -149,6 +150,21 @@ export function PricingAdminPage() {
           <div className="admin-card" style={{ marginBottom: '1.25rem' }}>
             <div className="admin-pricing-section-title">Global Settings</div>
             {renderField({ key: 'fuelPricePerLitre', label: 'Fuel Price Per Litre', desc: 'Current market pump price (Global)', prefix: '₦' })}
+            
+            <div className="admin-pricing-row" style={{ marginTop: '1rem', borderTop: '1px solid var(--adm-border-subtle)', paddingTop: '1rem' }}>
+              <div>
+                <div className="admin-pricing-row-label">Bill One-Way As Return</div>
+                <div className="admin-pricing-row-desc">If enabled, one-way trips will be charged fuel for the empty return leg to base</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                <input 
+                  type="checkbox" 
+                  checked={config.billOneWayAsReturn || false} 
+                  onChange={e => setConfig(c => c ? { ...c, billOneWayAsReturn: e.target.checked } : null)}
+                  style={{ width: 18, height: 18, cursor: 'pointer', accentColor: 'var(--adm-accent)' }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Vehicle Tabs */}
@@ -208,12 +224,12 @@ export function PricingAdminPage() {
         <div>
           <div className="admin-card" style={{ marginBottom: '1.25rem' }}>
             <div className="admin-card-title">Live Preview</div>
-            <div style={{ fontSize: 13, color: 'var(--adm-text-2)', marginBottom: '1rem', textTransform: 'capitalize' }}>
-              Sample calculation for a 100km {activeTab === 'hiace' ? 'HiAce/SUV/Sienna' : activeTab} journey (1 Trip)
-            </div>
+            
             {(() => {
               const distanceKm = 100
-              const trips = 1
+              
+              const isOneWay = previewTripType === 'One-Way'
+              const trips = (isOneWay && !config.billOneWayAsReturn) ? 1 : 2
               
               const fuelRatio = (config as any)[activeFields.fuelRatio.key]
               const fuelCost = distanceKm * trips * fuelRatio * config.fuelPricePerLitre
@@ -235,8 +251,29 @@ export function PricingAdminPage() {
               const fmt = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
               return (
                 <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ fontSize: 13, color: 'var(--adm-text-2)', textTransform: 'capitalize' }}>
+                      Sample calculation for a 100km {activeTab === 'hiace' ? 'HiAce/SUV/Sienna' : activeTab} journey
+                    </div>
+                    <select
+                      value={previewTripType}
+                      onChange={(e) => setPreviewTripType(e.target.value as 'One-Way' | 'Return')}
+                      style={{
+                        padding: '0.25rem 0.5rem',
+                        fontSize: 12,
+                        borderRadius: 'var(--adm-radius-sm)',
+                        border: '1px solid var(--adm-border)',
+                        background: 'var(--adm-surface-2)',
+                        color: 'var(--adm-text-1)',
+                      }}
+                    >
+                      <option value="One-Way">One-Way</option>
+                      <option value="Return">Return (or Billed as Return)</option>
+                    </select>
+                  </div>
+                  
                   {[
-                    ['Fuel Cost (100km × 1 trip × ratio × price)', fmt(fuelCost)], 
+                    [`Fuel Cost (100km × ${trips} trip(s) × ratio × price)`, fmt(fuelCost)], 
                     ['Fixed Ops (Salary, Maint, Sec, Levy, Dep)', fmt(fixedOps)], 
                     ['Running Total (Base Cost)', fmt(baseCost)], 
                     [`+ Mark-Up (${markupPercent}%)`, fmt(withMarkup - baseCost)],

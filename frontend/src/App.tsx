@@ -19,6 +19,7 @@ import { TripCompletePage } from './pages/shuttles/TripCompletePage'
 import { ShuttleAccountPage } from './pages/shuttles/ShuttleAccountPage'
 
 import { LeadCaptureModal } from './components/sections/LeadCaptureModal'
+import { InternationalModal } from './components/sections/InternationalModal'
 import { AdminRouter } from './admin/AdminRouter'
 import { APIProvider } from '@vis.gl/react-google-maps'
 import { GOOGLE_MAPS_API_KEY } from './config/api'
@@ -111,6 +112,7 @@ function AppContent() {
 
       {!isPlanner && <Footer />}
       <LeadCaptureModal />
+      <InternationalModal />
     </>
   )
 }

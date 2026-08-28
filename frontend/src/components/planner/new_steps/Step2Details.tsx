@@ -6,7 +6,6 @@ import { GooglePlacesAutocomplete } from '../GooglePlacesAutocomplete'
 
 const vehicleOptions = [
   { id: 'hiace', name: 'Toyota HiAce (14 Seats)', capacity: 14 },
-  { id: 'midibus-18', name: '18-Seater Shuttle (18 Seats)', capacity: 18 },
   { id: 'coaster', name: 'Toyota Coaster (30 Seats)', capacity: 30 },
   { id: 'coach-50', name: '50-Seater Coach (50 Seats)', capacity: 50 },
   { id: 'sienna', name: 'Toyota Sienna (7 Seats)', capacity: 7 },

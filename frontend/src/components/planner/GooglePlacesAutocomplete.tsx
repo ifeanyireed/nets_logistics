@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { MapPin } from 'lucide-react'
-import { LocationData } from '../../store/useJourneyStore'
+import { LocationData, useJourneyStore } from '../../store/useJourneyStore'
 import { useMapsLibrary } from '@vis.gl/react-google-maps'
 import { geocodeAddress } from '../../config/api'
 
@@ -86,6 +86,12 @@ export function GooglePlacesAutocomplete({ value, onChange, onLocationSelect, pl
             }
           })
 
+          if (country.toLowerCase() !== 'nigeria') {
+            useJourneyStore.getState().setInternationalModalOpen(true)
+            setQuery('') // Reset query
+            return
+          }
+
           onLocationSelect({
             address: placeName,
             lat: place.geometry.location.lat(),
@@ -98,6 +104,9 @@ export function GooglePlacesAutocomplete({ value, onChange, onLocationSelect, pl
       // Fallback if placesService is not ready
       geocodeAddress(placeName).then(coords => {
         if (coords) {
+          // No easy country check here without reverse geocoding, 
+          // but we can assume most typing queries that bypass Place details might be within bounds,
+          // or we can skip check here.
           onLocationSelect({
             address: placeName,
             lat: coords.lat,

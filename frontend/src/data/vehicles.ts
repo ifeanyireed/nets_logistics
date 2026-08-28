@@ -59,23 +59,7 @@ export const vehicles: Vehicle[] = [
       '/vehicles/suv.png'
     ]
   },
-  {
-    id: 'midibus-18',
-    name: '18-Seater Shuttle',
-    slug: '18-seater-shuttle',
-    capacity: 18,
-    category: 'Standard',
-    bestFor: 'Corporate Teams · Excursions',
-    imageUrl: '/vehicles/hiace.jpg', // fallback image
-    features: ['Air Conditioning', 'Comfortable Seats', 'Professional Driver', 'GPS Tracked'],
-    available: true,
-    editorialStory: 'An excellent middle ground between the standard HiAce and larger Coaster.',
-    comfortRating: 'Standard',
-    luggageSpace: 'Moderate',
-    airConditioning: 'Standard Air Conditioning',
-    recommendedFor: ['Corporate Staff Transportation', 'Short Excursions'],
-    gallery: ['/vehicles/hiace.jpg']
-  },
+
   {
     id: 'coach-50',
     name: '50-Seater Coach',

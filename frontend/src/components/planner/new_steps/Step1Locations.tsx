@@ -68,6 +68,17 @@ export function Step1Locations() {
             className="input"
           />
         </div>
+
+        <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: 'rgba(192,39,45,0.05)', padding: '0.75rem', borderRadius: '4px', border: '1px solid rgba(192,39,45,0.1)' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-nets-red)" strokeWidth="2" style={{ marginTop: '2px', flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div style={{ fontSize: '0.8125rem', color: 'var(--color-nets-navy-dark)', lineHeight: 1.4 }}>
+            <strong>Pricing Notice:</strong> For the most accurate quote, please enter specific street addresses or landmarks. Our pricing engine calculates cost based on precise map distances. Moving farther than the initially chosen map location may incur additional charges on the final bill.
+          </div>
+        </div>
       </div>
 
     </div>

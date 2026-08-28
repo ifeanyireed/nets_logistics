@@ -10,7 +10,6 @@ import { LeadCaptureModal } from './LeadCaptureModal'
 const vehicleOptions = [
   { id: '', name: 'Any Vehicle' },
   { id: 'hiace', name: 'Toyota HiAce (14 Seats)' },
-  { id: 'midibus-18', name: '18-Seater Shuttle (18 Seats)' },
   { id: 'coaster', name: 'Toyota Coaster (30 Seats)' },
   { id: 'coach-50', name: '50-Seater Coach (50 Seats)' },
   { id: 'sienna', name: 'Toyota Sienna (7 Seats)' },
@@ -365,6 +364,17 @@ export function HeroSection() {
                   </select>
                 </div>
               )}
+              
+              <div style={{ marginTop: '0.25rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" style={{ marginTop: '2px', flexShrink: 0 }}>
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
+                  <strong>Pricing Notice:</strong> For the most accurate quote, please enter specific street addresses. Moving farther than the mapped location may incur additional charges on the final bill.
+                </div>
+              </div>
 
               <button type="submit" className="btn btn-red btn-lg" style={{ width: '100%', justifyContent: 'center', marginTop: '0.25rem', padding: '0.75rem 1.5rem', border: 'none', cursor: 'pointer' }}>
                 Get Instant Quote
