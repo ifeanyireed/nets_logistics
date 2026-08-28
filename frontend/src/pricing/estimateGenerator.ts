@@ -2,15 +2,12 @@ import type {
   JourneyPricingInput,
   EstimatedInvestment,
 } from './pricing.types'
-import { getPricingConfig } from './adminPricingConfig'
+import { fetchPricingConfig } from './adminPricingConfig'
 import { getVehiclePricingConfig } from './vehiclePricingConfig'
 import { PricingError, validatePricingInputs } from './pricingErrors'
 import { PRICING_ENGINE_VERSION } from './crmPayloadBuilder'
 
-/**
- * Generate a complete pricing estimate for a journey based on the Admin Pricing Config.
- */
-export function generateEstimate(input: JourneyPricingInput): EstimatedInvestment {
+export async function generateEstimate(input: JourneyPricingInput): Promise<EstimatedInvestment> {
   const validationErrors = validatePricingInputs({
     vehicleId: input.vehicleId,
     distanceKm: input.distanceKm,
@@ -23,13 +20,13 @@ export function generateEstimate(input: JourneyPricingInput): EstimatedInvestmen
     )
   }
 
-  const adminConfig = getPricingConfig()
-  const vehicleConfig = getVehiclePricingConfig(input.vehicleId) // For vehicleName
+  // Fetch real-time config directly from backend (no local store)
+  const adminConfig = await fetchPricingConfig()
+  const vehicleConfig = getVehiclePricingConfig(input.vehicleId)
 
   const isCoaster = input.vehicleId === 'coaster' || input.vehicleId === 'coach-50'
   const isSaloon = input.vehicleId === 'sedan'
 
-  // Determine variables based on vehicle class
   let fuelRatio = adminConfig.hiaceFuelRatio
   let driverSalary = adminConfig.hiaceDriverSalary
   let maintenance = adminConfig.hiaceMaintenance
@@ -66,31 +63,24 @@ export function generateEstimate(input: JourneyPricingInput): EstimatedInvestmen
     retentionMoving = adminConfig.saloonRetentionMoving
   }
 
-  // 1. Dynamic Fuel Variables
   const tripsPerDay = (input.tripType === 'Return' && input.numberOfDays === 1) ? 2 : 1
   const dailyFuelCost = input.distanceKm * tripsPerDay * fuelRatio * adminConfig.fuelPricePerLitre
   
-  // 2. Static Base Operational Costs
   const isOutstation = input.tripType === 'Multi-Day' || input.tripType === 'Recurring' || input.numberOfDays > 1
   const dailyOutstation = isOutstation ? outstation : 0
 
   const dailyFixedOps = driverSalary + maintenance + security + levies + dailyOutstation + depreciation
   const dailyBaseCost = dailyFuelCost + dailyFixedOps
   
-  // 3. Profit Margin Variable
   const markedUpDailyPrice = dailyBaseCost * (1 + markupPercent / 100)
 
-  // 4. Vehicle Retention Fees (3+ Days) & Total Calculation
   let chargeableDays = input.numberOfDays
   let additionalRetentionFee = 0
 
   if (input.numberOfDays >= 3 && (input.tripType === 'Return' || input.tripType === 'Multi-Day') && input.retentionPreference) {
     if (input.retentionPreference === 'return') {
-      // If returning to base, they only pay the daily rate for the 2 travel days (drop-off day, pick-up day)
-      // Note: We double the daily fuel for these 2 days since the bus drives back empty each time.
       chargeableDays = 2
     } else if (input.retentionPreference === 'keep') {
-      // If keeping, they pay standard daily rate for travel days (2) + retention fee for middle days
       const middleDays = input.numberOfDays - 2
       chargeableDays = 2
       const feePerDay = input.vehicleMobility === 'parked' ? retentionParked : retentionMoving
@@ -98,7 +88,6 @@ export function generateEstimate(input: JourneyPricingInput): EstimatedInvestmen
     }
   }
 
-  // Total for all days
   const finalTotal = (markedUpDailyPrice * chargeableDays) + additionalRetentionFee
 
   return {

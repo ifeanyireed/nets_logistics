@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react'
 import { Save, RefreshCw, Info } from 'lucide-react'
 
-import { getPricingConfig, updatePricingConfig, defaultPricingConfig, initializePricingConfig, type PricingConfig } from '../../pricing/adminPricingConfig'
+import { fetchPricingConfig, savePricingConfig, defaultPricingConfig, type PricingConfig } from '../../pricing/adminPricingConfig'
 
 type VehicleTab = 'coaster' | 'hiace' | 'saloon'
 
@@ -50,22 +50,36 @@ const vehicleConfigFields = {
 }
 
 export function PricingAdminPage() {
-  const [config, setConfig] = useState<PricingConfig>(getPricingConfig())
+  const [config, setConfig] = useState<PricingConfig>(defaultPricingConfig)
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [history, setHistory] = useState<{ timestamp: string; config: PricingConfig }[]>([])
   const [activeTab, setActiveTab] = useState<VehicleTab>('hiace')
 
   useEffect(() => {
-    initializePricingConfig().then(() => {
-      setConfig(getPricingConfig())
+    let mounted = true
+    setLoading(true)
+    fetchPricingConfig().then((data) => {
+      if (mounted) {
+        setConfig(data)
+        setLoading(false)
+      }
     })
+    return () => { mounted = false }
   }, [])
 
-  const handleSave = () => {
-    updatePricingConfig(config)
-    setHistory(h => [{ timestamp: new Date().toISOString(), config: { ...config } }, ...h.slice(0, 4)])
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+  const handleSave = async () => {
+    setSaving(true)
+    const success = await savePricingConfig(config)
+    setSaving(false)
+    if (success) {
+      setHistory(h => [{ timestamp: new Date().toISOString(), config: { ...config } }, ...h.slice(0, 4)])
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } else {
+      alert("Failed to save pricing configuration. Please try again.")
+    }
   }
 
   const handleReset = () => {
@@ -109,7 +123,7 @@ export function PricingAdminPage() {
         </div>
         <div className="admin-page-actions">
           <button className="admin-btn admin-btn-ghost" onClick={handleReset}><RefreshCw size={13} /> Reset Defaults</button>
-          <button className="admin-btn admin-btn-primary" onClick={handleSave}><Save size={13} /> {saved ? 'Saved ✓' : 'Save Changes'}</button>
+          <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving || loading}><Save size={13} /> {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save Changes'}</button>
         </div>
       </div>
 

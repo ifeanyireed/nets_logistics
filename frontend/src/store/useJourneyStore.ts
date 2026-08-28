@@ -142,7 +142,7 @@ interface JourneyState {
   customerPricingView: CustomerPricingView | null
   pricingError: string | null
   isPricingCalculating: boolean
-  calculatePricing: () => void
+  calculatePricing: () => Promise<void>
 
   // Reset State
   resetJourney: () => void
@@ -349,7 +349,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
   customerPricingView: null,
   pricingError: null,
   isPricingCalculating: false,
-  calculatePricing: () => {
+  calculatePricing: async () => {
     const state = get()
     
     // Require distance
@@ -392,7 +392,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
 
       const vehicleId = state.selectedVehicleId || state.recommendedVehicleId || deriveVehicle(state.passengers)
 
-      const estimate = generateEstimate({
+      const estimate = await generateEstimate({
         vehicleId,
         distanceKm: state.distanceKm,
         distanceMeters: state.distanceMeters,
@@ -415,7 +415,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       // If there are additional vehicles, calculate their cost and sum it up
       for (const addVehId of state.additionalVehicleIds) {
         if (addVehId) {
-          const addEstimate = generateEstimate({
+          const addEstimate = await generateEstimate({
             vehicleId: addVehId,
             distanceKm: state.distanceKm,
             distanceMeters: state.distanceMeters,
