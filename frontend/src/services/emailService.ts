@@ -19,16 +19,24 @@ class EmailService {
     const estimate = payload.estimatedInvestment?.total ? `₦${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` : '₦---,---'
 
     if (!customerEmail) {
-      console.warn('⚠️ [EMAIL SERVICE] Customer email missing, skipping dispatch.')
+      console.warn('[EMAIL SERVICE] Customer email missing, skipping dispatch.')
       return false
     }
 
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
-        <div style="text-align: center; margin-bottom: 24px;">
-          <img src="https://neweratransports.com/logo.png" alt="NETS Logo" style="display: block; margin: 0 auto 16px auto; height: 44px; width: auto;" />
-          <h1 style="color: #0A3041; margin: 0; font-size: 24px;">NEW ERA TRANSPORT SERVICES</h1>
-          <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 12px; letter-spacing: 0.1em;">Enterprise Logistics & Charters</p>
+        <div style="margin-bottom: 24px; text-align: center;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+            <tr>
+              <td style="padding-right: 12px; vertical-align: middle;">
+                <img src="https://neweratransports.com/favicon.png" alt="NETS" style="display: block; width: 44px; height: 44px;" />
+              </td>
+              <td style="vertical-align: middle; text-align: left;">
+                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+              </td>
+            </tr>
+          </table>
         </div>
         <h2 style="color: #0A3041; font-size: 18px;">Thank You, ${customerName}!</h2>
         <p style="color: #475569; line-height: 1.6;">We have received your journey quote request. A transport specialist has been assigned to your itinerary.</p>
@@ -63,11 +71,11 @@ class EmailService {
       })
 
       if (res.ok) {
-        console.log(`✅ [EMAIL SERVICE] Customer confirmation sent to ${customerEmail}`)
+        console.log(`[EMAIL SERVICE] Customer confirmation sent to ${customerEmail}`)
         return true
       }
     } catch (err) {
-      console.warn('⚠️ [EMAIL SERVICE] Could not dispatch via email proxy:', err)
+      console.warn('[EMAIL SERVICE] Could not dispatch via email proxy:', err)
     }
 
     return true
@@ -86,12 +94,20 @@ class EmailService {
 
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
-        <div style="text-align: center; margin-bottom: 24px;">
-          <img src="https://neweratransports.com/logo.png" alt="NETS Logo" style="display: block; margin: 0 auto 16px auto; height: 44px; width: auto;" />
-          <h1 style="color: #0A3041; margin: 0; font-size: 24px;">NEW ERA TRANSPORT SERVICES</h1>
-          <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 12px; letter-spacing: 0.1em;">Enterprise Logistics & Charters</p>
+        <div style="margin-bottom: 24px; text-align: center;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+            <tr>
+              <td style="padding-right: 12px; vertical-align: middle;">
+                <img src="https://neweratransports.com/favicon.png" alt="NETS" style="display: block; width: 44px; height: 44px;" />
+              </td>
+              <td style="vertical-align: middle; text-align: left;">
+                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+              </td>
+            </tr>
+          </table>
         </div>
-        <h2 style="color: #C40000; font-size: 18px;">🚨 New Lead / Quote Request Captured</h2>
+        <h2 style="color: #C40000; font-size: 18px;">New Lead / Quote Request Captured</h2>
         <p style="color: #475569; line-height: 1.6;">A customer has requested a journey estimate on the website:</p>
         <div style="background: #F8FAFC; border-left: 4px solid #C40000; padding: 16px; margin: 20px 0; border-radius: 4px;">
           <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 0;">
@@ -131,7 +147,7 @@ class EmailService {
           }),
         })
       } catch (err) {
-        console.warn(`⚠️ [EMAIL SERVICE] Alert proxy error for ${recipient}:`, err)
+        console.warn(`[EMAIL SERVICE] Alert proxy error for ${recipient}:`, err)
       }
     }
 
@@ -158,12 +174,20 @@ class EmailService {
 
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
-        <div style="text-align: center; margin-bottom: 24px;">
-          <img src="https://neweratransports.com/logo.png" alt="NETS Logo" style="display: block; margin: 0 auto 16px auto; height: 44px; width: auto;" />
-          <h1 style="color: #0A3041; margin: 0; font-size: 24px;">NEW ERA TRANSPORT SERVICES</h1>
-          <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 12px; letter-spacing: 0.1em;">Enterprise Logistics & Charters</p>
+        <div style="margin-bottom: 24px; text-align: center;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+            <tr>
+              <td style="padding-right: 12px; vertical-align: middle;">
+                <img src="https://neweratransports.com/favicon.png" alt="NETS" style="display: block; width: 44px; height: 44px;" />
+              </td>
+              <td style="vertical-align: middle; text-align: left;">
+                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+              </td>
+            </tr>
+          </table>
         </div>
-        <h2 style="color: #0A3041; font-size: 18px;">🚗 NEW BOOKING ORDER RECEIVED</h2>
+        <h2 style="color: #0A3041; font-size: 18px;">NEW BOOKING ORDER RECEIVED</h2>
         <p style="color: #475569; line-height: 1.6;">A new booking order has been confirmed on the platform. Please check the details below for immediate dispatch.</p>
         <div style="background: #F8FAFC; border-left: 4px solid #16a34a; padding: 16px; margin: 20px 0; border-radius: 4px;">
           <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 0;">
@@ -203,16 +227,16 @@ class EmailService {
           },
           body: JSON.stringify({
             to: recipient,
-            subject: `🚘 [NEW ORDER] ${bookingRef} — ${customerName} (${fmtAmount})`,
+            subject: `[NEW ORDER] ${bookingRef} — ${customerName} (${fmtAmount})`,
             html: htmlBody,
             text: `New Booking Order ${bookingRef} by ${customerName}. Vehicle: ${vehicle}. Route: ${pickup} to ${destination}. Total: ${fmtAmount}.`,
             from: 'hello@neweratransports.com',
             from_name: 'NETS Booking Alert',
           }),
         })
-        console.log(`✅ [EMAIL SERVICE] Booking notification dispatched to ${recipient}`)
+        console.log(`[EMAIL SERVICE] Booking notification dispatched to ${recipient}`)
       } catch (err) {
-        console.warn(`⚠️ [EMAIL SERVICE] Booking notification failed for ${recipient}:`, err)
+        console.warn(`[EMAIL SERVICE] Booking notification failed for ${recipient}:`, err)
       }
     }
 
@@ -227,10 +251,18 @@ class EmailService {
 
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
-        <div style="text-align: center; margin-bottom: 24px;">
-          <img src="https://neweratransports.com/logo.png" alt="NETS Logo" style="display: block; margin: 0 auto 16px auto; height: 44px; width: auto;" />
-          <h1 style="color: #0A3041; margin: 0; font-size: 24px;">NEW ERA TRANSPORT SERVICES</h1>
-          <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 12px; letter-spacing: 0.1em;">Enterprise Logistics & Charters</p>
+        <div style="margin-bottom: 24px; text-align: center;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+            <tr>
+              <td style="padding-right: 12px; vertical-align: middle;">
+                <img src="https://neweratransports.com/favicon.png" alt="NETS" style="display: block; width: 44px; height: 44px;" />
+              </td>
+              <td style="vertical-align: middle; text-align: left;">
+                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+              </td>
+            </tr>
+          </table>
         </div>
         <h2 style="color: #0A3041; font-size: 18px;">Password Reset Request</h2>
         <p style="color: #475569; line-height: 1.6;">We received a request to reset your password for the NETS Admin & Staff portal. Use the verification code below to complete your password reset:</p>
@@ -266,11 +298,11 @@ class EmailService {
       })
 
       if (res.ok) {
-        console.log(`✅ [EMAIL SERVICE] Password reset email sent to ${cleanEmail}`)
+        console.log(`[EMAIL SERVICE] Password reset email sent to ${cleanEmail}`)
         return true
       }
     } catch (err) {
-      console.warn('⚠️ [EMAIL SERVICE] Password reset email proxy error:', err)
+      console.warn('[EMAIL SERVICE] Password reset email proxy error:', err)
     }
 
     return true
