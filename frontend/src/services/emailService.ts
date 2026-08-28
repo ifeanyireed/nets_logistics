@@ -17,6 +17,11 @@ class EmailService {
     const quoteRef = payload.leadMetadata?.quoteReferenceNumber || 'NETS-QUOTE'
     const journeyType = payload.journeyInformation?.journeyType || 'Charter Journey'
     const estimate = payload.estimatedInvestment?.total ? `₦${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` : '₦---,---'
+    const pickup = payload.journeyInformation?.pickup?.address || 'N/A'
+    const destination = payload.journeyInformation?.destination?.address || 'N/A'
+    const travelDateRaw = payload.journeyInformation?.travelDate
+    const travelDate = travelDateRaw ? new Date(travelDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'
+    const vehicle = payload.estimatedInvestment?.vehicleName || 'Standard Vehicle'
 
     if (!customerEmail) {
       console.warn('[EMAIL SERVICE] Customer email missing, skipping dispatch.')
@@ -43,6 +48,9 @@ class EmailService {
         <div style="background: #F8FAFC; border-left: 4px solid #C40000; padding: 16px; margin: 20px 0; border-radius: 4px;">
           <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Quote Reference:</strong> <code style="color: #C40000;">${quoteRef}</code></p>
           <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Service Type:</strong> ${journeyType}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Route:</strong> ${pickup} &rarr; ${destination}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Travel Date:</strong> ${travelDate}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Vehicle Category:</strong> ${vehicle}</p>
           <p style="margin: 0; font-size: 14px;"><strong>Estimated Investment:</strong> <span style="font-size: 16px; font-weight: 700; color: #0A3041;">${estimate}</span></p>
         </div>
         <p style="color: #475569; font-size: 13px; line-height: 1.5;">If you have any urgent requests, please contact our dispatch team at <a href="mailto:info@neweratransports.com" style="color: #C40000;">info@neweratransports.com</a> or call <strong>+234 916 791 9439</strong>.</p>
@@ -91,6 +99,11 @@ class EmailService {
     const quoteRef = payload.leadMetadata?.quoteReferenceNumber || 'NETS-LEAD'
     const journeyType = payload.journeyInformation?.journeyType || 'Standard Charter'
     const estimate = payload.estimatedInvestment?.total ? `₦${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` : '₦---,---'
+    const pickup = payload.journeyInformation?.pickup?.address || 'N/A'
+    const destination = payload.journeyInformation?.destination?.address || 'N/A'
+    const travelDateRaw = payload.journeyInformation?.travelDate
+    const travelDate = travelDateRaw ? new Date(travelDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'
+    const vehicle = payload.estimatedInvestment?.vehicleName || 'Standard Vehicle'
 
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
@@ -116,6 +129,9 @@ class EmailService {
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Client Email:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${customerEmail}</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Client Phone:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${customerPhone}</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Journey Type:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${journeyType}</td></tr>
+            <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Route:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${pickup} &rarr; ${destination}</td></tr>
+            <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Travel Date:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${travelDate}</td></tr>
+            <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Vehicle:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${vehicle}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569;">Estimated Value:</td><td style="padding: 6px 0; font-weight: bold; color: #0A3041; font-size: 16px;">${estimate}</td></tr>
           </table>
         </div>

@@ -260,8 +260,11 @@ export function CRMPage() {
                         <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{l.customerEmail}</div>
                       </td>
                       <td style={{ fontSize: 12 }}>
-                        <div>{l.journeyType || 'Standard Charter'}</div>
-                        <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>
+                        <div>
+                          <span style={{ fontWeight: 600 }}>{l.payload?.estimatedInvestment?.vehicleName || l.journeyType || 'Standard Charter'}</span>
+                          <span style={{ color: 'var(--adm-text-3)', marginLeft: 4 }}>• {l.payload?.journeyInformation?.travelDate ? new Date(l.payload.journeyInformation.travelDate).toLocaleDateString('en-NG', {day:'numeric', month:'short'}) : 'No date'}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--adm-text-3)', marginTop: 2 }}>
                           {l.origin ? `${l.origin.split(',')[0]} → ${l.destination?.split(',')[0] || ''}` : 'Charter Route'}
                         </div>
                       </td>
@@ -516,8 +519,16 @@ export function CRMPage() {
                   Journey & Logistics
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--adm-text-1)' }}>
-                  {selectedLead.journeyType || 'Standard Charter'}
+                  {selectedLead.payload?.estimatedInvestment?.vehicleName || selectedLead.journeyType || 'Standard Charter'}
                 </div>
+                
+                <div style={{ display: 'flex', gap: '0.5rem', fontSize: 12, marginTop: 4 }}>
+                  <Calendar size={14} color="var(--adm-accent)" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <div style={{ color: 'var(--adm-text-2)' }}>
+                    <strong style={{ color: 'var(--adm-text-1)' }}>Travel Date:</strong> {selectedLead.payload?.journeyInformation?.travelDate ? new Date(selectedLead.payload.journeyInformation.travelDate).toLocaleDateString('en-NG', {day:'numeric', month:'short', year:'numeric'}) : 'N/A'}
+                  </div>
+                </div>
+
                 <div style={{ display: 'flex', gap: '0.5rem', fontSize: 12 }}>
                   <MapPin size={14} color="var(--adm-accent)" style={{ flexShrink: 0, marginTop: 2 }} />
                   <div>
