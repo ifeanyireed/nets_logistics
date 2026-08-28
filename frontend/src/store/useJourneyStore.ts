@@ -447,13 +447,20 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         isPricingCalculating: false,
         pricingError: null,
       })
-    } catch (err) {
+    } catch (err: any) {
       console.error('Pricing calculation failed:', err)
+      
+      // If it's a database connection/configuration error, show it explicitly
+      let errorMessage = getPricingErrorMessage()
+      if (err.message && (err.message.includes('HTTP') || err.message.includes('database') || err.message.includes('Network'))) {
+        errorMessage = `Database Connection Error: ${err.message}`
+      }
+      
       set({
         estimatedInvestment: null,
         customerPricingView: null,
         isPricingCalculating: false,
-        pricingError: getPricingErrorMessage(),
+        pricingError: errorMessage,
       })
     }
   },

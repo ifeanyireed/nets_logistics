@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react'
 import { Save, RefreshCw, Info } from 'lucide-react'
 
-import { fetchPricingConfig, savePricingConfig, defaultPricingConfig, type PricingConfig } from '../../pricing/adminPricingConfig'
+import { fetchPricingConfig, savePricingConfig, type PricingConfig } from '../../pricing/adminPricingConfig'
 
 type VehicleTab = 'coaster' | 'hiace' | 'saloon'
 
@@ -50,26 +50,36 @@ const vehicleConfigFields = {
 }
 
 export function PricingAdminPage() {
-  const [config, setConfig] = useState<PricingConfig>(defaultPricingConfig)
+  const [config, setConfig] = useState<PricingConfig | null>(null)
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [history, setHistory] = useState<{ timestamp: string; config: PricingConfig }[]>([])
   const [activeTab, setActiveTab] = useState<VehicleTab>('hiace')
 
   useEffect(() => {
     let mounted = true
     setLoading(true)
-    fetchPricingConfig().then((data) => {
-      if (mounted) {
-        setConfig(data)
-        setLoading(false)
-      }
-    })
+    setError(null)
+    fetchPricingConfig()
+      .then((data) => {
+        if (mounted) {
+          setConfig(data)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        if (mounted) {
+          setError(err.message)
+          setLoading(false)
+        }
+      })
     return () => { mounted = false }
   }, [])
 
   const handleSave = async () => {
+    if (!config) return;
     setSaving(true)
     const result = await savePricingConfig(config)
     setSaving(false)
@@ -80,10 +90,6 @@ export function PricingAdminPage() {
     } else {
       alert(`Failed to save pricing configuration: ${result.error}\nPlease try again.`)
     }
-  }
-
-  const handleReset = () => {
-    setConfig({ ...defaultPricingConfig })
   }
 
   const fmtDate = (iso: string) => new Date(iso).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -102,7 +108,7 @@ export function PricingAdminPage() {
           className="admin-input"
           type="number"
           value={(config as any)[field.key]}
-          onChange={e => setConfig(c => ({ ...c, [field.key]: parseFloat(e.target.value) || 0 }))}
+          onChange={e => setConfig(c => c ? { ...c, [field.key]: parseFloat(e.target.value) || 0 } : null)}
           style={{ paddingLeft: field.prefix ? '1.75rem' : undefined, textAlign: 'right' }}
         />
         {field.suffix && (
@@ -114,6 +120,10 @@ export function PricingAdminPage() {
 
   const activeFields = vehicleConfigFields[activeTab]
 
+  if (loading) return <div style={{ padding: '2rem' }}>Loading pricing configuration from database...</div>;
+  if (error) return <div style={{ padding: '2rem', color: 'red' }}>Database Connection Error: {error}</div>;
+  if (!config) return null;
+
   return (
     <>
       <div className="admin-page-header">
@@ -122,7 +132,7 @@ export function PricingAdminPage() {
           <div className="admin-page-desc">All pricing values feed directly into the Journey Planner engine based on the established spreadsheet calculations. Changes take effect immediately.</div>
         </div>
         <div className="admin-page-actions">
-          <button className="admin-btn admin-btn-ghost" onClick={handleReset}><RefreshCw size={13} /> Reset Defaults</button>
+          
           <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving || loading}><Save size={13} /> {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save Changes'}</button>
         </div>
       </div>
