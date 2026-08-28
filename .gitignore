@@ -4,8 +4,6 @@ dist-ssr/
 *.local
 *.tsbuildinfo
 
-backend/
-
 # Secrets & Environment
 .env
 .env.*
@@ -28,3 +26,7 @@ pnpm-debug.log*
 *.ntvs*
 *.njsproj
 *.sln
+
+# Backend ignores
+backend/server
+backend/tmp/
