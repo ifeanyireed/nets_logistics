@@ -23,7 +23,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { useAdminStore, type AdminCustomer } from '../store/useAdminStore'
-import { adminService } from '../services/adminService'
+import { adminService, type AdminLead } from '../services/adminService'
 
 const fmtCurrency = (n: number) => `₦${Math.round(n).toLocaleString('en-NG')}`
 
@@ -40,7 +40,7 @@ const fmtDate = (iso: string) => {
 }
 
 export function CustomersPage() {
-  const { quotes, bookings, customers: storeCustomers, addCustomerNote } = useAdminStore()
+  const { quotes, bookings, addCustomerNote } = useAdminStore()
   const [dbCustomers, setDbCustomers] = useState<AdminCustomer[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -53,12 +53,20 @@ export function CustomersPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
+  const [dbQuotes, setDbQuotes] = useState<AdminLead[]>([])
+  const [dbBookings, setDbBookings] = useState<any[]>([])
+
   const loadCustomers = () => {
     setLoading(true)
-    adminService
-      .getCustomers()
-      .then((list) => {
-        setDbCustomers((list || []) as AdminCustomer[])
+    Promise.all([
+      adminService.getCustomers(),
+      adminService.getLeads(),
+      adminService.getBookings()
+    ])
+      .then(([custList, leadsList, bookingsList]) => {
+        setDbCustomers((custList || []) as AdminCustomer[])
+        setDbQuotes(leadsList || [])
+        setDbBookings(bookingsList || [])
         setLoading(false)
       })
       .catch(() => {
@@ -75,12 +83,10 @@ export function CustomersPage() {
     setCurrentPage(1)
   }, [search, typeFilter, pageSize])
 
-  // Combine DB customers with store mock/seed customers without duplicate IDs
+  // Use DB customers directly
   const allCustomers: AdminCustomer[] = useMemo(() => {
-    const dbIds = new Set(dbCustomers.map((c) => c.id.toLowerCase()))
-    const uniqueStoreCustomers = storeCustomers.filter((c) => !dbIds.has(c.id.toLowerCase()))
-    return [...dbCustomers, ...uniqueStoreCustomers]
-  }, [dbCustomers, storeCustomers])
+    return [...dbCustomers]
+  }, [dbCustomers])
 
   const filteredCustomers = useMemo(() => {
     return allCustomers.filter((c) => {
@@ -144,22 +150,22 @@ export function CustomersPage() {
   // Linked quotes & bookings for selected customer
   const customerQuotes = useMemo(() => {
     if (!selectedCustomer) return []
-    return quotes.filter(
+    return dbQuotes.filter(
       (q) =>
-        q.customerId === selectedCustomer.id ||
+        q.id === selectedCustomer.id ||
         q.customerEmail.toLowerCase() === selectedCustomer.email.toLowerCase() ||
         q.customerName.toLowerCase() === selectedCustomer.fullName.toLowerCase()
     )
-  }, [selectedCustomer, quotes])
+  }, [selectedCustomer, dbQuotes])
 
   const customerBookings = useMemo(() => {
     if (!selectedCustomer) return []
-    return bookings.filter(
+    return dbBookings.filter(
       (b) =>
         b.customerId === selectedCustomer.id ||
         b.customerName.toLowerCase() === selectedCustomer.fullName.toLowerCase()
     )
-  }, [selectedCustomer, bookings])
+  }, [selectedCustomer, dbBookings])
 
   return (
     <>
@@ -718,10 +724,10 @@ export function CustomersPage() {
                           }}
                         >
                           <span style={{ fontFamily: 'monospace', color: 'var(--adm-accent)', fontWeight: 600 }}>
-                            {q.reference}
+                            {q.leadReference}
                           </span>
-                          <span>{q.vehicleName}</span>
-                          <span style={{ fontWeight: 600 }}>{fmtCurrency(q.estimatedInvestment)}</span>
+                          <span>{q.journeyType || 'Charter'}</span>
+                          <span style={{ fontWeight: 600 }}>{fmtCurrency(q.estimatedInvestmentMax || q.estimatedInvestmentMin || 0)}</span>
                           <span className="admin-badge admin-badge-gray" style={{ textTransform: 'capitalize' }}>
                             {q.status}
                           </span>
