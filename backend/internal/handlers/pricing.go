@@ -54,13 +54,23 @@ func (h *PricingHandler) UpdateConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newConfig := models.PricingConfig{
-		ConfigJSON: string(jsonBytes),
-	}
-
-	if err := database.DB.Create(&newConfig).Error; err != nil {
-		response.Error(w, http.StatusInternalServerError, "Failed to save pricing config")
-		return
+	// Try to update the latest configuration instead of creating a new row every time
+	var existing models.PricingConfig
+	if err := database.DB.Order("id desc").First(&existing).Error; err == nil {
+		existing.ConfigJSON = string(jsonBytes)
+		if err := database.DB.Save(&existing).Error; err != nil {
+			response.Error(w, http.StatusInternalServerError, "Failed to update pricing config")
+			return
+		}
+	} else {
+		// If no config exists yet, create the first one
+		newConfig := models.PricingConfig{
+			ConfigJSON: string(jsonBytes),
+		}
+		if err := database.DB.Create(&newConfig).Error; err != nil {
+			response.Error(w, http.StatusInternalServerError, "Failed to save pricing config")
+			return
+		}
 	}
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{
