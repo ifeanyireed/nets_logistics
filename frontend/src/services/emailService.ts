@@ -26,7 +26,7 @@ class EmailService {
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="text-align: center; margin-bottom: 24px;">
-          <img src="https://netsnigeria.com/favicon.svg" alt="NETS Favicon" style="display: block; margin: 0 auto 12px auto; width: 48px; height: 48px;" />
+          <img src="https://neweratransports.com/logo.png" alt="NETS Logo" style="display: block; margin: 0 auto 16px auto; height: 44px; width: auto;" />
           <h1 style="color: #0A3041; margin: 0; font-size: 24px;">NEW ERA TRANSPORT SERVICES</h1>
           <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 12px; letter-spacing: 0.1em;">Enterprise Logistics & Charters</p>
         </div>
@@ -87,7 +87,7 @@ class EmailService {
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="text-align: center; margin-bottom: 24px;">
-          <img src="https://netsnigeria.com/favicon.svg" alt="NETS Favicon" style="display: block; margin: 0 auto 12px auto; width: 48px; height: 48px;" />
+          <img src="https://neweratransports.com/logo.png" alt="NETS Logo" style="display: block; margin: 0 auto 16px auto; height: 44px; width: auto;" />
           <h1 style="color: #0A3041; margin: 0; font-size: 24px;">NEW ERA TRANSPORT SERVICES</h1>
           <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 12px; letter-spacing: 0.1em;">Enterprise Logistics & Charters</p>
         </div>
@@ -159,7 +159,7 @@ class EmailService {
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="text-align: center; margin-bottom: 24px;">
-          <img src="https://netsnigeria.com/favicon.svg" alt="NETS Favicon" style="display: block; margin: 0 auto 12px auto; width: 48px; height: 48px;" />
+          <img src="https://neweratransports.com/logo.png" alt="NETS Logo" style="display: block; margin: 0 auto 16px auto; height: 44px; width: auto;" />
           <h1 style="color: #0A3041; margin: 0; font-size: 24px;">NEW ERA TRANSPORT SERVICES</h1>
           <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 12px; letter-spacing: 0.1em;">Enterprise Logistics & Charters</p>
         </div>
@@ -228,7 +228,7 @@ class EmailService {
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="text-align: center; margin-bottom: 24px;">
-          <img src="https://netsnigeria.com/favicon.svg" alt="NETS Favicon" style="display: block; margin: 0 auto 12px auto; width: 48px; height: 48px;" />
+          <img src="https://neweratransports.com/logo.png" alt="NETS Logo" style="display: block; margin: 0 auto 16px auto; height: 44px; width: auto;" />
           <h1 style="color: #0A3041; margin: 0; font-size: 24px;">NEW ERA TRANSPORT SERVICES</h1>
           <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 12px; letter-spacing: 0.1em;">Enterprise Logistics & Charters</p>
         </div>
