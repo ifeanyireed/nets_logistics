@@ -1,5 +1,5 @@
 // ============================================================================
-// NETS Enterprise Lead Management — Email Service
+// NETS Enterprise Lead Management - Email Service
 // ============================================================================
 // Dispatches transactional and notification emails via the PHP Email Proxy API
 // hosted on mail.neweratransports.com (bypassing cloud SMTP restrictions).
@@ -16,12 +16,17 @@ class EmailService {
     const customerName = payload.customerInformation?.name || 'Valued Customer'
     const quoteRef = payload.leadMetadata?.quoteReferenceNumber || 'NETS-QUOTE'
     const journeyType = payload.journeyInformation?.journeyType || 'Charter Journey'
-    const estimate = payload.estimatedInvestment?.total ? `₦${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` : '₦---,---'
+    const estimate = payload.estimatedInvestment?.total ? `NGN ${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` : 'NGN ---,---'
     const pickup = payload.journeyInformation?.pickup?.address || 'N/A'
     const destination = payload.journeyInformation?.destination?.address || 'N/A'
     const travelDateRaw = payload.journeyInformation?.travelDate
     const travelDate = travelDateRaw ? new Date(travelDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'
+    const returnDateRaw = payload.journeyInformation?.returnDate
+    const returnDate = returnDateRaw ? new Date(returnDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'
     const vehicle = payload.estimatedInvestment?.vehicleName || 'Standard Vehicle'
+    const pax = payload.journeyInformation?.passengerCount || 'N/A'
+    const tripType = payload.journeyInformation?.tripType || 'One-Way'
+    const schedule = tripType === 'One-Way' ? travelDate : `${travelDate} to ${returnDate}`
 
     if (!customerEmail) {
       console.warn('[EMAIL SERVICE] Customer email missing, skipping dispatch.')
@@ -34,7 +39,7 @@ class EmailService {
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
               <td style="padding-right: 12px; vertical-align: middle;">
-                <img src="https://neweratransports.com/favicon.png" alt="NETS" style="display: block; width: 44px; height: 44px;" />
+                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
               </td>
               <td style="vertical-align: middle; text-align: left;">
                 <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
@@ -47,10 +52,11 @@ class EmailService {
         <p style="color: #475569; line-height: 1.6;">We have received your journey quote request. A transport specialist has been assigned to your itinerary.</p>
         <div style="background: #F8FAFC; border-left: 4px solid #C40000; padding: 16px; margin: 20px 0; border-radius: 4px;">
           <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Quote Reference:</strong> <code style="color: #C40000;">${quoteRef}</code></p>
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Service Type:</strong> ${journeyType}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Service Type:</strong> ${journeyType} (${tripType})</p>
           <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Route:</strong> ${pickup} &rarr; ${destination}</p>
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Travel Date:</strong> ${travelDate}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Schedule:</strong> ${schedule}</p>
           <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Vehicle Category:</strong> ${vehicle}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Passengers:</strong> ${pax}</p>
           <p style="margin: 0; font-size: 14px;"><strong>Estimated Investment:</strong> <span style="font-size: 16px; font-weight: 700; color: #0A3041;">${estimate}</span></p>
         </div>
         <p style="color: #475569; font-size: 13px; line-height: 1.5;">If you have any urgent requests, please contact our dispatch team at <a href="mailto:info@neweratransports.com" style="color: #C40000;">info@neweratransports.com</a> or call <strong>+234 916 791 9439</strong>.</p>
@@ -70,7 +76,7 @@ class EmailService {
         },
         body: JSON.stringify({
           to: customerEmail,
-          subject: `Your Journey Quotation Request [${quoteRef}] — NETS`,
+          subject: `Your Journey Quotation Request [${quoteRef}] - NETS`,
           html: htmlBody,
           text: `Thank you ${customerName}. We have received your journey quote request ${quoteRef}. Estimated Investment: ${estimate}.`,
           from: 'hello@neweratransports.com',
@@ -98,12 +104,17 @@ class EmailService {
     const customerPhone = payload.customerInformation?.phone || 'N/A'
     const quoteRef = payload.leadMetadata?.quoteReferenceNumber || 'NETS-LEAD'
     const journeyType = payload.journeyInformation?.journeyType || 'Standard Charter'
-    const estimate = payload.estimatedInvestment?.total ? `₦${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` : '₦---,---'
+    const estimate = payload.estimatedInvestment?.total ? `NGN ${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` : 'NGN ---,---'
     const pickup = payload.journeyInformation?.pickup?.address || 'N/A'
     const destination = payload.journeyInformation?.destination?.address || 'N/A'
     const travelDateRaw = payload.journeyInformation?.travelDate
     const travelDate = travelDateRaw ? new Date(travelDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'
+    const returnDateRaw = payload.journeyInformation?.returnDate
+    const returnDate = returnDateRaw ? new Date(returnDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'
     const vehicle = payload.estimatedInvestment?.vehicleName || 'Standard Vehicle'
+    const pax = payload.journeyInformation?.passengerCount || 'N/A'
+    const tripType = payload.journeyInformation?.tripType || 'One-Way'
+    const schedule = tripType === 'One-Way' ? travelDate : `${travelDate} to ${returnDate}`
 
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
@@ -111,7 +122,7 @@ class EmailService {
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
               <td style="padding-right: 12px; vertical-align: middle;">
-                <img src="https://neweratransports.com/favicon.png" alt="NETS" style="display: block; width: 44px; height: 44px;" />
+                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
               </td>
               <td style="vertical-align: middle; text-align: left;">
                 <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
@@ -128,10 +139,11 @@ class EmailService {
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Client Name:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${customerName}</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Client Email:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${customerEmail}</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Client Phone:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${customerPhone}</td></tr>
-            <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Journey Type:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${journeyType}</td></tr>
+            <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Journey Type:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${journeyType} (${tripType})</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Route:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${pickup} &rarr; ${destination}</td></tr>
-            <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Travel Date:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${travelDate}</td></tr>
+            <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Schedule:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${schedule}</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Vehicle:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${vehicle}</td></tr>
+            <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Passengers:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${pax}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569;">Estimated Value:</td><td style="padding: 6px 0; font-weight: bold; color: #0A3041; font-size: 16px;">${estimate}</td></tr>
           </table>
         </div>
@@ -155,7 +167,7 @@ class EmailService {
           },
           body: JSON.stringify({
             to: recipient,
-            subject: `[NEW LEAD] ${customerName} — ${quoteRef}`,
+            subject: `[NEW LEAD] ${customerName} - ${quoteRef}`,
             html: htmlBody,
             text: `New Lead: ${customerName} (${customerEmail}, ${customerPhone}). Ref: ${quoteRef}. Estimate: ${estimate}.`,
             from: 'hello@neweratransports.com',
@@ -185,7 +197,7 @@ class EmailService {
     const amount = booking.totalAmount || booking.estimatedInvestment?.total || 0
     const paymentStatus = booking.paymentStatus || booking.paymentInformation?.status || 'Confirmed'
 
-    const fmtAmount = `₦${Math.round(amount).toLocaleString('en-NG')}`
+    const fmtAmount = `NGN ${Math.round(amount).toLocaleString('en-NG')}`
     const fmtDate = new Date(travelDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 
     const htmlBody = `
@@ -194,7 +206,7 @@ class EmailService {
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
               <td style="padding-right: 12px; vertical-align: middle;">
-                <img src="https://neweratransports.com/favicon.png" alt="NETS" style="display: block; width: 44px; height: 44px;" />
+                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
               </td>
               <td style="vertical-align: middle; text-align: left;">
                 <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
@@ -243,7 +255,7 @@ class EmailService {
           },
           body: JSON.stringify({
             to: recipient,
-            subject: `[NEW ORDER] ${bookingRef} — ${customerName} (${fmtAmount})`,
+            subject: `[NEW ORDER] ${bookingRef} - ${customerName} (${fmtAmount})`,
             html: htmlBody,
             text: `New Booking Order ${bookingRef} by ${customerName}. Vehicle: ${vehicle}. Route: ${pickup} to ${destination}. Total: ${fmtAmount}.`,
             from: 'hello@neweratransports.com',
@@ -271,7 +283,7 @@ class EmailService {
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
               <td style="padding-right: 12px; vertical-align: middle;">
-                <img src="https://neweratransports.com/favicon.png" alt="NETS" style="display: block; width: 44px; height: 44px;" />
+                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
               </td>
               <td style="vertical-align: middle; text-align: left;">
                 <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
