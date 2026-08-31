@@ -49,7 +49,7 @@ export function HeroSection() {
     if (!pickup) newErrors.push('pickup')
     if (!destination) newErrors.push('destination')
     if (!travelDate) newErrors.push('travelDate')
-    if ((tripType === 'Return' || tripType === 'Multi-Day') && !returnDate) newErrors.push('returnDate')
+    if ((tripType === 'To & Fro' || tripType === 'Return' || tripType === 'Multi-Day') && !returnDate) newErrors.push('returnDate')
     if (!passengers || passengers === 'Select Passengers') newErrors.push('passengers')
 
     if (newErrors.length > 0) {
@@ -257,7 +257,7 @@ export function HeroSection() {
                 <label className="field-label-dark" id="hero-trip-lbl">Trip Type</label>
                 <div role="radiogroup" aria-labelledby="hero-trip-lbl"
                   style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '2px' }}>
-                  {['One Way', 'Return', 'Multi-Day'].map((t, i) => (
+                  {['Drop-Off', 'To & Fro', 'Multi-Day'].map((t, i) => (
                     <label key={t} style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       padding: '0.5rem 0', fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer',
@@ -275,7 +275,7 @@ export function HeroSection() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
                   <label htmlFor="hero-date" className="field-label-dark">
-                    {tripType === 'Return' ? 'Departure Date' : (tripType === 'Multi-Day' ? 'Start Date' : 'Travel Date')}
+                    {tripType === 'To & Fro' || tripType === 'Return' ? 'Departure Date' : (tripType === 'Multi-Day' ? 'Start Date' : 'Travel Date')}
                   </label>
                   <input 
                     id="hero-date" 
@@ -288,7 +288,7 @@ export function HeroSection() {
                   {errors.includes('travelDate') && <span style={{ color: 'var(--color-nets-red)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>Required</span>}
                 </div>
 
-                {(tripType === 'Return' || tripType === 'Multi-Day') ? (
+                {(tripType === 'To & Fro' || tripType === 'Return' || tripType === 'Multi-Day') ? (
                   <div>
                     <label htmlFor="hero-return-date" className="field-label-dark">
                       {tripType === 'Multi-Day' ? 'End Date' : 'Return Date'}
@@ -321,7 +321,7 @@ export function HeroSection() {
                 )}
               </div>
 
-              {(tripType === 'Return' || tripType === 'Multi-Day') ? (
+              {(tripType === 'To & Fro' || tripType === 'Return' || tripType === 'Multi-Day') ? (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
                     <label htmlFor="hero-pax-2" className="field-label-dark">Passengers</label>

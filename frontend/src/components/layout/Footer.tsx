@@ -120,16 +120,17 @@ export function Footer() {
           </p>
           <div style={{ display: 'flex', gap: '0.25rem' }}>
             {[
-              { label: 'Privacy Policy', href: '#' },
-              { label: 'Terms',          href: '#' },
+              { label: 'Privacy Policy',   href: '/privacy' },
+              { label: 'Terms of Service', href: '/terms' },
+              { label: 'Cookie Policy',    href: '/cookies' },
             ].map((l, i) => (
               <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 {i > 0 && <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.75rem' }}>·</span>}
-                <a href={l.href} style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.25)', transition: 'color 0.15s' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.25)')}>
+                <Link to={l.href} style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#ffffff')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>
                   {l.label}
-                </a>
+                </Link>
               </span>
             ))}
           </div>

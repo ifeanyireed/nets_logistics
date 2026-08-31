@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Search, Users, DollarSign, Filter, CheckCircle2, Clock, Phone, Mail, MapPin, Calendar, FileText, ArrowRight, X, RefreshCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { Search, Users, DollarSign, Filter, CheckCircle2, Clock, Phone, Mail, MapPin, Calendar, FileText, ArrowRight, X, RefreshCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Copy, Check, ExternalLink, Truck, CreditCard } from 'lucide-react'
 import { adminService, type AdminLead } from '../services/adminService'
 import { useAdminStore } from '../store/useAdminStore'
 
@@ -28,6 +28,10 @@ export function CRMPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedLead, setSelectedLead] = useState<AdminLead | null>(null)
+  const [noteInput, setNoteInput] = useState('')
+  const [noteSaved, setNoteSaved] = useState(false)
+  const [savingNote, setSavingNote] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -37,6 +41,28 @@ export function CRMPage() {
   const { session } = useAdminStore()
   const isAdmin = session.user?.role === 'admin' || session.user?.role === 'super-admin'
   const canAssign = isAdmin || session.user?.role === 'staff'
+
+  const handleCopyPaymentLink = (leadRefOrId: string | number) => {
+    const url = `${window.location.origin}/pay/${leadRefOrId}`
+    navigator.clipboard.writeText(url)
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2500)
+  }
+
+  const handleSaveNote = async () => {
+    if (!selectedLead) return
+    setSavingNote(true)
+    const success = await adminService.updateLeadNotes(selectedLead.id, noteInput)
+    setSavingNote(false)
+    if (success) {
+      setLeads(prev => prev.map(l => l.id === selectedLead.id ? { ...l, notes: noteInput } : l))
+      setSelectedLead(prev => prev ? { ...prev, notes: noteInput } : null)
+      setNoteSaved(true)
+      setTimeout(() => setNoteSaved(false), 2500)
+    } else {
+      alert('Failed to save note. Please try again.')
+    }
+  }
 
   const loadLeads = () => {
     setLoading(true)
@@ -248,7 +274,11 @@ export function CRMPage() {
                     <tr
                       key={l.id || l.leadReference}
                       style={{ cursor: 'pointer' }}
-                      onClick={() => setSelectedLead(l)}
+                      onClick={() => {
+                        setSelectedLead(l)
+                        setNoteInput(l.notes || '')
+                        setNoteSaved(false)
+                      }}
                     >
                       <td>
                         <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--adm-text-2)', fontWeight: 600 }}>
@@ -258,6 +288,12 @@ export function CRMPage() {
                       <td>
                         <div style={{ fontWeight: 600, fontSize: 13 }}>{l.customerName}</div>
                         <div style={{ fontSize: 11, color: 'var(--adm-text-3)' }}>{l.customerEmail}</div>
+                        {l.notes && (
+                          <div title={l.notes} style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: 'var(--adm-accent)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>
+                            <FileText size={11} style={{ flexShrink: 0 }} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.notes}</span>
+                          </div>
+                        )}
                       </td>
                       <td style={{ fontSize: 12 }}>
                         <div>
@@ -514,28 +550,193 @@ export function CRMPage() {
               </div>
 
               {/* Journey Details Card */}
-              <div style={{ background: 'var(--adm-surface-2)', padding: '1rem', borderRadius: 'var(--adm-radius-sm)', border: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-text-3)', letterSpacing: '0.05em', marginBottom: 2 }}>
-                  Journey & Logistics
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--adm-text-1)' }}>
-                  {selectedLead.payload?.estimatedInvestment?.vehicleName || selectedLead.journeyType || 'Standard Charter'}
-                </div>
-                
-                <div style={{ display: 'flex', gap: '0.5rem', fontSize: 12, marginTop: 4 }}>
-                  <Calendar size={14} color="var(--adm-accent)" style={{ flexShrink: 0, marginTop: 2 }} />
-                  <div style={{ color: 'var(--adm-text-2)' }}>
-                    <strong style={{ color: 'var(--adm-text-1)' }}>Travel Date:</strong> {selectedLead.payload?.journeyInformation?.travelDate ? new Date(selectedLead.payload.journeyInformation.travelDate).toLocaleDateString('en-NG', {day:'numeric', month:'short', year:'numeric'}) : 'N/A'}
+              <div style={{ background: 'var(--adm-surface-2)', padding: '1rem', borderRadius: 'var(--adm-radius-sm)', border: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-text-3)', letterSpacing: '0.05em' }}>
+                    Journey & Fleet Logistics
                   </div>
+                  <span className="admin-badge admin-badge-accent" style={{ fontSize: 10 }}>
+                    {selectedLead.payload?.journeyInformation?.tripType || selectedLead.payload?.tripType || selectedLead.journeyType || 'Drop-Off'}
+                  </span>
                 </div>
 
+                {/* Explicit Vehicle Type Section */}
+                <div style={{ background: '#ffffff', padding: '0.75rem 0.875rem', borderRadius: '4px', border: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-text-3)', letterSpacing: '0.05em' }}>
+                    Assigned Vehicle Type(s)
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 13, fontWeight: 700, color: 'var(--adm-text-1)' }}>
+                    <Truck size={16} color="var(--adm-accent)" style={{ flexShrink: 0 }} />
+                    <span>
+                      {selectedLead.payload?.estimatedInvestment?.vehicleName ||
+                       selectedLead.payload?.vehicleDetails?.vehicleName ||
+                       selectedLead.payload?.journeyInformation?.selectedVehicle ||
+                       selectedLead.payload?.journeyInformation?.recommendedVehicle ||
+                       selectedLead.payload?.journeyInformation?.vehicleCategory ||
+                       selectedLead.payload?.vehicleName ||
+                       (selectedLead.journeyType && !['One-Way', 'Drop-Off', 'To & Fro', 'Return', 'Multi-Day'].includes(selectedLead.journeyType) ? selectedLead.journeyType : null) ||
+                       'Toyota HiAce (14 Seater)'}
+                    </span>
+                  </div>
+
+                  {Array.isArray(selectedLead.payload?.journeyInformation?.additionalVehicles) && selectedLead.payload.journeyInformation.additionalVehicles.length > 0 && (
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 2, marginLeft: '1.5rem' }}>
+                      {selectedLead.payload.journeyInformation.additionalVehicles.map((v: string, idx: number) => (
+                        <span key={idx} style={{ background: 'rgba(26, 31, 168, 0.08)', color: 'var(--adm-accent)', padding: '2px 6px', borderRadius: 3, fontSize: 11, fontWeight: 600 }}>
+                          + {v}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {(selectedLead.payload?.journeyInformation?.passengerCount || selectedLead.payload?.passengerCount) && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--adm-text-2)', marginTop: 2, marginLeft: '1.5rem' }}>
+                      <Users size={11} />
+                      <span>{selectedLead.payload?.journeyInformation?.passengerCount || selectedLead.payload?.passengerCount} Passengers Group</span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Travel Date and Time */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 12 }}>
+                    <Calendar size={14} color="var(--adm-accent)" style={{ flexShrink: 0 }} />
+                    <div style={{ color: 'var(--adm-text-2)' }}>
+                      <strong style={{ color: 'var(--adm-text-1)' }}>Travel Date:</strong>{' '}
+                      {selectedLead.payload?.journeyInformation?.travelDate 
+                        ? new Date(selectedLead.payload.journeyInformation.travelDate).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) 
+                        : (selectedLead.createdAt ? new Date(selectedLead.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Flexible')}
+                      {selectedLead.payload?.journeyInformation?.departureTime && (
+                        <span style={{ marginLeft: 6, color: 'var(--adm-text-1)', fontWeight: 600 }}>
+                          • {selectedLead.payload.journeyInformation.departureTime}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {selectedLead.payload?.journeyInformation?.returnDate && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, marginLeft: '1.4rem', color: 'var(--adm-text-2)' }}>
+                      <Clock size={12} color="var(--adm-accent)" />
+                      <span>
+                        <strong style={{ color: 'var(--adm-text-1)' }}>Return:</strong>{' '}
+                        {new Date(selectedLead.payload.journeyInformation.returnDate).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                        {selectedLead.payload?.journeyInformation?.returnTime ? ` at ${selectedLead.payload.journeyInformation.returnTime}` : ''}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Route */}
                 <div style={{ display: 'flex', gap: '0.5rem', fontSize: 12 }}>
                   <MapPin size={14} color="var(--adm-accent)" style={{ flexShrink: 0, marginTop: 2 }} />
                   <div>
                     <div style={{ color: 'var(--adm-text-2)' }}><strong style={{ color: 'var(--adm-text-1)' }}>From:</strong> {selectedLead.origin || 'Lagos'}</div>
-                    <div style={{ color: 'var(--adm-text-2)', marginTop: 4 }}><strong style={{ color: 'var(--adm-text-1)' }}>To:</strong> {selectedLead.destination || 'Lagos'}</div>
+                    <div style={{ color: 'var(--adm-text-2)', marginTop: 2 }}><strong style={{ color: 'var(--adm-text-1)' }}>To:</strong> {selectedLead.destination || 'Lagos'}</div>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Sharable Payment Link Card */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, rgba(26, 31, 168, 0.04) 0%, rgba(13, 16, 96, 0.08) 100%)',
+                padding: '1rem 1.25rem',
+                borderRadius: 'var(--adm-radius-sm)',
+                border: '1px solid rgba(26, 31, 168, 0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.625rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-accent)', letterSpacing: '0.05em' }}>
+                  <CreditCard size={14} />
+                  <span>Sharable Client Payment Link</span>
+                </div>
+                {linkCopied && <span style={{ fontSize: 11, color: 'var(--adm-success)', fontWeight: 600 }}>✓ Link Copied to Clipboard</span>}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  readOnly
+                  className="admin-input"
+                  value={`${window.location.origin}/pay/${selectedLead.leadReference || selectedLead.id}`}
+                  style={{ background: '#ffffff', fontSize: 12, fontFamily: 'monospace', color: 'var(--adm-text-1)' }}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleCopyPaymentLink(selectedLead.leadReference || selectedLead.id)}
+                  className="admin-btn admin-btn-secondary admin-btn-sm"
+                  style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}
+                >
+                  {linkCopied ? <Check size={13} color="var(--adm-success)" /> : <Copy size={13} />}
+                  <span>{linkCopied ? 'Copied' : 'Copy Link'}</span>
+                </button>
+                <a
+                  href={`/pay/${selectedLead.leadReference || selectedLead.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}
+                  title="Open client payment checkout in new tab"
+                >
+                  <ExternalLink size={13} />
+                  <span>Open</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Sales Closer Notes & Follow-up Section */}
+            <div
+              style={{
+                background: 'var(--adm-surface-2)',
+                padding: '1rem 1.25rem',
+                borderRadius: 'var(--adm-radius-sm)',
+                border: '1px solid var(--adm-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.625rem',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--adm-text-3)',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  <FileText size={13} color="var(--adm-accent)" />
+                  <span>Sales Closer Notes & Follow-up Remarks</span>
+                </div>
+                {noteSaved && <span style={{ color: 'var(--adm-success)', textTransform: 'none', fontWeight: 600 }}>✓ Note saved successfully</span>}
+              </div>
+              <textarea
+                className="admin-textarea"
+                rows={3}
+                value={noteInput}
+                onChange={(e) => setNoteInput(e.target.value)}
+                placeholder="Add sales notes, call summaries, customer budget, objection handling, or follow-up schedule..."
+                style={{ background: '#ffffff', fontSize: 13, resize: 'vertical' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-primary admin-btn-sm"
+                  onClick={handleSaveNote}
+                  disabled={savingNote}
+                  style={{ fontSize: 12 }}
+                >
+                  {savingNote ? 'Saving...' : 'Save Note'}
+                </button>
               </div>
             </div>
 
@@ -574,7 +775,7 @@ export function CRMPage() {
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <a
-                  href={`mailto:${selectedLead.customerEmail}?subject=NETS Logistics Quote Reference ${selectedLead.leadReference}`}
+                  href={`mailto:${selectedLead.customerEmail}?subject=NETS Logistics Quote Reference ${selectedLead.leadReference}&body=Hello ${selectedLead.customerName},%0D%0A%0D%0AYour official quote (${selectedLead.leadReference}) is ready.%0D%0A%0D%0APlease review your journey details and complete payment securely via the link below:%0D%0A${window.location.origin}/pay/${selectedLead.leadReference || selectedLead.id}%0D%0A%0D%0ABest regards,%0D%0ANETS Dispatch Team`}
                   className="admin-btn admin-btn-ghost admin-btn-sm"
                 >
                   <Mail size={13} /> Email Client

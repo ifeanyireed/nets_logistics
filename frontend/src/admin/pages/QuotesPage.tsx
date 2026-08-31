@@ -19,6 +19,10 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Plus,
+  Copy,
+  ExternalLink,
+  CreditCard,
+  Truck,
 } from 'lucide-react'
 import { useAdminStore, type AdminQuote } from '../store/useAdminStore'
 import { adminService, type AdminLead } from '../services/adminService'
@@ -70,10 +74,26 @@ export function QuotesPage() {
   const [selectedQuote, setSelectedQuote] = useState<AdminQuote | null>(null)
   const [noteInput, setNoteInput] = useState('')
   const [noteSaved, setNoteSaved] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createForm, setCreateForm] = useState({
-    name: '', email: '', phone: '', vehicle: '', origin: '', destination: '', investment: 0
+    name: '',
+    email: '',
+    phone: '',
+    vehicle: 'Toyota HiAce',
+    origin: '',
+    destination: '',
+    travelDate: '',
+    tripType: 'Drop-Off',
+    investment: 0,
   })
+
+  const handleCopyPaymentLink = (reference: string) => {
+    const url = `${window.location.origin}/pay/${reference}`
+    navigator.clipboard.writeText(url)
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2500)
+  }
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -111,14 +131,14 @@ export function QuotesPage() {
   const allQuotes: AdminQuote[] = useMemo(() => {
     const liveItems: AdminQuote[] = liveLeads.map((l) => ({
       id: String(l.id),
-      reference: l.leadReference || `NETS-LEAD-${l.id}`,
+      reference: l.leadReference || `NETS-${l.id}`,
       customerName: l.customerName || 'Valued Customer',
       customerEmail: l.customerEmail || 'N/A',
       customerPhone: l.customerPhone || 'N/A',
       customerId: 'cust-gen',
       vehicleId: 'veh-gen',
       vehicleName: l.journeyType || 'Standard Vehicle',
-      tripType: (l.journeyType || 'One-Way') as any,
+      tripType: (l.journeyType || 'Drop-Off') as any,
       pickup: l.origin || 'N/A',
       destination: l.destination || 'N/A',
       distanceKm: 0,
@@ -128,7 +148,7 @@ export function QuotesPage() {
       estimatedInvestment: l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0,
       status: (l.status === 'pending' ? 'new' : ['won', 'Paid & Confirmed'].includes(l.status) ? 'converted' : l.status) as any,
       createdAt: l.createdAt,
-      notes: '',
+      notes: l.notes || '',
     }))
 
     const liveRefs = new Set(liveItems.map((item) => item.reference.toLowerCase()))
@@ -138,62 +158,32 @@ export function QuotesPage() {
 
   const filteredQuotes = useMemo(() => {
     return allQuotes.filter((q) => {
-      const name = String(q.customerName || '').toLowerCase()
-      const email = String(q.customerEmail || '').toLowerCase()
-      const ref = String(q.reference || '').toLowerCase()
-      const pickup = String(q.pickup || '').toLowerCase()
-      const destination = String(q.destination || '').toLowerCase()
-      const vehicle = String(q.vehicleName || '').toLowerCase()
-      const term = search.trim().toLowerCase()
-
-      const matchSearch =
-        !term ||
-        name.includes(term) ||
-        email.includes(term) ||
-        ref.includes(term) ||
-        pickup.includes(term) ||
-        destination.includes(term) ||
-        vehicle.includes(term)
-
-      if (statusFilter === 'all') return matchSearch
-
-      const quoteSt = String(q.status || '').toLowerCase()
-      const filtSt = statusFilter.toLowerCase()
-
-      if (filtSt === 'pending' || filtSt === 'new') {
-        return matchSearch && (quoteSt === 'pending' || quoteSt === 'new')
+      if (statusFilter !== 'all' && q.status !== statusFilter) return false
+      if (search.trim()) {
+        const q_ = search.toLowerCase()
+        return (
+          q.customerName.toLowerCase().includes(q_) ||
+          q.customerEmail.toLowerCase().includes(q_) ||
+          q.reference.toLowerCase().includes(q_) ||
+          q.vehicleName.toLowerCase().includes(q_) ||
+          q.pickup.toLowerCase().includes(q_) ||
+          q.destination.toLowerCase().includes(q_)
+        )
       }
-      if (filtSt === 'approved') {
-        return matchSearch && quoteSt === 'approved'
-      }
-      if (filtSt === 'converted' || filtSt === 'won') {
-        return matchSearch && (quoteSt === 'converted' || quoteSt === 'won' || quoteSt.includes('paid'))
-      }
-      return matchSearch && quoteSt === filtSt
+      return true
     })
-  }, [allQuotes, search, statusFilter])
+  }, [allQuotes, statusFilter, search])
 
   // Pagination calculations
   const totalItems = filteredQuotes.length
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
   const safePage = Math.min(currentPage, totalPages)
   const startIndex = (safePage - 1) * pageSize
-  const endIndex = Math.min(totalItems, startIndex + pageSize)
-  const paginatedQuotes = filteredQuotes.slice(startIndex, endIndex)
+  const endIndex = Math.min(startIndex + pageSize, totalItems)
+  const paginatedQuotes = useMemo(() => {
+    return filteredQuotes.slice(startIndex, endIndex)
+  }, [filteredQuotes, startIndex, endIndex])
 
-  // KPI Metrics
-  const totalValue = allQuotes.reduce((acc, q) => acc + (Number(q.estimatedInvestment) || 0), 0)
-  const wonCount = allQuotes.filter((q) => {
-    const st = String(q.status).toLowerCase()
-    return st === 'converted' || st === 'won' || st === 'approved' || st.includes('paid')
-  }).length
-  const winRate = allQuotes.length > 0 ? Math.round((wonCount / allQuotes.length) * 100) : 0
-  const pendingCount = allQuotes.filter((q) => {
-    const st = String(q.status).toLowerCase()
-    return st === 'new' || st === 'pending' || st === 'reviewed'
-  }).length
-
-  // Generate page numbers
   const pageNumbers = useMemo(() => {
     const pages: number[] = []
     const maxVisible = 5
@@ -210,13 +200,23 @@ export function QuotesPage() {
     return pages
   }, [safePage, totalPages])
 
-  const handleUpdateStatus = async (id: string, status: string) => {
-    updateQuoteStatus(id, status as any, userId, userName)
-    await adminService.updateLeadStatus(id, status)
-    loadQuotesAndLeads()
-    if (selectedQuote && (selectedQuote.id === id || selectedQuote.reference === id)) {
-      setSelectedQuote((prev) => (prev ? { ...prev, status: status as any } : null))
-    }
+  // KPI Metrics
+  const totalValue = allQuotes.reduce((acc, q) => acc + (Number(q.estimatedInvestment) || 0), 0)
+  const wonCount = allQuotes.filter((q) => {
+    const st = String(q.status).toLowerCase()
+    return st === 'converted' || st === 'won' || st === 'approved' || st.includes('paid')
+  }).length
+  const winRate = allQuotes.length > 0 ? Math.round((wonCount / allQuotes.length) * 100) : 0
+  const pendingCount = allQuotes.filter((q) => {
+    const st = String(q.status).toLowerCase()
+    return st === 'new' || st === 'pending' || st === 'reviewed'
+  }).length
+
+  const handleUpdateStatus = (id: string, newStatus: string) => {
+    updateQuoteStatus(id, newStatus as any, userId, userName)
+    adminService.updateLeadStatus(id, newStatus)
+    setSelectedQuote((prev) => (prev && prev.id === id ? { ...prev, status: newStatus as any } : prev))
+    setLiveLeads((prev) => prev.map((l) => (String(l.id) === id ? { ...l, status: newStatus } : l)))
   }
 
   const handleDeleteQuote = async (id: string) => {
@@ -224,7 +224,7 @@ export function QuotesPage() {
     setIsDeleting(true)
     const success = await adminService.deleteLead(id)
     if (success) {
-      setLiveLeads(prev => prev.filter(l => String(l.id) !== id && l.leadReference !== id))
+      setLiveLeads((prev) => prev.filter((l) => String(l.id) !== id && l.leadReference !== id))
       setSelectedQuote(null)
     } else {
       alert('Failed to delete quote. Please try again.')
@@ -232,9 +232,10 @@ export function QuotesPage() {
     setIsDeleting(false)
   }
 
-  const handleSaveNote = () => {
+  const handleSaveNote = async () => {
     if (!selectedQuote) return
     addQuoteNote(selectedQuote.id, noteInput)
+    await adminService.updateLeadNotes(selectedQuote.id, noteInput)
     setSelectedQuote((prev) => (prev ? { ...prev, notes: noteInput } : null))
     setNoteSaved(true)
     setTimeout(() => setNoteSaved(false), 2500)
@@ -263,12 +264,21 @@ export function QuotesPage() {
   const handleEmailCustomer = async (q: AdminQuote) => {
     const ok = await emailService.sendConfirmationEmail({
       leadMetadata: { quoteReferenceNumber: q.reference },
-      customerInformation: { name: q.customerName, email: q.customerEmail },
-      journeyInformation: { journeyType: q.tripType || q.vehicleName },
-      estimatedInvestment: { total: q.estimatedInvestment },
+      customerInformation: { name: q.customerName, email: q.customerEmail, phone: q.customerPhone },
+      journeyInformation: { 
+        journeyType: q.tripType || q.vehicleName,
+        pickup: q.pickup,
+        destination: q.destination,
+        travelDate: q.travelDate,
+        tripType: q.tripType || 'Drop-Off',
+      },
+      estimatedInvestment: { 
+        total: q.estimatedInvestment,
+        vehicleName: q.vehicleName,
+      },
     })
     if (ok) {
-      alert(`Quotation details successfully sent to ${q.customerEmail}`)
+      alert(`Quotation with cost breakdown and payment link successfully sent to ${q.customerEmail}`)
     } else {
       alert(`Quotation email triggered for ${q.customerEmail}`)
     }
@@ -283,26 +293,49 @@ export function QuotesPage() {
   const handleCreateQuote = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    const ok = await adminService.createLead({
+    const quoteRef = `NETS-${Date.now().toString().slice(-6)}`
+    const quotePayload = {
+      leadReference: quoteRef,
+      customerName: createForm.name,
+      customerEmail: createForm.email,
+      customerPhone: createForm.phone,
       customerInformation: {
         name: createForm.name,
         email: createForm.email,
-        phone: createForm.phone
+        phone: createForm.phone,
       },
       journeyInformation: {
         journeyType: 'Standard Charter',
+        tripType: createForm.tripType || 'Drop-Off',
         pickupLocation: createForm.origin,
-        destinationLocation: createForm.destination
+        pickup: createForm.origin,
+        destinationLocation: createForm.destination,
+        destination: createForm.destination,
+        travelDate: createForm.travelDate || new Date().toISOString(),
       },
       estimatedInvestment: {
+        vehicleName: createForm.vehicle || 'Toyota HiAce',
         minimumEstimate: createForm.investment,
-        maximumEstimate: createForm.investment
-      }
-    })
+        maximumEstimate: createForm.investment,
+        total: createForm.investment,
+      },
+      leadMetadata: {
+        quoteReferenceNumber: quoteRef,
+      },
+    }
+
+    const ok = await adminService.createLead(quotePayload)
+
+    // Automatically send quotation email with cost breakdown and sharable payment link to client
+    if (createForm.email) {
+      await emailService.sendConfirmationEmail(quotePayload)
+    }
+
     if (ok) {
       setShowCreateModal(false)
-      setCreateForm({ name: '', email: '', phone: '', vehicle: '', origin: '', destination: '', investment: 0 })
+      setCreateForm({ name: '', email: '', phone: '', vehicle: 'Toyota HiAce', origin: '', destination: '', travelDate: '', tripType: 'Drop-Off', investment: 0 })
       loadQuotesAndLeads()
+      alert(`Quote ${quoteRef} created and sent to ${createForm.email} with payment link!`)
     } else {
       setLoading(false)
       alert("Failed to create quote. Please try again.")
@@ -498,6 +531,14 @@ export function QuotesPage() {
                               <RefreshCw size={11} /> Convert
                             </button>
                           )}
+                          <button
+                            className="admin-btn admin-btn-sm admin-btn-secondary"
+                            title="Copy Client Payment Link"
+                            onClick={() => handleCopyPaymentLink(q.reference || q.id)}
+                            style={{ fontSize: 11, padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center', gap: 3 }}
+                          >
+                            <CreditCard size={11} /> Pay Link
+                          </button>
                           <button
                             className="admin-btn admin-btn-sm admin-btn-ghost"
                             title="View Quote Details"
@@ -872,6 +913,15 @@ export function QuotesPage() {
                     </span>
                   )}
                 </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', fontSize: 12 }}>
+                  <Calendar size={14} color="var(--adm-accent)" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <div style={{ color: 'var(--adm-text-2)' }}>
+                    <strong style={{ color: 'var(--adm-text-1)' }}>Travel Date & Time:</strong>{' '}
+                    {selectedQuote.travelDate ? fmtDate(selectedQuote.travelDate) : 'Flexible'}
+                  </div>
+                </div>
+
                 <div style={{ display: 'flex', gap: '0.5rem', fontSize: 12 }}>
                   <MapPin size={14} color="var(--adm-accent)" style={{ flexShrink: 0, marginTop: 2 }} />
                   <div>
@@ -912,6 +962,58 @@ export function QuotesPage() {
                     </span>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Sharable Payment Link Card */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, rgba(26, 31, 168, 0.04) 0%, rgba(13, 16, 96, 0.08) 100%)',
+                padding: '1rem 1.25rem',
+                borderRadius: 'var(--adm-radius-sm)',
+                border: '1px solid rgba(26, 31, 168, 0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.625rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-accent)', letterSpacing: '0.05em' }}>
+                  <CreditCard size={14} />
+                  <span>Sharable Client Payment Link</span>
+                </div>
+                {linkCopied && <span style={{ fontSize: 11, color: 'var(--adm-success)', fontWeight: 600 }}>✓ Link Copied to Clipboard</span>}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  readOnly
+                  className="admin-input"
+                  value={`${window.location.origin}/pay/${selectedQuote.reference || selectedQuote.id}`}
+                  style={{ background: '#ffffff', fontSize: 12, fontFamily: 'monospace', color: 'var(--adm-text-1)' }}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleCopyPaymentLink(selectedQuote.reference || selectedQuote.id)}
+                  className="admin-btn admin-btn-secondary admin-btn-sm"
+                  style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}
+                >
+                  {linkCopied ? <Check size={13} color="var(--adm-success)" /> : <Copy size={13} />}
+                  <span>{linkCopied ? 'Copied' : 'Copy Link'}</span>
+                </button>
+                <a
+                  href={`/pay/${selectedQuote.reference || selectedQuote.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="admin-btn admin-btn-ghost admin-btn-sm"
+                  style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}
+                  title="Open client payment checkout in new tab"
+                >
+                  <ExternalLink size={13} />
+                  <span>Open</span>
+                </a>
               </div>
             </div>
 
@@ -1123,6 +1225,44 @@ export function QuotesPage() {
                   <label className="admin-label">Destination</label>
                   <input required className="admin-input" value={createForm.destination} onChange={e => setCreateForm({...createForm, destination: e.target.value})} />
                 </div>
+              </div>
+
+              <div className="admin-grid-2">
+                <div className="admin-form-group">
+                  <label className="admin-label">Vehicle Category</label>
+                  <select
+                    className="admin-select"
+                    value={createForm.vehicle}
+                    onChange={e => setCreateForm({...createForm, vehicle: e.target.value})}
+                  >
+                    <option value="Toyota HiAce">Toyota HiAce (14 Seater)</option>
+                    <option value="Toyota Coaster">Toyota Coaster (30 Seater)</option>
+                    <option value="Executive SUV">Executive SUV (7 Seater)</option>
+                    <option value="Executive Sedan">Executive Sedan</option>
+                  </select>
+                </div>
+                <div className="admin-form-group">
+                  <label className="admin-label">Trip Type</label>
+                  <select
+                    className="admin-select"
+                    value={createForm.tripType}
+                    onChange={e => setCreateForm({...createForm, tripType: e.target.value})}
+                  >
+                    <option value="Drop-Off">Drop-Off</option>
+                    <option value="To & Fro">To & Fro</option>
+                    <option value="Multi-Day">Multi-Day</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="admin-form-group">
+                <label className="admin-label">Travel Date & Time</label>
+                <input
+                  type="datetime-local"
+                  className="admin-input"
+                  value={createForm.travelDate}
+                  onChange={e => setCreateForm({...createForm, travelDate: e.target.value})}
+                />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--adm-border)' }}>

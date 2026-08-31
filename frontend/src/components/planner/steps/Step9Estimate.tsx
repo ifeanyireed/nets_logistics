@@ -159,7 +159,7 @@ export function Step9Estimate() {
           <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginTop: '0.5rem', cursor: 'pointer' }}>
             <input type="checkbox" required checked={details.consentGiven} onChange={e => handleChange('consentGiven', e.target.checked)} style={{ marginTop: '0.25rem' }} />
             <span style={{ fontSize: '0.8125rem', color: 'var(--color-nets-text-2)', lineHeight: 1.5 }}>
-              I agree to the Terms of Service and Privacy Policy, and consent to being contacted regarding this quotation.
+              I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-nets-navy-dark)', textDecoration: 'underline' }}>Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-nets-navy-dark)', textDecoration: 'underline' }}>Privacy Policy</a>, and consent to being contacted regarding this quotation.
             </span>
           </label>
 

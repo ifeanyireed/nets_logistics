@@ -17,7 +17,7 @@ export type JourneyIntent =
   | 'Recurring Shuttle'
   | null
 
-export type TripType = 'One Way' | 'Return' | 'Multi-Day' | 'Recurring' | 'Staff Pickup'
+export type TripType = 'Drop-Off' | 'To & Fro' | 'Multi-Day' | 'Recurring' | 'Staff Pickup' | 'One Way' | 'Return'
 
 export interface LocationData {
   address: string
@@ -199,7 +199,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
   setTravelDate: (travelDate) => set({ travelDate }),
   departureTime: '09:00',
   setDepartureTime: (departureTime) => set({ departureTime }),
-  tripType: 'One Way',
+  tripType: 'Drop-Off',
   setTripType: (tripType) => set({ tripType }),
   returnDate: null,
   setReturnDate: (returnDate) => set({ returnDate }),
@@ -381,7 +381,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         numberOfDays = Math.max(1, state.staffPickupDays.length)
       } else if (state.tripType === 'Recurring') {
         numberOfDays = 1 + state.multiDayItinerary.length
-      } else if ((state.tripType === 'Multi-Day' || state.tripType === 'Return') && state.travelDate && state.returnDate) {
+      } else if ((state.tripType === 'Multi-Day' || state.tripType === 'To & Fro' || state.tripType === 'Return') && state.travelDate && state.returnDate) {
         // Strip time to accurately calculate whole days difference
         const start = new Date(state.travelDate.getFullYear(), state.travelDate.getMonth(), state.travelDate.getDate())
         const end = new Date(state.returnDate.getFullYear(), state.returnDate.getMonth(), state.returnDate.getDate())
@@ -494,7 +494,7 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       passengers: null,
       travelDate: null,
       departureTime: '09:00',
-      tripType: 'One Way',
+      tripType: 'Drop-Off',
       returnDate: null,
       returnTime: '09:00',
       multiDayItinerary: [],

@@ -113,7 +113,7 @@ export function Step2Details() {
   }
 
   const getNumberOfDays = () => {
-    if ((tripType === 'Multi-Day' || tripType === 'Return') && travelDate && returnDate) {
+    if ((tripType === 'Multi-Day' || tripType === 'To & Fro' || tripType === 'Return') && travelDate && returnDate) {
       const start = new Date(travelDate.getFullYear(), travelDate.getMonth(), travelDate.getDate())
       const end = new Date(returnDate.getFullYear(), returnDate.getMonth(), returnDate.getDate())
       const diff = end.getTime() - start.getTime()
@@ -132,7 +132,7 @@ export function Step2Details() {
     isComplete = isComplete && multiDayItinerary.every(d => d.date)
   }
   
-  if (tripType === 'Return' || tripType === 'Multi-Day') {
+  if (tripType === 'To & Fro' || tripType === 'Return' || tripType === 'Multi-Day') {
     isComplete = isComplete && !!returnDate
     const days = getNumberOfDays()
     if (days >= 3) {
@@ -242,7 +242,7 @@ export function Step2Details() {
             Trip Type
           </label>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            {['One Way', 'Return', 'Multi-Day', 'Recurring', 'Staff Pickup'].map((t) => (
+            {['Drop-Off', 'To & Fro', 'Multi-Day', 'Recurring', 'Staff Pickup'].map((t) => (
               <label 
                 key={t}
                 style={{
@@ -267,7 +267,7 @@ export function Step2Details() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
-                {tripType === 'Recurring' ? 'Day 1 Travel Date' : (tripType === 'Return' ? 'Departure Date' : (tripType === 'Multi-Day' ? 'Start Date' : 'Travel Date'))}
+                {tripType === 'Recurring' ? 'Day 1 Travel Date' : (tripType === 'To & Fro' || tripType === 'Return' ? 'Departure Date' : (tripType === 'Multi-Day' ? 'Start Date' : 'Travel Date'))}
               </label>
               <input 
                 type="date"
@@ -280,7 +280,7 @@ export function Step2Details() {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
-                {tripType === 'Recurring' ? 'Day 1 Pickup Time' : (tripType === 'Return' ? 'Departure Time' : 'Pickup Time')}
+                {tripType === 'Recurring' ? 'Day 1 Pickup Time' : (tripType === 'To & Fro' || tripType === 'Return' ? 'Departure Time' : 'Pickup Time')}
               </label>
               <input 
                 type="time"
@@ -294,8 +294,8 @@ export function Step2Details() {
         )}
 
         {/* Return Schedule */}
-        {(tripType === 'Return' || tripType === 'Multi-Day') && (
-          <div style={{ display: 'grid', gridTemplateColumns: tripType === 'Return' ? '1fr 1fr' : '1fr', gap: '1.5rem' }}>
+        {(tripType === 'To & Fro' || tripType === 'Return' || tripType === 'Multi-Day') && (
+          <div style={{ display: 'grid', gridTemplateColumns: (tripType === 'To & Fro' || tripType === 'Return') ? '1fr 1fr' : '1fr', gap: '1.5rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
                 {tripType === 'Multi-Day' ? 'End Date' : 'Return Date'}
@@ -308,7 +308,7 @@ export function Step2Details() {
                 onChange={handleReturnDateChange}
               />
             </div>
-            {tripType === 'Return' && (
+            {(tripType === 'To & Fro' || tripType === 'Return') && (
               <div>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>
                   Return Pickup Time
@@ -328,14 +328,14 @@ export function Step2Details() {
         {/* 3+ Days Retention Logic */}
         {(() => {
           let numberOfDays = 1
-          if ((tripType === 'Multi-Day' || tripType === 'Return') && travelDate && returnDate) {
+          if ((tripType === 'Multi-Day' || tripType === 'To & Fro' || tripType === 'Return') && travelDate && returnDate) {
             const start = new Date(travelDate.getFullYear(), travelDate.getMonth(), travelDate.getDate())
             const end = new Date(returnDate.getFullYear(), returnDate.getMonth(), returnDate.getDate())
             const diff = end.getTime() - start.getTime()
             const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24))
             numberOfDays = Math.max(1, diffDays + 1)
           }
-          if ((tripType === 'Return' || tripType === 'Multi-Day') && numberOfDays >= 3) {
+          if ((tripType === 'To & Fro' || tripType === 'Return' || tripType === 'Multi-Day') && numberOfDays >= 3) {
             return (
               <div style={{ background: 'var(--color-nets-bg-2)', padding: '1rem', borderRadius: '4px', border: '1px dashed var(--color-nets-border)', textAlign: 'right' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-nets-navy-dark)' }}>

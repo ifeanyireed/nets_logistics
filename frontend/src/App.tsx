@@ -17,6 +17,10 @@ import { BookingConfirmationPage } from './pages/shuttles/BookingConfirmationPag
 import { LiveTripPage } from './pages/shuttles/LiveTripPage'
 import { TripCompletePage } from './pages/shuttles/TripCompletePage'
 import { ShuttleAccountPage } from './pages/shuttles/ShuttleAccountPage'
+import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage'
+import { TermsOfServicePage } from './pages/legal/TermsOfServicePage'
+import { CookiePolicyPage } from './pages/legal/CookiePolicyPage'
+import { QuotePaymentPage } from './pages/QuotePaymentPage'
 
 import { LeadCaptureModal } from './components/sections/LeadCaptureModal'
 import { InternationalModal } from './components/sections/InternationalModal'
@@ -107,6 +111,19 @@ function AppContent() {
           <Route path="/shuttles/live/:bookingId" element={<LiveTripPage />} />
           <Route path="/shuttles/complete/:bookingId" element={<TripCompletePage />} />
           <Route path="/shuttles/account" element={<ShuttleAccountPage />} />
+
+          {/* Legal Pages */}
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/cookies" element={<CookiePolicyPage />} />
+          <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+
+          {/* Sharable Quote Checkout & Payment */}
+          <Route path="/pay/:quoteRef" element={<QuotePaymentPage />} />
+          <Route path="/quotes/pay/:quoteRef" element={<QuotePaymentPage />} />
+          <Route path="/quote/:quoteRef/pay" element={<QuotePaymentPage />} />
         </Routes>
       </main>
 

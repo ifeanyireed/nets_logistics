@@ -24,6 +24,7 @@ export interface AdminLead {
   status: string
   crmStatus: string
   assignedTo?: string
+  notes?: string
   createdAt: string
   payload?: any
 }
@@ -120,8 +121,18 @@ export class AdminService {
       console.error('⚠️ [ADMIN SERVICE] Could not fetch leads from backend:', err)
     }
 
+    const parsePayload = (p: any) => {
+      if (!p) return null
+      if (typeof p === 'object') return p
+      try {
+        return JSON.parse(p)
+      } catch {
+        return null
+      }
+    }
+
     // Normalize all database leads to guarantee safe rendering
-    return remoteLeads.map((l, idx) => ({
+    return remoteLeads.map((l: any, idx) => ({
       id: l.id || `lead-${idx}`,
       leadReference: l.leadReference || `NETS-LEAD-${String(l.id || idx).padStart(4, '0')}`,
       customerName: l.customerName || 'Valued Customer',
@@ -137,9 +148,57 @@ export class AdminService {
       status: l.status || 'pending',
       crmStatus: l.crmStatus || 'New Lead',
       assignedTo: l.assignedTo || '',
+      notes: l.notes || '',
       createdAt: l.createdAt || new Date().toISOString(),
-      payload: l.payload || null,
+      payload: parsePayload(l.payload || l.payloadJSON),
     }))
+  }
+
+  /**
+   * Fetch a single lead/quote by ID or reference.
+   */
+  public async getLead(idOrRef: string): Promise<AdminLead | null> {
+    try {
+      const res = await fetch(`${API_URL}/leads/${encodeURIComponent(idOrRef)}`, { cache: 'no-store' })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.data && json.data.lead) {
+          const l = json.data.lead
+          const parsePayload = (p: any) => {
+            if (!p) return null
+            if (typeof p === 'object') return p
+            try {
+              return JSON.parse(p)
+            } catch {
+              return null
+            }
+          }
+          return {
+            id: l.id,
+            leadReference: l.leadReference,
+            customerName: l.customerName || 'Valued Customer',
+            customerEmail: l.customerEmail || 'N/A',
+            customerPhone: l.customerPhone || 'N/A',
+            company: l.company || '',
+            heardAboutUs: l.heardAboutUs || '',
+            journeyType: l.journeyType || 'Standard Charter',
+            origin: l.origin || 'Lagos, Nigeria',
+            destination: l.destination || 'Lagos, Nigeria',
+            estimatedInvestmentMin: Number(l.estimatedInvestmentMin) || 0,
+            estimatedInvestmentMax: Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0,
+            status: l.status || 'pending',
+            crmStatus: l.crmStatus || 'New Lead',
+            assignedTo: l.assignedTo || '',
+            notes: l.notes || '',
+            createdAt: l.createdAt || new Date().toISOString(),
+            payload: parsePayload(l.payload || l.payloadJSON),
+          }
+        }
+      }
+    } catch (err) {
+      console.error('⚠️ [ADMIN SERVICE] Could not fetch lead by id/ref:', err)
+    }
+    return null
   }
 
   /**
@@ -189,6 +248,23 @@ export class AdminService {
       return res.ok
     } catch (err) {
       console.error('⚠️ [ADMIN SERVICE] Error updating CRM status:', err)
+      return false
+    }
+  }
+
+  /**
+   * Update lead notes directly in remote backend database.
+   */
+  public async updateLeadNotes(id: number | string, notes: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_URL}/leads/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes }),
+      })
+      return res.ok
+    } catch (err) {
+      console.error('⚠️ [ADMIN SERVICE] Error updating lead notes:', err)
       return false
     }
   }

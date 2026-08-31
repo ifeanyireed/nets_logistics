@@ -1047,7 +1047,7 @@ function CreateBookingModal({ onClose, vehicles, customers }: any) {
     destination: '',
     distanceKm: 0,
     durationMins: 0,
-    tripType: 'One Way',
+    tripType: 'Drop-Off',
     passengerCount: 1,
     travelDate: '',
     totalAmount: 0,
@@ -1066,7 +1066,31 @@ function CreateBookingModal({ onClose, vehicles, customers }: any) {
     if (!form.customerId || !form.vehicleId || !form.pickup || !form.travelDate) return
     setIsSubmitting(true)
     await createBooking(form as any)
+
+    // Send formal booking confirmation receipt directly to customer's email
+    const customerObj = customers.find((c: any) => c.id === form.customerId)
+    const clientEmail = customerObj?.email || customerObj?.contactEmail
+    const bookingRef = `NETS-BK-${Date.now().toString().slice(-6)}`
+
+    if (clientEmail) {
+      await emailService.sendClientBookingConfirmationEmail({
+        ...form,
+        customerName: form.customerName || customerObj?.fullName,
+        customerEmail: clientEmail,
+        reference: bookingRef,
+      })
+    }
+
+    // Also send internal alert
+    emailService.sendNewBookingNotification({
+      ...form,
+      customerName: form.customerName || customerObj?.fullName,
+      customerEmail: clientEmail || 'N/A',
+      reference: bookingRef,
+    })
+
     setIsSubmitting(false)
+    alert(`Booking created successfully and confirmation email sent to ${clientEmail || 'customer'}!`)
     onClose()
   }
 

@@ -64,9 +64,9 @@ export async function generateEstimate(input: JourneyPricingInput): Promise<Esti
   }
 
   let tripsPerDay = 1
-  if (input.tripType === 'Return' && input.numberOfDays === 1) {
+  if ((input.tripType === 'To & Fro' || input.tripType === 'Return') && input.numberOfDays === 1) {
     tripsPerDay = 2
-  } else if (input.tripType === 'One-Way' && adminConfig.billOneWayAsReturn) {
+  } else if ((input.tripType === 'Drop-Off' || input.tripType === 'One-Way' || input.tripType === 'One Way') && adminConfig.billOneWayAsReturn) {
     tripsPerDay = 2
   }
   const dailyFuelCost = input.distanceKm * tripsPerDay * fuelRatio * adminConfig.fuelPricePerLitre
@@ -82,7 +82,7 @@ export async function generateEstimate(input: JourneyPricingInput): Promise<Esti
   let chargeableDays = input.numberOfDays
   let additionalRetentionFee = 0
 
-  if (input.numberOfDays >= 3 && (input.tripType === 'Return' || input.tripType === 'Multi-Day') && input.retentionPreference) {
+  if (input.numberOfDays >= 3 && (input.tripType === 'To & Fro' || input.tripType === 'Return' || input.tripType === 'Multi-Day') && input.retentionPreference) {
     if (input.retentionPreference === 'return') {
       chargeableDays = 2
     } else if (input.retentionPreference === 'keep') {

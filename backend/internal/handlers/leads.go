@@ -97,6 +97,8 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	notes, _ := payload["notes"].(string)
+
 	lead := models.Lead{
 		LeadReference:          ref,
 		CustomerName:           customerName,
@@ -110,6 +112,7 @@ func (h *LeadHandler) Store(w http.ResponseWriter, r *http.Request) {
 		EstimatedInvestmentMin: minEst,
 		EstimatedInvestmentMax: maxEst,
 		Status:                 status,
+		Notes:                  notes,
 		PayloadJSON:            string(payloadBytes),
 	}
 
@@ -171,6 +174,15 @@ func (h *LeadHandler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for i := range leads {
+		if leads[i].PayloadJSON != "" {
+			var payloadData interface{}
+			if json.Unmarshal([]byte(leads[i].PayloadJSON), &payloadData) == nil {
+				leads[i].Payload = payloadData
+			}
+		}
+	}
+
 	response.JSON(w, http.StatusOK, map[string]interface{}{
 		"leads": leads,
 	})
@@ -215,9 +227,10 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var body struct {
-		Status     string `json:"status"`
-		CrmStatus  string `json:"crmStatus"`
+		Status     string  `json:"status"`
+		CrmStatus  string  `json:"crmStatus"`
 		AssignedTo *string `json:"assignedTo"`
+		Notes      *string `json:"notes"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		response.Error(w, http.StatusBadRequest, "Invalid JSON payload")
@@ -242,6 +255,10 @@ func (h *LeadHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if body.AssignedTo != nil {
 		lead.AssignedTo = *body.AssignedTo
 		updates["assigned_to"] = *body.AssignedTo
+	}
+	if body.Notes != nil {
+		lead.Notes = *body.Notes
+		updates["notes"] = *body.Notes
 	}
 
 	if len(updates) > 0 {

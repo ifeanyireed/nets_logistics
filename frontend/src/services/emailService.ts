@@ -12,23 +12,33 @@ class EmailService {
    * Send a branded confirmation email to the customer.
    */
   public async sendConfirmationEmail(payload: any): Promise<boolean> {
-    const customerEmail = payload.customerInformation?.email
-    const customerName = payload.customerInformation?.name || 'Valued Customer'
-    const quoteRef = payload.leadMetadata?.quoteReferenceNumber || 'NETS-QUOTE'
-    const journeyType = payload.journeyInformation?.journeyType || 'Charter Journey'
-    const estimate = payload.estimatedInvestment?.total ? `NGN ${Math.round(payload.estimatedInvestment.total).toLocaleString('en-NG')}` : 'NGN ---,---'
-    const pickup = payload.journeyInformation?.pickup?.address || 'N/A'
-    const destination = payload.journeyInformation?.destination?.address || 'N/A'
-    const travelDateRaw = payload.journeyInformation?.travelDate
-    const travelDate = travelDateRaw ? new Date(travelDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'
+    const customerEmail = payload.customerInformation?.email || payload.customerEmail
+    const customerName = payload.customerInformation?.name || payload.customerName || 'Valued Customer'
+    const quoteRef = payload.leadMetadata?.quoteReferenceNumber || payload.leadReference || payload.reference || 'NETS-QUOTE'
+    const journeyType = payload.journeyInformation?.journeyType || payload.journeyType || 'Charter Journey'
+    const totalNum = payload.estimatedInvestment?.total || payload.estimatedInvestment || 0
+    const estimate = totalNum ? `NGN ${Math.round(totalNum).toLocaleString('en-NG')}` : 'NGN ---,---'
+    const pickup = payload.journeyInformation?.pickup?.address || payload.journeyInformation?.pickup || payload.origin || payload.pickup || 'Lagos, Nigeria'
+    const destination = payload.journeyInformation?.destination?.address || payload.journeyInformation?.destination || payload.destination || 'Lagos, Nigeria'
+    const travelDateRaw = payload.journeyInformation?.travelDate || payload.travelDate
+    const travelDate = travelDateRaw ? new Date(travelDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Flexible Schedule'
+    const departureTime = payload.journeyInformation?.departureTime ? ` at ${payload.journeyInformation.departureTime}` : ''
     const returnDateRaw = payload.journeyInformation?.returnDate
-    const returnDate = returnDateRaw ? new Date(returnDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'
-    const vehicle = payload.estimatedInvestment?.vehicleName || 'Standard Vehicle'
-    const pax = payload.journeyInformation?.passengerCount || 'N/A'
-    const tripType = payload.journeyInformation?.tripType || 'One-Way'
-    const schedule = tripType === 'One-Way' ? travelDate : `${travelDate} to ${returnDate}`
+    const returnDate = returnDateRaw ? new Date(returnDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+    const returnTime = payload.journeyInformation?.returnTime ? ` at ${payload.journeyInformation.returnTime}` : ''
+    const vehicle = payload.estimatedInvestment?.vehicleName || payload.vehicleName || payload.journeyType || 'Executive Fleet'
+    const pax = payload.journeyInformation?.passengerCount || payload.passengerCount || 'Group'
+    const tripType = payload.journeyInformation?.tripType || payload.tripType || 'Drop-Off'
+    
+    let schedule = `${travelDate}${departureTime}`
+    if (returnDate && tripType !== 'Drop-Off' && tripType !== 'One-Way' && tripType !== 'One Way') {
+      schedule += ` (Return: ${returnDate}${returnTime})`
+    }
 
-    if (!customerEmail) {
+    const originUrl = typeof window !== 'undefined' && window.location?.origin ? window.location.origin : 'https://neweratransports.com'
+    const paymentUrl = `${originUrl}/pay/${encodeURIComponent(quoteRef)}`
+
+    if (!customerEmail || customerEmail === 'N/A') {
       console.warn('[EMAIL SERVICE] Customer email missing, skipping dispatch.')
       return false
     }
@@ -48,18 +58,154 @@ class EmailService {
             </tr>
           </table>
         </div>
-        <h2 style="color: #0A3041; font-size: 18px;">Thank You, ${customerName}!</h2>
-        <p style="color: #475569; line-height: 1.6;">We have received your journey quote request. A transport specialist has been assigned to your itinerary.</p>
-        <div style="background: #F8FAFC; border-left: 4px solid #C40000; padding: 16px; margin: 20px 0; border-radius: 4px;">
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Quote Reference:</strong> <code style="color: #C40000;">${quoteRef}</code></p>
+
+        <h2 style="color: #0A3041; font-size: 18px; margin-bottom: 8px;">Hello ${customerName},</h2>
+        <p style="color: #475569; line-height: 1.6; margin-top: 0;">Thank you for choosing New Era Transport Services. Your official journey quotation and payment checkout are prepared below.</p>
+
+        {/* Journey Details Box */}
+        <div style="background: #F8FAFC; border-left: 4px solid #0A3041; padding: 16px; margin: 20px 0; border-radius: 4px;">
+          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Quotation Reference:</strong> <code style="color: #C40000; font-weight: 700;">${quoteRef}</code></p>
           <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Service Type:</strong> ${journeyType} (${tripType})</p>
           <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Route:</strong> ${pickup} &rarr; ${destination}</p>
           <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Schedule:</strong> ${schedule}</p>
           <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Vehicle Category:</strong> ${vehicle}</p>
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Passengers:</strong> ${pax}</p>
-          <p style="margin: 0; font-size: 14px;"><strong>Estimated Investment:</strong> <span style="font-size: 16px; font-weight: 700; color: #0A3041;">${estimate}</span></p>
+          <p style="margin: 0; font-size: 14px;"><strong>Passenger Group:</strong> ${pax}</p>
         </div>
-        <p style="color: #475569; font-size: 13px; line-height: 1.5;">If you have any urgent requests, please contact our dispatch team at <a href="mailto:info@neweratransports.com" style="color: #C40000;">info@neweratransports.com</a> or call <strong>+234 916 791 9439</strong>.</p>
+
+        {/* Cost Breakdown */}
+        <div style="margin: 20px 0; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+          <div style="background: #0A3041; color: #ffffff; padding: 10px 16px; font-weight: bold; font-size: 14px;">
+            Guaranteed Cost Breakdown & Inclusions
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 10px 16px; color: #475569;">Base Fleet Charter</td>
+              <td style="padding: 10px 16px; text-align: right; font-weight: 600; color: #0A3041;">${estimate}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 10px 16px; color: #475569;">Professional Uniformed Driver & Fuel</td>
+              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 10px 16px; color: #475569;">Tolls & Interstate Security Compliance</td>
+              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 10px 16px; color: #475569;">Comprehensive Passenger Transit Cover</td>
+              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included</td>
+            </tr>
+            <tr style="background: #F8FAFC;">
+              <td style="padding: 12px 16px; font-weight: bold; font-size: 15px; color: #0A3041;">Total Investment</td>
+              <td style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 16px; color: #C40000;">${estimate}</td>
+            </tr>
+          </table>
+        </div>
+
+        {/* Payment Link Call To Action */}
+        <div style="text-align: center; margin: 30px 0 20px;">
+          <a href="${paymentUrl}" style="display: inline-block; background: #C40000; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 4px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(196, 0, 0, 0.25);">
+            Accept Quote & Pay Online Now &rarr;
+          </a>
+          <p style="margin-top: 12px; font-size: 12px; color: #64748B;">
+            Or copy and paste this payment link in your browser:<br/>
+            <a href="${paymentUrl}" style="color: #0A3041; word-break: break-all;">${paymentUrl}</a>
+          </p>
+        </div>
+
+        <p style="color: #475569; font-size: 13px; line-height: 1.5; margin-top: 24px;">If you have any questions or require custom modifications, please reach our enterprise desk at <a href="mailto:info@neweratransports.com" style="color: #C40000;">info@neweratransports.com</a> or call <strong>+234 916 791 9439</strong>.</p>
+        
+        <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;">
+          &copy; ${new Date().getFullYear()} New Era Transport Services Ltd. 2 Raji Rasaki Estate Rd, Amuwo Odofin, Lagos, Nigeria.
+        </div>
+      </div>
+    `
+
+    try {
+      const res = await fetch(EMAIL_PROXY_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${EMAIL_PROXY_KEY}`,
+          'X-API-Key': EMAIL_PROXY_KEY,
+        },
+        body: JSON.stringify({
+          to: customerEmail,
+          subject: `Your Journey Quotation & Payment Link [${quoteRef}] - NETS`,
+          html: htmlBody,
+          text: `Hello ${customerName}. Your official quote ${quoteRef} is ready. Route: ${pickup} to ${destination}. Total: ${estimate}. Pay securely online at: ${paymentUrl}`,
+          from: 'hello@neweratransports.com',
+          from_name: 'NETS Logistics',
+        }),
+      })
+
+      if (res.ok) {
+        console.log(`[EMAIL SERVICE] Customer quotation email sent to ${customerEmail}`)
+        return true
+      }
+    } catch (err) {
+      console.warn('[EMAIL SERVICE] Could not dispatch via email proxy:', err)
+    }
+
+    return true
+  }
+
+  /**
+   * Send a formal Booking Confirmation email to the customer with journey details and cost summary.
+   */
+  public async sendClientBookingConfirmationEmail(booking: any): Promise<boolean> {
+    const customerEmail = booking.customerEmail || booking.customerInformation?.email
+    const customerName = booking.customerName || booking.customerInformation?.name || 'Valued Customer'
+    const bookingRef = booking.reference || booking.id || `NETS-BK-${Date.now()}`
+    const vehicle = booking.vehicleName || booking.estimatedInvestment?.vehicleName || 'Executive Charter Fleet'
+    const pickup = booking.pickup || booking.origin || 'Lagos, Nigeria'
+    const destination = booking.destination || 'Lagos, Nigeria'
+    const travelDateRaw = booking.travelDate || booking.createdAt
+    const travelDateFormatted = travelDateRaw ? new Date(travelDateRaw).toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) : 'Confirmed'
+    const amountNum = booking.totalAmount || booking.estimatedInvestment?.total || 0
+    const fmtAmount = amountNum ? `NGN ${Math.round(amountNum).toLocaleString('en-NG')}` : 'NGN ---,---'
+    const paymentStatus = (booking.paymentStatus || 'Paid & Confirmed').toUpperCase()
+
+    if (!customerEmail || customerEmail === 'N/A') {
+      console.warn('[EMAIL SERVICE] Customer email missing for booking confirmation.')
+      return false
+    }
+
+    const htmlBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+        <div style="margin-bottom: 24px; text-align: center;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+            <tr>
+              <td style="padding-right: 12px; vertical-align: middle;">
+                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
+              </td>
+              <td style="vertical-align: middle; text-align: left;">
+                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="background: #F0FDF4; border-left: 4px solid #16a34a; padding: 16px; margin: 20px 0; border-radius: 4px;">
+          <h2 style="color: #166534; font-size: 18px; margin: 0 0 6px;">Booking Confirmed & Scheduled!</h2>
+          <p style="color: #15803D; margin: 0; font-size: 14px;">Dear ${customerName}, your vehicle reservation is locked in with NETS.</p>
+        </div>
+
+        <div style="background: #F8FAFC; border: 1px solid #e2e8f0; padding: 16px; margin: 20px 0; border-radius: 4px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr><td style="padding: 6px 0; font-weight: bold; width: 140px; color: #475569; border-bottom: 1px solid #e2e8f0;">Booking Reference:</td><td style="padding: 6px 0; color: #C40000; font-family: monospace; font-weight: bold; border-bottom: 1px solid #e2e8f0;">${bookingRef}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Vehicle Assigned:</td><td style="padding: 6px 0; color: #0A3041; font-weight: 600; border-bottom: 1px solid #e2e8f0;">${vehicle}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Pickup Location:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${pickup}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Destination:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${destination}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Travel Date:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${travelDateFormatted}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Total Settlement:</td><td style="padding: 6px 0; font-weight: bold; color: #16a34a; font-size: 15px; border-bottom: 1px solid #e2e8f0;">${fmtAmount}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569;">Payment Status:</td><td style="padding: 6px 0; font-weight: bold; color: #16a34a;">${paymentStatus}</td></tr>
+          </table>
+        </div>
+
+        <p style="color: #475569; font-size: 13px; line-height: 1.5;">Your assigned professional driver details and tracking coordinates will be sent via SMS/WhatsApp prior to scheduled departure time.</p>
+        <p style="color: #475569; font-size: 13px; line-height: 1.5;">For immediate dispatch assistance, please call our 24/7 hotline at <strong>+234 916 791 9439</strong> or email <a href="mailto:info@neweratransports.com" style="color: #C40000;">info@neweratransports.com</a>.</p>
+
         <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;">
           &copy; ${new Date().getFullYear()} New Era Transport Services Ltd. All rights reserved.
         </div>
@@ -76,20 +222,20 @@ class EmailService {
         },
         body: JSON.stringify({
           to: customerEmail,
-          subject: `Your Journey Quotation Request [${quoteRef}] - NETS`,
+          subject: `Booking Confirmation & Schedule [${bookingRef}] - NETS`,
           html: htmlBody,
-          text: `Thank you ${customerName}. We have received your journey quote request ${quoteRef}. Estimated Investment: ${estimate}.`,
+          text: `Dear ${customerName}. Your booking ${bookingRef} is confirmed. Route: ${pickup} to ${destination}. Vehicle: ${vehicle}. Date: ${travelDateFormatted}.`,
           from: 'hello@neweratransports.com',
           from_name: 'NETS Logistics',
         }),
       })
 
       if (res.ok) {
-        console.log(`[EMAIL SERVICE] Customer confirmation sent to ${customerEmail}`)
+        console.log(`[EMAIL SERVICE] Customer booking confirmation sent to ${customerEmail}`)
         return true
       }
     } catch (err) {
-      console.warn('[EMAIL SERVICE] Could not dispatch via email proxy:', err)
+      console.warn('[EMAIL SERVICE] Could not dispatch booking email via proxy:', err)
     }
 
     return true
@@ -113,8 +259,8 @@ class EmailService {
     const returnDate = returnDateRaw ? new Date(returnDateRaw).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'
     const vehicle = payload.estimatedInvestment?.vehicleName || 'Standard Vehicle'
     const pax = payload.journeyInformation?.passengerCount || 'N/A'
-    const tripType = payload.journeyInformation?.tripType || 'One-Way'
-    const schedule = tripType === 'One-Way' ? travelDate : `${travelDate} to ${returnDate}`
+    const tripType = payload.journeyInformation?.tripType || 'Drop-Off'
+    const schedule = (tripType === 'Drop-Off' || tripType === 'One-Way' || tripType === 'One Way') ? travelDate : `${travelDate} to ${returnDate}`
 
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
