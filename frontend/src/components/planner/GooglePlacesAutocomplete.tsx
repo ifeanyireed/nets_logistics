@@ -104,14 +104,18 @@ export function GooglePlacesAutocomplete({ value, onChange, onLocationSelect, pl
       // Fallback if placesService is not ready
       geocodeAddress(placeName).then(coords => {
         if (coords) {
-          // No easy country check here without reverse geocoding, 
-          // but we can assume most typing queries that bypass Place details might be within bounds,
-          // or we can skip check here.
+          const country = coords.country || 'Nigeria'
+          if (country.toLowerCase() !== 'nigeria') {
+            useJourneyStore.getState().setInternationalModalOpen(true)
+            setQuery('') // Reset query
+            return
+          }
+          
           onLocationSelect({
             address: placeName,
             lat: coords.lat,
             lng: coords.lng,
-            country: 'Nigeria'
+            country: country
           })
         }
       })

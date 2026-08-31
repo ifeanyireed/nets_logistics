@@ -362,6 +362,14 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       return
     }
 
+    const pCountry = state.pickup?.country?.toLowerCase()
+    const dCountry = state.destination?.country?.toLowerCase()
+    if ((pCountry && pCountry !== 'nigeria') || (dCountry && dCountry !== 'nigeria')) {
+      set({ estimatedInvestment: null, customerPricingView: null, pricingError: 'International journeys require a custom quote.' })
+      state.setInternationalModalOpen(true)
+      return
+    }
+
     set({ isPricingCalculating: true, pricingError: null })
 
     try {

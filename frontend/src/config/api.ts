@@ -26,7 +26,7 @@ export const EMAIL_PROXY_KEY =
   import.meta.env.VITE_EMAIL_PROXY_KEY || 
   'ep_live_6f3b92d8a4c1e7f50b4a1d9c2e8f7a3b'
 
-export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
+export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number, country?: string } | null> {
   try {
     const query = encodeURIComponent(address)
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${GOOGLE_MAPS_API_KEY}&components=country:NG|country:BJ|country:NE|country:TD|country:CM`
@@ -34,7 +34,13 @@ export async function geocodeAddress(address: string): Promise<{ lat: number; ln
     const data = await res.json()
     if (data.results && data.results.length > 0) {
       const location = data.results[0].geometry.location
-      return { lng: location.lng, lat: location.lat }
+      let country = 'Nigeria'
+      data.results[0].address_components?.forEach((c: any) => {
+        if (c.types.includes('country')) {
+          country = c.long_name
+        }
+      })
+      return { lng: location.lng, lat: location.lat, country }
     }
   } catch (err) {
     console.error('Geocoding error:', err)

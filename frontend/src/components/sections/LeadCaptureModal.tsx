@@ -152,6 +152,14 @@ export function LeadCaptureModal() {
       generateReference()
     }
 
+    const pCountry = pickup?.country?.toLowerCase()
+    const dCountry = destination?.country?.toLowerCase()
+    if ((pCountry && pCountry !== 'nigeria') || (dCountry && dCountry !== 'nigeria')) {
+      useJourneyStore.getState().setInternationalModalOpen(true)
+      setLeadModalOpen(false)
+      return
+    }
+
     if (leadModalNextAction === 'quote') {
       // Calculate and show quote FIRST so it gets included in the CRM lead
       await calculateRouteAndPrice()
