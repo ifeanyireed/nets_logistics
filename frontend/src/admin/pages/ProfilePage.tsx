@@ -100,7 +100,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="admin-grid-2" style={{ gap: '1.5rem', alignItems: 'start' }}>
         
         {/* Left Column: Personal Info & Account Summary */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

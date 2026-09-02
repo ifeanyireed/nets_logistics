@@ -587,19 +587,11 @@ export function BookingsPage() {
           }}
         >
           <div
+            className="admin-detail-modal"
             style={{
-              background: '#ffffff',
-              border: '1px solid var(--adm-border)',
-              borderRadius: 'var(--adm-radius)',
-              width: '100%',
-              maxWidth: '680px',
               maxHeight: '90vh',
               overflowY: 'auto',
               boxShadow: '0 24px 64px rgba(0, 0, 0, 0.4)',
-              padding: '1.75rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1.25rem',
               position: 'relative',
             }}
           >
@@ -707,7 +699,7 @@ export function BookingsPage() {
             </div>
 
             {/* 2-Column Details Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+            <div className="admin-grid-2" style={{ gap: '1.25rem' }}>
               {/* Customer Profile Card */}
               <div
                 style={{

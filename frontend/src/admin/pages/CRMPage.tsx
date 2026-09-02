@@ -444,19 +444,11 @@ export function CRMPage() {
           }}
         >
           <div
+            className="admin-detail-modal"
             style={{
-              background: '#ffffff',
-              border: '1px solid var(--adm-border)',
-              borderRadius: 'var(--adm-radius)',
-              width: '100%',
-              maxWidth: '640px',
               maxHeight: '90vh',
               overflowY: 'auto',
               boxShadow: '0 24px 64px rgba(0, 0, 0, 0.4)',
-              padding: '1.75rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1.25rem',
               position: 'relative'
             }}
           >
@@ -513,7 +505,7 @@ export function CRMPage() {
             </div>
 
             {/* 2-Column Details Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+            <div className="admin-grid-2" style={{ gap: '1.25rem' }}>
               {/* Customer Info Card */}
               <div style={{ background: 'var(--adm-surface-2)', padding: '1rem', borderRadius: 'var(--adm-radius-sm)', border: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-text-3)', letterSpacing: '0.05em', marginBottom: 2 }}>
@@ -657,7 +649,7 @@ export function CRMPage() {
                 {linkCopied && <span style={{ fontSize: 11, color: 'var(--adm-success)', fontWeight: 600 }}>✓ Link Copied to Clipboard</span>}
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div className="admin-payment-link-row">
                 <input
                   type="text"
                   readOnly

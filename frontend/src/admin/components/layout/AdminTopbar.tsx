@@ -32,7 +32,12 @@ export function AdminTopbar() {
 
   return (
     <header className="admin-topbar">
-      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--adm-text-1)' }}>{title}</span>
+      <div className="admin-topbar-left">
+        <div className="admin-topbar-mobile-brand" onClick={() => navigate('/admin')} title="NETS Admin Dashboard">
+          <img src="/favicon.svg" alt="NETS" style={{ height: 26, width: 26, objectFit: 'contain' }} />
+        </div>
+        <span className="admin-topbar-title">{title}</span>
+      </div>
 
       <button className="admin-topbar-search" onClick={() => setSearchOpen(true)}>
         <Search size={13} color="var(--adm-text-3)" />

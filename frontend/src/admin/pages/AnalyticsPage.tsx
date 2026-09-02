@@ -55,7 +55,7 @@ export function AnalyticsPage() {
       </div>
 
       {/* Top KPIs */}
-      <div className="admin-stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+      <div className="admin-stat-grid">
         <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-success)' }}>
           <div className="admin-stat-label">Total Revenue (Paid)</div>
           <div className="admin-stat-value" style={{ fontSize: '1.25rem' }}>{fmt(totalRevenue)}</div>

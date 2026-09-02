@@ -100,9 +100,9 @@ export function FleetManagementPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 380px' : '1fr', gap: '1.25rem' }}>
+      <div className={`admin-fleet-layout ${selected ? 'has-selected' : ''}`}>
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+          <div className="admin-fleet-grid">
             {fleetList.map(v => {
               const insExpiry = daysUntil(v.insuranceExpiry)
               return (
