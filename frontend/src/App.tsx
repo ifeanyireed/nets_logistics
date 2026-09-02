@@ -24,6 +24,7 @@ import { QuotePaymentPage } from './pages/QuotePaymentPage'
 
 import { LeadCaptureModal } from './components/sections/LeadCaptureModal'
 import { InternationalModal } from './components/sections/InternationalModal'
+import { CookieConsentBanner } from './components/layout/CookieConsentBanner'
 import { AdminRouter } from './admin/AdminRouter'
 import { APIProvider } from '@vis.gl/react-google-maps'
 import { GOOGLE_MAPS_API_KEY } from './config/api'
@@ -130,6 +131,7 @@ function AppContent() {
       {!isPlanner && <Footer />}
       <LeadCaptureModal />
       <InternationalModal />
+      <CookieConsentBanner />
     </>
   )
 }

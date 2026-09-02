@@ -133,6 +133,26 @@ export function Footer() {
                 </Link>
               </span>
             ))}
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.75rem' }}>·</span>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event('nets_open_cookie_preferences'))}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: '0.8125rem',
+                  color: 'rgba(255,255,255,0.4)',
+                  cursor: 'pointer',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#ffffff')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+              >
+                Cookie Settings
+              </button>
+            </span>
           </div>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
             <a href="https://www.instagram.com/nets_logistics/" target="_blank" rel="noopener noreferrer" aria-label="NETS on Instagram"

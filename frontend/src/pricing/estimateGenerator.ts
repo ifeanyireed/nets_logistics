@@ -81,6 +81,8 @@ export async function generateEstimate(input: JourneyPricingInput): Promise<Esti
 
   let chargeableDays = input.numberOfDays
   let additionalRetentionFee = 0
+  let retentionDays = 0
+  let feePerDay = 0
 
   if (input.numberOfDays >= 3 && (input.tripType === 'To & Fro' || input.tripType === 'Return' || input.tripType === 'Multi-Day') && input.retentionPreference) {
     if (input.retentionPreference === 'return') {
@@ -88,15 +90,24 @@ export async function generateEstimate(input: JourneyPricingInput): Promise<Esti
     } else if (input.retentionPreference === 'keep') {
       const middleDays = input.numberOfDays - 2
       chargeableDays = 2
-      const feePerDay = input.vehicleMobility === 'parked' ? retentionParked : retentionMoving
+      feePerDay = input.vehicleMobility === 'parked' ? retentionParked : retentionMoving
       additionalRetentionFee = middleDays * feePerDay
+      retentionDays = middleDays
     }
   }
 
-  const finalTotal = (markedUpDailyPrice * chargeableDays) + additionalRetentionFee
+  const baseFleetCharter = markedUpDailyPrice * chargeableDays
+  const finalTotal = baseFleetCharter + additionalRetentionFee
 
   return {
     estimatedInvestment: finalTotal,
+    baseFleetCharter,
+    additionalRetentionFee,
+    retentionFee: additionalRetentionFee,
+    retentionDays,
+    retentionRate: feePerDay,
+    distanceKm: input.distanceKm,
+    chargeableDays,
     rateTier: (input.tripType === 'Recurring' || input.tripType === 'Staff Pickup') ? 'monthly' : input.tripType === 'Multi-Day' ? 'three-day' : 'daily',
     vehicleId: input.vehicleId,
     vehicleName: vehicleConfig.vehicleName,

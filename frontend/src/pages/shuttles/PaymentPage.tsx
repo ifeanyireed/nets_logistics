@@ -282,11 +282,33 @@ export function PaymentPage() {
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Total Amount</span>
                 <span style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--color-nets-navy)' }}>
                   ₦{finalTotal.toLocaleString()}
                 </span>
+              </div>
+
+              {/* Terms Acceptance Disclaimer */}
+              <div style={{ background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '1rem', fontSize: '0.75rem', color: '#64748b', lineHeight: 1.5, textAlign: 'center' }}>
+                By proceeding to payment, you confirm your seat reservation and agree to our{' '}
+                <Link
+                  to="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--color-nets-navy)', fontWeight: 700, textDecoration: 'underline' }}
+                >
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link
+                  to="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--color-nets-navy)', fontWeight: 700, textDecoration: 'underline' }}
+                >
+                  Privacy Policy
+                </Link>.
               </div>
 
               <button

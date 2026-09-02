@@ -45,12 +45,13 @@ export function DashboardHome() {
   }, [])
 
   // KPIs derived directly from live database leads & bookings
-  const pendingQuotes = liveLeads.filter(q => q.status === 'pending' || q.status === 'new').length
+  const validLeads = liveLeads.filter(q => String(q.crmStatus || q.status).toLowerCase() !== 'invalid')
+  const pendingQuotes = validLeads.filter(q => q.status === 'pending' || q.status === 'new').length
   const confirmedBookings = liveBookings.filter(b => b.operationalStatus === 'confirmed' || b.operationalStatus === 'dispatched' || b.paymentStatus === 'paid').length
   const fleetActive = vehicles.filter(v => v.available).length
 
   const bookingRevenue = liveBookings.reduce((s, b) => s + (b.totalAmount || 0), 0)
-  const leadRevenue = liveLeads.reduce((s, l) => s + (l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0), 0)
+  const leadRevenue = validLeads.reduce((s, l) => s + (l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0), 0)
   const revenueTotal = bookingRevenue > 0 ? bookingRevenue : leadRevenue
 
   const upcoming = liveBookings

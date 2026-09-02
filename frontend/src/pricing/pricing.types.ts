@@ -208,6 +208,15 @@ export interface JourneyPricingInput {
 export interface EstimatedInvestment {
   /** The single customer-visible Estimated Investment */
   estimatedInvestment: number
+  /** Base charter portion of the cost (excluding retention) */
+  baseFleetCharter?: number
+  /** Additional vehicle retention fee */
+  additionalRetentionFee?: number
+  retentionFee?: number
+  retentionDays?: number
+  retentionRate?: number
+  distanceKm?: number
+  chargeableDays?: number
   /** Which rate tier was used */
   rateTier: 'daily' | 'three-day' | 'monthly'
   /** Vehicle information */

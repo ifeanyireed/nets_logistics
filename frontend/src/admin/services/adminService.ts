@@ -92,11 +92,12 @@ export class AdminService {
     }
 
     const leads = await this.getLeads()
-    const pendingLeads = leads.filter(l => l.crmStatus === 'New Lead' || l.crmStatus === 'Pending Review' || l.status === 'new' || l.status === 'pending').length
-    const totalPipelineValue = leads.reduce((acc, l) => acc + (l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0), 0)
+    const validLeads = leads.filter(l => String(l.crmStatus || l.status).toLowerCase() !== 'invalid')
+    const pendingLeads = validLeads.filter(l => l.crmStatus === 'New Lead' || l.crmStatus === 'Pending Review' || l.status === 'new' || l.status === 'pending').length
+    const totalPipelineValue = validLeads.reduce((acc, l) => acc + (l.estimatedInvestmentMax || l.estimatedInvestmentMin || 0), 0)
 
     return {
-      totalQuotes: leads.length,
+      totalQuotes: validLeads.length,
       pendingLeads,
       unreadContacts: 0,
       activeFleet: 5,

@@ -16,7 +16,7 @@ class EmailService {
     const customerName = payload.customerInformation?.name || payload.customerName || 'Valued Customer'
     const quoteRef = payload.leadMetadata?.quoteReferenceNumber || payload.leadReference || payload.reference || 'NETS-QUOTE'
     const journeyType = payload.journeyInformation?.journeyType || payload.journeyType || 'Charter Journey'
-    const totalNum = payload.estimatedInvestment?.total || payload.estimatedInvestment || 0
+    const totalNum = payload.estimatedInvestment?.total || payload.estimatedInvestment?.estimatedInvestment || payload.estimatedInvestment || 0
     const estimate = totalNum ? `NGN ${Math.round(totalNum).toLocaleString('en-NG')}` : 'NGN ---,---'
     const pickup = payload.journeyInformation?.pickup?.address || payload.journeyInformation?.pickup || payload.origin || payload.pickup || 'Lagos, Nigeria'
     const destination = payload.journeyInformation?.destination?.address || payload.journeyInformation?.destination || payload.destination || 'Lagos, Nigeria'
@@ -29,6 +29,38 @@ class EmailService {
     const vehicle = payload.estimatedInvestment?.vehicleName || payload.vehicleName || payload.journeyType || 'Executive Fleet'
     const pax = payload.journeyInformation?.passengerCount || payload.passengerCount || 'Group'
     const tripType = payload.journeyInformation?.tripType || payload.tripType || 'Drop-Off'
+
+    // Distance and Retention extraction
+    const distanceKm = Number(
+      payload.journeyInformation?.distanceKm || 
+      payload.distanceKm || 
+      payload.estimatedInvestment?.distanceKm || 
+      payload.payload?.journeyInformation?.distanceKm || 
+      0
+    )
+    const retentionFee = Number(
+      payload.estimatedInvestment?.retentionFee || 
+      payload.estimatedInvestment?.additionalRetentionFee || 
+      payload.retentionFee || 
+      payload.payload?.estimatedInvestment?.retentionFee || 
+      0
+    )
+    const retentionDays = Number(
+      payload.estimatedInvestment?.retentionDays || 
+      payload.journeyInformation?.retentionDays || 
+      payload.retentionDays || 
+      0
+    )
+    const retentionRate = Number(
+      payload.estimatedInvestment?.retentionRate || 
+      payload.retentionRate || 
+      0
+    )
+    const vehicleMobility = payload.journeyInformation?.vehicleMobility || payload.vehicleMobility || 'parked'
+
+    const baseCharterNum = payload.estimatedInvestment?.baseFleetCharter || (totalNum > retentionFee ? totalNum - retentionFee : totalNum)
+    const fmtBaseCharter = baseCharterNum ? `NGN ${Math.round(baseCharterNum).toLocaleString('en-NG')}` : estimate
+    const fmtRetention = retentionFee ? `NGN ${Math.round(retentionFee).toLocaleString('en-NG')}` : 'NGN 0'
     
     let schedule = `${travelDate}${departureTime}`
     if (returnDate && tripType !== 'Drop-Off' && tripType !== 'One-Way' && tripType !== 'One Way') {
@@ -44,55 +76,76 @@ class EmailService {
     }
 
     const htmlBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+      <div style="font-family: Arial, -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="margin-bottom: 24px; text-align: center;">
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
-              <td style="padding-right: 12px; vertical-align: middle;">
-                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
+              <td style="padding-right: 14px; vertical-align: middle;">
+                <a href="https://neweratransports.com" target="_blank" style="text-decoration: none; display: block;">
+                  <img src="https://neweratransports.com/logo.png" alt="NETS" width="110" style="display: block; width: 110px; height: auto; border: 0;" />
+                </a>
               </td>
               <td style="vertical-align: middle; text-align: left;">
-                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
-                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+                <h1 style="color: #0A3041; margin: 0; font-size: 21px; line-height: 1.1; font-weight: 800;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Executive Charters</p>
               </td>
             </tr>
           </table>
         </div>
 
         <h2 style="color: #0A3041; font-size: 18px; margin-bottom: 8px;">Hello ${customerName},</h2>
-        <p style="color: #475569; line-height: 1.6; margin-top: 0;">Thank you for choosing New Era Transport Services. Your official journey quotation and payment checkout are prepared below.</p>
+        <p style="color: #475569; line-height: 1.6; margin-top: 0; font-size: 14px;">Thank you for choosing New Era Transport Services. Your official journey quotation and payment checkout are prepared below.</p>
 
-        {/* Journey Details Box */}
         <div style="background: #F8FAFC; border-left: 4px solid #0A3041; padding: 16px; margin: 20px 0; border-radius: 4px;">
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Quotation Reference:</strong> <code style="color: #C40000; font-weight: 700;">${quoteRef}</code></p>
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Service Type:</strong> ${journeyType} (${tripType})</p>
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Route:</strong> ${pickup} &rarr; ${destination}</p>
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Schedule:</strong> ${schedule}</p>
-          <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Vehicle Category:</strong> ${vehicle}</p>
-          <p style="margin: 0; font-size: 14px;"><strong>Passenger Group:</strong> ${pax}</p>
+          <p style="margin: 0 0 8px 0; font-size: 13.5px;"><strong>Quotation Reference:</strong> <code style="color: #C40000; font-weight: 700;">${quoteRef}</code></p>
+          <p style="margin: 0 0 8px 0; font-size: 13.5px;"><strong>Service Type:</strong> ${journeyType} (${tripType})</p>
+          <p style="margin: 0 0 8px 0; font-size: 13.5px;"><strong>Route:</strong> ${pickup} &rarr; ${destination} ${distanceKm > 0 ? `<span style="color: #64748B;">(${Math.round(distanceKm)} km)</span>` : ''}</p>
+          ${distanceKm > 0 ? `<p style="margin: 0 0 8px 0; font-size: 13.5px;"><strong>Calculated Distance:</strong> ${Math.round(distanceKm)} km</p>` : ''}
+          <p style="margin: 0 0 8px 0; font-size: 13.5px;"><strong>Schedule:</strong> ${schedule}</p>
+          <p style="margin: 0 0 8px 0; font-size: 13.5px;"><strong>Vehicle Category:</strong> ${vehicle}</p>
+          <p style="margin: 0; font-size: 13.5px;"><strong>Passenger Group:</strong> ${pax}</p>
+          ${retentionFee > 0 || retentionDays > 0 ? `
+          <p style="margin: 8px 0 0 0; font-size: 13.5px;"><strong>Vehicle Retention:</strong> ${retentionDays > 0 ? `${retentionDays} day(s) retained (${vehicleMobility})` : `Retained (${vehicleMobility})`}</p>
+          ` : ''}
         </div>
 
-        {/* Cost Breakdown */}
         <div style="margin: 20px 0; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
-          <div style="background: #0A3041; color: #ffffff; padding: 10px 16px; font-weight: bold; font-size: 14px;">
+          <div style="background: #0A3041; color: #ffffff; padding: 11px 16px; font-weight: bold; font-size: 14px;">
             Guaranteed Cost Breakdown & Inclusions
           </div>
           <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
             <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px 16px; color: #475569;">Base Fleet Charter</td>
-              <td style="padding: 10px 16px; text-align: right; font-weight: 600; color: #0A3041;">${estimate}</td>
+              <td style="padding: 10px 16px; color: #475569;">
+                Base Fleet Charter ${distanceKm > 0 ? `<span style="display: block; font-size: 11.5px; color: #64748b; margin-top: 2px;">Route Coverage: <strong>${Math.round(distanceKm)} km</strong></span>` : ''}
+              </td>
+              <td style="padding: 10px 16px; text-align: right; font-weight: 600; color: #0A3041; vertical-align: middle;">
+                ${retentionFee > 0 ? fmtBaseCharter : estimate}
+              </td>
             </tr>
+            ${retentionFee > 0 ? `
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fffcf0;">
+              <td style="padding: 10px 16px; color: #475569;">
+                Vehicle Retention Surcharge
+                <span style="display: block; font-size: 11.5px; color: #92400e; margin-top: 2px;">
+                  Vehicle retained on site: <strong>${retentionDays > 0 ? retentionDays : 'Multi'} day${retentionDays === 1 ? '' : 's'}</strong> (${vehicleMobility}) ${retentionRate > 0 ? `@ NGN ${Math.round(retentionRate).toLocaleString('en-NG')}/day` : ''}
+                </span>
+              </td>
+              <td style="padding: 10px 16px; text-align: right; font-weight: 600; color: #b45309; vertical-align: middle;">
+                ${fmtRetention}
+              </td>
+            </tr>
+            ` : ''}
             <tr style="border-bottom: 1px solid #f1f5f9;">
               <td style="padding: 10px 16px; color: #475569;">Professional Uniformed Driver & Fuel</td>
-              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included</td>
+              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included (✓)</td>
             </tr>
             <tr style="border-bottom: 1px solid #f1f5f9;">
               <td style="padding: 10px 16px; color: #475569;">Tolls & Interstate Security Compliance</td>
-              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included</td>
+              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included (✓)</td>
             </tr>
             <tr style="border-bottom: 1px solid #f1f5f9;">
               <td style="padding: 10px 16px; color: #475569;">Comprehensive Passenger Transit Cover</td>
-              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included</td>
+              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included (✓)</td>
             </tr>
             <tr style="background: #F8FAFC;">
               <td style="padding: 12px 16px; font-weight: bold; font-size: 15px; color: #0A3041;">Total Investment</td>
@@ -101,7 +154,6 @@ class EmailService {
           </table>
         </div>
 
-        {/* Payment Link Call To Action */}
         <div style="text-align: center; margin: 30px 0 20px;">
           <a href="${paymentUrl}" style="display: inline-block; background: #C40000; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 4px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 12px rgba(196, 0, 0, 0.25);">
             Accept Quote & Pay Online Now &rarr;
@@ -165,22 +217,56 @@ class EmailService {
     const fmtAmount = amountNum ? `NGN ${Math.round(amountNum).toLocaleString('en-NG')}` : 'NGN ---,---'
     const paymentStatus = (booking.paymentStatus || 'Paid & Confirmed').toUpperCase()
 
+    // Distance and Retention extraction
+    const distanceKm = Number(
+      booking.journeyInformation?.distanceKm || 
+      booking.distanceKm || 
+      booking.estimatedInvestment?.distanceKm || 
+      booking.payload?.journeyInformation?.distanceKm || 
+      0
+    )
+    const retentionFee = Number(
+      booking.estimatedInvestment?.retentionFee || 
+      booking.estimatedInvestment?.additionalRetentionFee || 
+      booking.retentionFee || 
+      booking.payload?.estimatedInvestment?.retentionFee || 
+      0
+    )
+    const retentionDays = Number(
+      booking.estimatedInvestment?.retentionDays || 
+      booking.journeyInformation?.retentionDays || 
+      booking.retentionDays || 
+      0
+    )
+    const retentionRate = Number(
+      booking.estimatedInvestment?.retentionRate || 
+      booking.retentionRate || 
+      0
+    )
+    const vehicleMobility = booking.journeyInformation?.vehicleMobility || booking.vehicleMobility || 'parked'
+
+    const baseCharterNum = booking.estimatedInvestment?.baseFleetCharter || (amountNum > retentionFee ? amountNum - retentionFee : amountNum)
+    const fmtBaseCharter = baseCharterNum ? `NGN ${Math.round(baseCharterNum).toLocaleString('en-NG')}` : fmtAmount
+    const fmtRetention = retentionFee ? `NGN ${Math.round(retentionFee).toLocaleString('en-NG')}` : 'NGN 0'
+
     if (!customerEmail || customerEmail === 'N/A') {
       console.warn('[EMAIL SERVICE] Customer email missing for booking confirmation.')
       return false
     }
 
     const htmlBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+      <div style="font-family: Arial, -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="margin-bottom: 24px; text-align: center;">
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
-              <td style="padding-right: 12px; vertical-align: middle;">
-                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
+              <td style="padding-right: 14px; vertical-align: middle;">
+                <a href="https://neweratransports.com" target="_blank" style="text-decoration: none; display: block;">
+                  <img src="https://neweratransports.com/logo.png" alt="NETS" width="110" style="display: block; width: 110px; height: auto; border: 0;" />
+                </a>
               </td>
               <td style="vertical-align: middle; text-align: left;">
-                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
-                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+                <h1 style="color: #0A3041; margin: 0; font-size: 21px; line-height: 1.1; font-weight: 800;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Executive Charters</p>
               </td>
             </tr>
           </table>
@@ -197,7 +283,12 @@ class EmailService {
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Vehicle Assigned:</td><td style="padding: 6px 0; color: #0A3041; font-weight: 600; border-bottom: 1px solid #e2e8f0;">${vehicle}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Pickup Location:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${pickup}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Destination:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${destination}</td></tr>
+            ${distanceKm > 0 ? `<tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Route Distance:</td><td style="padding: 6px 0; color: #0A3041; font-weight: 600; border-bottom: 1px solid #e2e8f0;">${Math.round(distanceKm)} km</td></tr>` : ''}
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Travel Date:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${travelDateFormatted}</td></tr>
+            ${retentionFee > 0 ? `
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Base Fleet Charter:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${fmtBaseCharter}</td></tr>
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Vehicle Retention:</td><td style="padding: 6px 0; color: #b45309; font-weight: 600; border-bottom: 1px solid #e2e8f0;">${fmtRetention} (${retentionDays > 0 ? `${retentionDays} days` : 'Multi-day'} @ ${retentionRate > 0 ? `NGN ${Math.round(retentionRate).toLocaleString('en-NG')}/day` : vehicleMobility})</td></tr>
+            ` : ''}
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Total Settlement:</td><td style="padding: 6px 0; font-weight: bold; color: #16a34a; font-size: 15px; border-bottom: 1px solid #e2e8f0;">${fmtAmount}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569;">Payment Status:</td><td style="padding: 6px 0; font-weight: bold; color: #16a34a;">${paymentStatus}</td></tr>
           </table>
@@ -262,17 +353,44 @@ class EmailService {
     const tripType = payload.journeyInformation?.tripType || 'Drop-Off'
     const schedule = (tripType === 'Drop-Off' || tripType === 'One-Way' || tripType === 'One Way') ? travelDate : `${travelDate} to ${returnDate}`
 
+    const distanceKm = Number(
+      payload.journeyInformation?.distanceKm || 
+      payload.distanceKm || 
+      payload.estimatedInvestment?.distanceKm || 
+      payload.payload?.journeyInformation?.distanceKm || 
+      0
+    )
+    const retentionFee = Number(
+      payload.estimatedInvestment?.retentionFee || 
+      payload.estimatedInvestment?.additionalRetentionFee || 
+      payload.retentionFee || 
+      0
+    )
+    const retentionDays = Number(
+      payload.estimatedInvestment?.retentionDays || 
+      payload.journeyInformation?.retentionDays || 
+      0
+    )
+    const retentionRate = Number(
+      payload.estimatedInvestment?.retentionRate || 
+      payload.retentionRate || 
+      0
+    )
+    const vehicleMobility = payload.journeyInformation?.vehicleMobility || 'parked'
+
     const htmlBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+      <div style="font-family: Arial, -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="margin-bottom: 24px; text-align: center;">
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
-              <td style="padding-right: 12px; vertical-align: middle;">
-                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
+              <td style="padding-right: 14px; vertical-align: middle;">
+                <a href="https://neweratransports.com" target="_blank" style="text-decoration: none; display: block;">
+                  <img src="https://neweratransports.com/logo.png" alt="NETS" width="110" style="display: block; width: 110px; height: auto; border: 0;" />
+                </a>
               </td>
               <td style="vertical-align: middle; text-align: left;">
-                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
-                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+                <h1 style="color: #0A3041; margin: 0; font-size: 21px; line-height: 1.1; font-weight: 800;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Executive Charters</p>
               </td>
             </tr>
           </table>
@@ -287,9 +405,11 @@ class EmailService {
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Client Phone:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${customerPhone}</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Journey Type:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${journeyType} (${tripType})</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Route:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${pickup} &rarr; ${destination}</td></tr>
+            ${distanceKm > 0 ? `<tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Route Distance:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041; font-weight: 600;">${Math.round(distanceKm)} km</td></tr>` : ''}
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Schedule:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${schedule}</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Vehicle:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${vehicle}</td></tr>
             <tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Passengers:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${pax}</td></tr>
+            ${retentionFee > 0 ? `<tr><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #475569;">Vehicle Retention:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #b45309; font-weight: 600;">NGN ${Math.round(retentionFee).toLocaleString('en-NG')} (${retentionDays} days @ NGN ${Math.round(retentionRate).toLocaleString('en-NG')}/day - ${vehicleMobility})</td></tr>` : ''}
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569;">Estimated Value:</td><td style="padding: 6px 0; font-weight: bold; color: #0A3041; font-size: 16px;">${estimate}</td></tr>
           </table>
         </div>
@@ -346,17 +466,44 @@ class EmailService {
     const fmtAmount = `NGN ${Math.round(amount).toLocaleString('en-NG')}`
     const fmtDate = new Date(travelDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 
+    const distanceKm = Number(
+      booking.journeyInformation?.distanceKm || 
+      booking.distanceKm || 
+      booking.estimatedInvestment?.distanceKm || 
+      booking.payload?.journeyInformation?.distanceKm || 
+      0
+    )
+    const retentionFee = Number(
+      booking.estimatedInvestment?.retentionFee || 
+      booking.estimatedInvestment?.additionalRetentionFee || 
+      booking.retentionFee || 
+      0
+    )
+    const retentionDays = Number(
+      booking.estimatedInvestment?.retentionDays || 
+      booking.journeyInformation?.retentionDays || 
+      0
+    )
+    const retentionRate = Number(
+      booking.estimatedInvestment?.retentionRate || 
+      booking.retentionRate || 
+      0
+    )
+    const vehicleMobility = booking.journeyInformation?.vehicleMobility || 'parked'
+
     const htmlBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+      <div style="font-family: Arial, -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="margin-bottom: 24px; text-align: center;">
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
-              <td style="padding-right: 12px; vertical-align: middle;">
-                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
+              <td style="padding-right: 14px; vertical-align: middle;">
+                <a href="https://neweratransports.com" target="_blank" style="text-decoration: none; display: block;">
+                  <img src="https://neweratransports.com/logo.png" alt="NETS" width="110" style="display: block; width: 110px; height: auto; border: 0;" />
+                </a>
               </td>
               <td style="vertical-align: middle; text-align: left;">
-                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
-                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+                <h1 style="color: #0A3041; margin: 0; font-size: 21px; line-height: 1.1; font-weight: 800;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Executive Charters</p>
               </td>
             </tr>
           </table>
@@ -371,8 +518,10 @@ class EmailService {
             <tr><td style="padding: 6px 0; font-weight: bold; border-bottom: 1px solid #e2e8f0; color: #475569;">Vehicle Assigned:</td><td style="padding: 6px 0; font-weight: bold; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${vehicle}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: bold; border-bottom: 1px solid #e2e8f0; color: #475569;">Pickup:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${pickup}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: bold; border-bottom: 1px solid #e2e8f0; color: #475569;">Destination:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${destination}</td></tr>
+            ${distanceKm > 0 ? `<tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Route Distance:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041; font-weight: 600;">${Math.round(distanceKm)} km</td></tr>` : ''}
             <tr><td style="padding: 6px 0; font-weight: bold; border-bottom: 1px solid #e2e8f0; color: #475569;">Travel Date:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #0A3041;">${fmtDate}</td></tr>
-            <tr><td style="padding: 6px 0; font-weight: bold; border-bottom: 1px solid #e2e8f0; color: #475569;">Total Paid:</td><td style="padding: 6px 0; font-size: 16px; font-weight: bold; color: #16a34a; border-bottom: 1px solid #e2e8f0;">${fmtAmount}</td></tr>
+            ${retentionFee > 0 ? `<tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Vehicle Retention:</td><td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #b45309; font-weight: 600;">NGN ${Math.round(retentionFee).toLocaleString('en-NG')} (${retentionDays} days @ NGN ${Math.round(retentionRate).toLocaleString('en-NG')}/day - ${vehicleMobility})</td></tr>` : ''}
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Total Paid:</td><td style="padding: 6px 0; font-size: 16px; font-weight: bold; color: #16a34a; border-bottom: 1px solid #e2e8f0;">${fmtAmount}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569;">Status:</td><td style="padding: 6px 0; font-weight: bold; color: #16a34a; text-transform: uppercase;">${paymentStatus}</td></tr>
           </table>
         </div>
@@ -424,16 +573,18 @@ class EmailService {
     const cleanEmail = email.trim()
 
     const htmlBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+      <div style="font-family: Arial, -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
         <div style="margin-bottom: 24px; text-align: center;">
           <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
             <tr>
-              <td style="padding-right: 12px; vertical-align: middle;">
-                <img src="https://neweratransports.com/logo.png" alt="NETS" style="display: block; width: 120px; height: auto;" />
+              <td style="padding-right: 14px; vertical-align: middle;">
+                <a href="https://neweratransports.com" target="_blank" style="text-decoration: none; display: block;">
+                  <img src="https://neweratransports.com/logo.png" alt="NETS" width="110" style="display: block; width: 110px; height: auto; border: 0;" />
+                </a>
               </td>
               <td style="vertical-align: middle; text-align: left;">
-                <h1 style="color: #0A3041; margin: 0; font-size: 22px; line-height: 1;">NEW ERA TRANSPORT SERVICES</h1>
-                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Charters</p>
+                <h1 style="color: #0A3041; margin: 0; font-size: 21px; line-height: 1.1; font-weight: 800;">NEW ERA TRANSPORT SERVICES</h1>
+                <p style="color: #C40000; font-weight: 700; text-transform: uppercase; margin: 4px 0 0 0; font-size: 10px; letter-spacing: 0.1em; line-height: 1;">Enterprise Logistics & Executive Charters</p>
               </td>
             </tr>
           </table>

@@ -334,6 +334,11 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
       },
       estimatedInvestment: state.estimatedInvestment ? {
         total: state.estimatedInvestment.estimatedInvestment,
+        baseFleetCharter: state.estimatedInvestment.baseFleetCharter ?? state.estimatedInvestment.estimatedInvestment,
+        retentionFee: state.estimatedInvestment.retentionFee ?? state.estimatedInvestment.additionalRetentionFee ?? 0,
+        retentionDays: state.estimatedInvestment.retentionDays ?? 0,
+        retentionRate: state.estimatedInvestment.retentionRate ?? 0,
+        distanceKm: state.estimatedInvestment.distanceKm ?? state.distanceKm,
         rateTier: state.estimatedInvestment.rateTier,
         vehicleName: state.estimatedInvestment.vehicleName,
         pricingVersion: state.estimatedInvestment.pricingVersion,

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Search, Users, DollarSign, Filter, CheckCircle2, Clock, Phone, Mail, MapPin, Calendar, FileText, ArrowRight, X, RefreshCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Copy, Check, ExternalLink, Truck, CreditCard } from 'lucide-react'
+import { Search, Users, DollarSign, Filter, CheckCircle2, Clock, Phone, Mail, MapPin, Calendar, FileText, ArrowRight, X, RefreshCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Copy, Check, ExternalLink, Truck, CreditCard, ShieldCheck } from 'lucide-react'
 import { adminService, type AdminLead } from '../services/adminService'
 import { useAdminStore } from '../store/useAdminStore'
 
@@ -12,6 +12,27 @@ const fmtDate = (iso: string) => {
   }
 }
 
+export const CRM_STATUS_FILTERS = [
+  'all',
+  'New Lead',
+  'Pending Review',
+  'Contacted',
+  'Proposal Sent',
+  'Won & Paid',
+  'Not Interested',
+  'Invalid',
+] as const
+
+export const CRM_STATUS_OPTIONS = [
+  'New Lead',
+  'Pending Review',
+  'Contacted',
+  'Proposal Sent',
+  'Won & Paid',
+  'Not Interested',
+  'Invalid',
+] as const
+
 const statusBadges: Record<string, { label: string; class: string }> = {
   'New Lead': { label: 'New Lead', class: 'admin-badge-yellow' },
   'Pending Review': { label: 'Pending Review', class: 'admin-badge-yellow' },
@@ -19,6 +40,8 @@ const statusBadges: Record<string, { label: string; class: string }> = {
   'Proposal Sent': { label: 'Proposal Sent', class: 'admin-badge-accent' },
   'Won & Paid': { label: 'Won & Paid', class: 'admin-badge-green' },
   'Not Interested': { label: 'Not Interested', class: 'admin-badge-red' },
+  'Invalid': { label: 'Invalid (Test)', class: 'admin-badge-gray' },
+  'invalid': { label: 'Invalid (Test)', class: 'admin-badge-gray' },
 }
 
 export function CRMPage() {
@@ -153,9 +176,11 @@ export function CRMPage() {
   const endIndex = Math.min(totalItems, startIndex + pageSize)
   const paginatedLeads = filteredLeads.slice(startIndex, endIndex)
 
-  const totalValue = leads.reduce((acc, l) => acc + (Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0), 0)
-  const wonCount = leads.filter(l => l.crmStatus === 'Won & Paid').length
-  const winRate = leads.length > 0 ? Math.round((wonCount / leads.length) * 100) : 0
+  const validLeads = leads.filter(l => String(l.crmStatus || l.status).toLowerCase() !== 'invalid')
+  const totalValue = validLeads.reduce((acc, l) => acc + (Number(l.estimatedInvestmentMax) || Number(l.estimatedInvestmentMin) || 0), 0)
+  const wonCount = validLeads.filter(l => l.crmStatus === 'Won & Paid').length
+  const winRate = validLeads.length > 0 ? Math.round((wonCount / validLeads.length) * 100) : 0
+  const invalidCount = leads.filter(l => String(l.crmStatus || l.status).toLowerCase() === 'invalid').length
 
   // Generate visible page numbers
   const pageNumbers = useMemo(() => {
@@ -201,19 +226,21 @@ export function CRMPage() {
         <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-accent)' }}>
           <div className="admin-stat-label">Total Leads Captured</div>
           <div className="admin-stat-value">{leads.length}</div>
-          <div className="admin-stat-sub">From journey planner & website</div>
+          <div className="admin-stat-sub">
+            {invalidCount > 0 ? `${invalidCount} marked invalid / test` : 'From journey planner & website'}
+          </div>
         </div>
 
         <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-success)' }}>
           <div className="admin-stat-label">Won & Converted</div>
           <div className="admin-stat-value">{wonCount} <span style={{ fontSize: 13, color: 'var(--adm-text-3)', fontWeight: 400 }}>({winRate}%)</span></div>
-          <div className="admin-stat-sub">Confirmed & paid bookings</div>
+          <div className="admin-stat-sub">Confirmed & paid ({validLeads.length} valid)</div>
         </div>
 
         <div className="admin-stat-card" style={{ borderTop: '2px solid var(--adm-accent)' }}>
           <div className="admin-stat-label">Pipeline Opportunity Value</div>
           <div className="admin-stat-value" style={{ fontSize: '1.25rem' }}>{fmtCurrency(totalValue)}</div>
-          <div className="admin-stat-sub admin-stat-trend-up">Estimated lead quote value</div>
+          <div className="admin-stat-sub admin-stat-trend-up">Excludes test / invalid leads</div>
         </div>
       </div>
 
@@ -228,7 +255,7 @@ export function CRMPage() {
           />
         </div>
         <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-          {['all', 'New Lead', 'Pending Review', 'Contacted', 'Proposal Sent', 'Won & Paid', 'Not Interested'].map(st => (
+          {CRM_STATUS_FILTERS.map(st => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
@@ -426,11 +453,55 @@ export function CRMPage() {
       </div>
 
       {/* ── Floating Lead Details Modal ── */}
-      {selectedLead && (
-        <div
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setSelectedLead(null)
-          }}
+      {selectedLead && (() => {
+        const distanceKm = Number(
+          selectedLead.payload?.journeyInformation?.distanceKm ||
+          selectedLead.payload?.estimatedInvestment?.distanceKm ||
+          selectedLead.payload?.distanceKm ||
+          0
+        )
+        const retentionPreference = 
+          selectedLead.payload?.journeyInformation?.retentionPreference ||
+          selectedLead.payload?.retentionPreference ||
+          null
+        const retentionDays = Number(
+          selectedLead.payload?.estimatedInvestment?.retentionDays ||
+          selectedLead.payload?.journeyInformation?.retentionDays ||
+          selectedLead.payload?.retentionDays ||
+          0
+        )
+        const retentionFee = Number(
+          selectedLead.payload?.estimatedInvestment?.retentionFee ||
+          selectedLead.payload?.estimatedInvestment?.additionalRetentionFee ||
+          selectedLead.payload?.retentionFee ||
+          0
+        )
+        const retentionRate = Number(
+          selectedLead.payload?.estimatedInvestment?.retentionRate ||
+          selectedLead.payload?.retentionRate ||
+          (retentionDays > 0 && retentionFee > 0 ? Math.round(retentionFee / retentionDays) : 0)
+        )
+        const vehicleMobility = (
+          selectedLead.payload?.journeyInformation?.vehicleMobility ||
+          selectedLead.payload?.vehicleMobility ||
+          'parked'
+        )
+        const totalInvestment = Number(
+          selectedLead.estimatedInvestmentMax ||
+          selectedLead.estimatedInvestmentMin ||
+          selectedLead.payload?.estimatedInvestment?.total ||
+          0
+        )
+        const baseFleetCharter = Number(
+          selectedLead.payload?.estimatedInvestment?.baseFleetCharter ||
+          (retentionFee > 0 && totalInvestment > retentionFee ? totalInvestment - retentionFee : totalInvestment)
+        )
+
+        return (
+          <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedLead(null)
+            }}
           style={{
             position: 'fixed',
             inset: 0,
@@ -624,10 +695,93 @@ export function CRMPage() {
                   <div>
                     <div style={{ color: 'var(--adm-text-2)' }}><strong style={{ color: 'var(--adm-text-1)' }}>From:</strong> {selectedLead.origin || 'Lagos'}</div>
                     <div style={{ color: 'var(--adm-text-2)', marginTop: 2 }}><strong style={{ color: 'var(--adm-text-1)' }}>To:</strong> {selectedLead.destination || 'Lagos'}</div>
+                    {distanceKm > 0 && (
+                      <div style={{ color: 'var(--adm-text-2)', marginTop: 4 }}>
+                        <strong style={{ color: 'var(--adm-text-1)' }}>Distance:</strong> {Math.round(distanceKm)} km
+                      </div>
+                    )}
+                    {retentionDays > 0 && (
+                      <div style={{ color: 'var(--adm-accent)', marginTop: 4, fontWeight: 600 }}>
+                        Retention: {retentionDays} day(s) retained ({vehicleMobility === 'moving' ? 'Moving' : 'Parked'})
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Vehicle Retention & Route Cost Breakdown Card */}
+            {(retentionDays > 0 || retentionFee > 0 || retentionPreference || distanceKm > 0) && (
+              <div
+                style={{
+                  background: 'var(--adm-surface-2)',
+                  padding: '1rem 1.25rem',
+                  borderRadius: 'var(--adm-radius-sm)',
+                  border: '1px solid var(--adm-border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--adm-border)', paddingBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--adm-accent)', letterSpacing: '0.05em' }}>
+                    <ShieldCheck size={14} />
+                    <span>Cost Breakdown & Vehicle Retention Details</span>
+                  </div>
+                  {distanceKm > 0 && (
+                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--adm-text-1)', background: 'rgba(10, 48, 65, 0.08)', padding: '2px 8px', borderRadius: 4 }}>
+                      Route Distance: <strong>{Math.round(distanceKm)} km</strong>
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontSize: 12 }}>
+                  {/* Base Fleet Charter */}
+                  <div style={{ background: '#ffffff', padding: '0.75rem', borderRadius: 4, border: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <div style={{ fontSize: 10.5, color: 'var(--adm-text-3)', textTransform: 'uppercase', fontWeight: 700 }}>Base Fleet Charter</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--adm-text-1)' }}>
+                      {fmtCurrency(baseFleetCharter)}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--adm-text-2)' }}>
+                      Transit, fuel, driver salary, maintenance & toll levies
+                    </div>
+                  </div>
+
+                  {/* Retention Surcharge */}
+                  <div style={{ background: retentionFee > 0 ? 'rgba(239, 68, 68, 0.04)' : '#ffffff', padding: '0.75rem', borderRadius: 4, border: retentionFee > 0 ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <div style={{ fontSize: 10.5, color: retentionFee > 0 ? 'var(--adm-accent)' : 'var(--adm-text-3)', textTransform: 'uppercase', fontWeight: 700 }}>
+                      Vehicle Retention Surcharge
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: retentionFee > 0 ? 'var(--adm-accent)' : 'var(--adm-text-1)' }}>
+                      {retentionFee > 0 ? fmtCurrency(retentionFee) : '₦0 (Not Retained)'}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--adm-text-2)' }}>
+                      {retentionDays > 0 ? (
+                        <span>
+                          <strong>{retentionDays} day(s)</strong> retained &bull; {vehicleMobility === 'moving' ? 'Moving / Logistics' : 'Parked on Site'}
+                          {retentionRate > 0 && ` (@ ${fmtCurrency(retentionRate)}/day)`}
+                        </span>
+                      ) : retentionPreference === 'return' ? (
+                        <span>Vehicle released after drop-off (Return Option)</span>
+                      ) : (
+                        <span>Standard drop-off / direct transit</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Total Opportunity Value */}
+                  <div style={{ background: '#ffffff', padding: '0.75rem', borderRadius: 4, border: '1px solid var(--adm-border)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <div style={{ fontSize: 10.5, color: 'var(--adm-text-3)', textTransform: 'uppercase', fontWeight: 700 }}>Total Quotation Settlement</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--adm-text-1)' }}>
+                      {fmtCurrency(totalInvestment)}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--adm-success)', fontWeight: 600 }}>
+                      Base Charter + Retention Surcharge
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Sharable Payment Link Card */}
             <div
@@ -742,8 +896,8 @@ export function CRMPage() {
                   onChange={e => handleUpdateStatus(selectedLead.id, e.target.value)}
                   style={{ minWidth: 170 }}
                 >
-                  {Object.entries(statusBadges).map(([val, info]) => (
-                    <option key={val} value={val}>{info.label}</option>
+                  {CRM_STATUS_OPTIONS.map(val => (
+                    <option key={val} value={val}>{statusBadges[val]?.label || val}</option>
                   ))}
                 </select>
               </div>
@@ -783,7 +937,8 @@ export function CRMPage() {
             </div>
           </div>
         </div>
-      )}
+      )
+    })()}
     </>
   )
 }

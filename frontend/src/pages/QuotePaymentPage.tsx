@@ -259,6 +259,10 @@ export function QuotePaymentPage() {
   const vehicleName = investInfo.vehicleName || lead.journeyType || 'Executive Vehicle Charter'
   const additionalVehicles = Array.isArray(journeyInfo.additionalVehicles) ? journeyInfo.additionalVehicles.filter(Boolean) : []
   const passengerCount = journeyInfo.passengerCount || 'Group'
+  const distanceKm = Number(journeyInfo.distanceKm || investInfo.distanceKm || 0)
+  const retentionDays = Number(investInfo.retentionDays || journeyInfo.retentionDays || 0)
+  const retentionFee = Number(investInfo.retentionFee || investInfo.additionalRetentionFee || 0)
+  const baseCharter = retentionFee > 0 && amount > retentionFee ? amount - retentionFee : amount
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', color: '#1E293B', paddingBottom: '6rem' }}>
@@ -412,7 +416,14 @@ export function QuotePaymentPage() {
                     </div>
                     <div>
                       <span style={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em' }}>Destination</span>
-                      <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#0F172A', marginTop: 2 }}>{lead.destination || 'Lagos, Nigeria'}</p>
+                      <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#0F172A', marginTop: 2 }}>
+                        {lead.destination || 'Lagos, Nigeria'}
+                        {distanceKm > 0 && (
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#C0272D', marginLeft: '0.5rem' }}>
+                            ({Math.round(distanceKm)} km)
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -527,8 +538,14 @@ export function QuotePaymentPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B' }}>
                   <span>Base Fleet Charter</span>
-                  <span style={{ fontWeight: 600, color: '#0F172A' }}>{fmtCurrency(amount)}</span>
+                  <span style={{ fontWeight: 600, color: '#0F172A' }}>{fmtCurrency(baseCharter)}</span>
                 </div>
+                {retentionFee > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#C0272D' }}>
+                    <span>Vehicle Retention ({retentionDays} days)</span>
+                    <span style={{ fontWeight: 600, color: '#C0272D' }}>{fmtCurrency(retentionFee)}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B' }}>
                   <span>VAT & Government Levies</span>
                   <span style={{ fontWeight: 600, color: '#16A34A' }}>Included</span>
@@ -551,6 +568,39 @@ export function QuotePaymentPage() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {/* Terms Acceptance Notice */}
+                  <div
+                    style={{
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '6px',
+                      padding: '0.75rem 0.875rem',
+                      fontSize: '0.75rem',
+                      color: '#475569',
+                      lineHeight: 1.5,
+                      textAlign: 'center',
+                    }}
+                  >
+                    By proceeding to payment, you confirm your itinerary and agree to New Era Transport Services'{' '}
+                    <Link
+                      to="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#0D1060', fontWeight: 700, textDecoration: 'underline' }}
+                    >
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link
+                      to="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#0D1060', fontWeight: 700, textDecoration: 'underline' }}
+                    >
+                      Privacy Policy
+                    </Link>.
+                  </div>
+
                   <button
                     type="button"
                     onClick={handlePaystackPayment}

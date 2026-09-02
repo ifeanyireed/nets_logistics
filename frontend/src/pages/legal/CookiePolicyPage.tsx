@@ -124,8 +124,32 @@ export function CookiePolicyPage() {
             Please note that blocking strictly necessary or payment cookies may prevent you from completing a vehicle booking or accessing secure features on our website.
           </div>
           <p style={{ marginTop: '1rem' }}>
-            Where required by law, we will show a cookie consent banner when you first visit the site, allowing you to accept or manage non-essential cookies before they are set.
+            Where required by law, we will show a cookie consent banner when you first visit the site, allowing you to accept or manage non-essential cookies before they are set. You can review or update your choices at any time:
           </p>
+          <div style={{ marginTop: '1rem' }}>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('nets_open_cookie_preferences'))}
+              style={{
+                background: '#0D1060',
+                color: '#ffffff',
+                border: 'none',
+                padding: '0.625rem 1.25rem',
+                borderRadius: '4px',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'background-color 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1A1FA8')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0D1060')}
+            >
+              Customize Cookie Preferences
+            </button>
+          </div>
         </section>
 
         {/* Section 5 */}
