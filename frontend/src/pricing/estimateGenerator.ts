@@ -24,7 +24,7 @@ export async function generateEstimate(input: JourneyPricingInput): Promise<Esti
   const adminConfig = await fetchPricingConfig()
   const vehicleConfig = getVehiclePricingConfig(input.vehicleId)
 
-  const isCoaster = input.vehicleId === 'coaster' || input.vehicleId === 'coach-50'
+  const isCoaster = input.vehicleId === 'coaster'
   const isSaloon = input.vehicleId === 'sedan'
 
   let fuelRatio = adminConfig.hiaceFuelRatio

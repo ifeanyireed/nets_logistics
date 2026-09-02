@@ -397,8 +397,8 @@ export const useJourneyStore = create<JourneyState>((set, get) => ({
         if (pax === '8–14') return 'hiace';
         if (pax === '15–18') return 'midibus-18';
         if (pax === '19–30') return 'coaster';
-        if (pax === '31–50') return 'coach-50';
-        if (pax === '50+') return 'coach-50';
+        if (pax === '31–50') return 'coaster';
+        if (pax === '50+') return 'coaster';
         return 'hiace';
       }
 

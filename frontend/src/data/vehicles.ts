@@ -61,23 +61,6 @@ export const vehicles: Vehicle[] = [
   },
 
   {
-    id: 'coach-50',
-    name: '50-Seater Coach',
-    slug: '50-seater-coach',
-    capacity: 50,
-    category: 'Executive',
-    bestFor: 'Large Groups · Intercity Travel',
-    imageUrl: '/vehicles/coaster.jpg', // fallback image
-    features: ['Air Conditioning', 'Reclining Seats', 'Professional Driver', 'GPS Tracked'],
-    available: true,
-    editorialStory: 'The ultimate transport for large-scale delegate movement and intercity travel.',
-    comfortRating: 'Executive',
-    luggageSpace: 'Generous',
-    airConditioning: 'High-Capacity Climate Control',
-    recommendedFor: ['Conferences', 'Large Group Travel'],
-    gallery: ['/vehicles/coaster.jpg']
-  },
-  {
     id: 'sedan',
     name: 'Executive Sedan',
     slug: 'executive-sedan',

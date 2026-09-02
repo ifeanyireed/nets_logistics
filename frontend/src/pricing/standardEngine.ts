@@ -2,7 +2,7 @@
 // NETS Pricing Engine — Standard Engine
 // ============================================================================
 // Line-for-line translation of the Standard Engine formula from the Excel workbook.
-// Used by: Hiace, SUV, Executive Bus, Luxury Coach, Executive Sedan, and all future vehicles.
+// Used by: Hiace, SUV, Executive Bus, Executive Sedan, and all future vehicles.
 //
 // Running Total (₦/day) = Fuel Usage + Salaries + Vehicle Maintenance + Security Fees
 //                        + Government Levies + Driver Outstation Allowance + Depreciation Cost

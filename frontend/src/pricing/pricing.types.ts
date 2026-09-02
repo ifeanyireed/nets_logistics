@@ -7,7 +7,7 @@
 
 /**
  * Identifies which calculation engine to use for a vehicle.
- * - 'standard' — Hiace, SUV, Executive Bus, Luxury Coach, Executive Sedan, and all future vehicles.
+ * - 'standard' — Hiace, SUV, Executive Bus, Executive Sedan, and all future vehicles.
  * - 'coaster'  — Toyota Coaster only. Shares Standard daily/monthly logic but adds an independent 3-Day Trip Rate.
  */
 export type PricingEngineType = 'standard' | 'coaster'

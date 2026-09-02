@@ -23,7 +23,7 @@ export function BookingConfirmationPage() {
     travelDate: new Date().toISOString().split('T')[0],
     departureTime: '07:30 AM',
     arrivalTime: '08:15 AM',
-    vehicleType: 'NETS Executive Coach (AC)',
+    vehicleType: 'NETS Executive Shuttle (AC)',
     vehiclePlate: 'LSD-892-XY',
     driverName: 'Captain Tunde Bakare',
     driverPhone: '+2348031234567',

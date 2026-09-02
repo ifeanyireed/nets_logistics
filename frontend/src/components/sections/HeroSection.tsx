@@ -11,7 +11,6 @@ const vehicleOptions = [
   { id: '', name: 'Any Vehicle' },
   { id: 'hiace', name: 'Toyota HiAce (14 Seats)' },
   { id: 'coaster', name: 'Toyota Coaster (30 Seats)' },
-  { id: 'coach-50', name: '50-Seater Coach (50 Seats)' },
   { id: 'sienna', name: 'Toyota Sienna (7 Seats)' },
   { id: 'suv', name: 'Executive SUV (4 Seats)' },
   { id: 'sedan', name: 'Executive Sedan (3 Seats)' }

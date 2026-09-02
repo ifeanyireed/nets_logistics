@@ -82,17 +82,6 @@ export const EXECUTIVE_BUS_CONFIG: VehiclePricingConfig = {
 }
 
 /**
- * Luxury Coach — Standard Engine. Rates to be configured by New Era Transport.
- * Currently uses Hiace seed values as placeholder.
- */
-export const LUXURY_COACH_CONFIG: VehiclePricingConfig = {
-  ...HIACE_CONFIG,
-  vehicleId: 'coach-50',
-  vehicleName: '50-Seater Luxury Coach',
-  engineType: 'standard',
-}
-
-/**
  * Executive Sedan — Standard Engine. Rates to be configured by New Era Transport.
  * Currently uses Hiace seed values as placeholder.
  */
@@ -121,7 +110,6 @@ const VEHICLE_CONFIGS: Record<string, VehiclePricingConfig> = {
   'hiace': HIACE_CONFIG,
   'suv': SUV_CONFIG,
   'midibus-18': EXECUTIVE_BUS_CONFIG,
-  'coach-50': LUXURY_COACH_CONFIG,
   'sedan': EXECUTIVE_SEDAN_CONFIG,
   'sienna': SIENNA_CONFIG,
 }
