@@ -278,7 +278,7 @@ export function QuotesPage() {
       },
     })
     if (ok) {
-      alert(`Quotation with cost breakdown and payment link successfully sent to ${q.customerEmail}`)
+      alert(`Quotation and payment link successfully sent to ${q.customerEmail}`)
     } else {
       alert(`Quotation email triggered for ${q.customerEmail}`)
     }
@@ -326,7 +326,7 @@ export function QuotesPage() {
 
     const ok = await adminService.createLead(quotePayload)
 
-    // Automatically send quotation email with cost breakdown and sharable payment link to client
+    // Automatically send quotation email with sharable payment link to client
     if (createForm.email) {
       await emailService.sendConfirmationEmail(quotePayload)
     }

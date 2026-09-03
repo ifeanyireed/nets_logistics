@@ -51,16 +51,7 @@ class EmailService {
       payload.retentionDays || 
       0
     )
-    const retentionRate = Number(
-      payload.estimatedInvestment?.retentionRate || 
-      payload.retentionRate || 
-      0
-    )
     const vehicleMobility = payload.journeyInformation?.vehicleMobility || payload.vehicleMobility || 'parked'
-
-    const baseCharterNum = payload.estimatedInvestment?.baseFleetCharter || (totalNum > retentionFee ? totalNum - retentionFee : totalNum)
-    const fmtBaseCharter = baseCharterNum ? `NGN ${Math.round(baseCharterNum).toLocaleString('en-NG')}` : estimate
-    const fmtRetention = retentionFee ? `NGN ${Math.round(retentionFee).toLocaleString('en-NG')}` : 'NGN 0'
     
     let schedule = `${travelDate}${departureTime}`
     if (returnDate && tripType !== 'Drop-Off' && tripType !== 'One-Way' && tripType !== 'One Way') {
@@ -107,49 +98,10 @@ class EmailService {
           ${retentionFee > 0 || retentionDays > 0 ? `
           <p style="margin: 8px 0 0 0; font-size: 13.5px;"><strong>Vehicle Retention:</strong> ${retentionDays > 0 ? `${retentionDays} day(s) retained (${vehicleMobility})` : `Retained (${vehicleMobility})`}</p>
           ` : ''}
-        </div>
-
-        <div style="margin: 20px 0; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
-          <div style="background: #0A3041; color: #ffffff; padding: 11px 16px; font-weight: bold; font-size: 14px;">
-            Guaranteed Cost Breakdown & Inclusions
-          </div>
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px 16px; color: #475569;">
-                Base Fleet Charter ${distanceKm > 0 ? `<span style="display: block; font-size: 11.5px; color: #64748b; margin-top: 2px;">Route Coverage: <strong>${Math.round(distanceKm)} km</strong></span>` : ''}
-              </td>
-              <td style="padding: 10px 16px; text-align: right; font-weight: 600; color: #0A3041; vertical-align: middle;">
-                ${retentionFee > 0 ? fmtBaseCharter : estimate}
-              </td>
-            </tr>
-            ${retentionFee > 0 ? `
-            <tr style="border-bottom: 1px solid #f1f5f9; background: #fffcf0;">
-              <td style="padding: 10px 16px; color: #475569;">
-                Vehicle Retention Surcharge
-                <span style="display: block; font-size: 11.5px; color: #92400e; margin-top: 2px;">
-                  Vehicle retained on site: <strong>${retentionDays > 0 ? retentionDays : 'Multi'} day${retentionDays === 1 ? '' : 's'}</strong> (${vehicleMobility}) ${retentionRate > 0 ? `@ NGN ${Math.round(retentionRate).toLocaleString('en-NG')}/day` : ''}
-                </span>
-              </td>
-              <td style="padding: 10px 16px; text-align: right; font-weight: 600; color: #b45309; vertical-align: middle;">
-                ${fmtRetention}
-              </td>
-            </tr>
-            ` : ''}
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px 16px; color: #475569;">Professional Uniformed Driver & Fuel</td>
-              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included (✓)</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px 16px; color: #475569;">Tolls & Interstate Security Compliance</td>
-              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included (✓)</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 10px 16px; color: #475569;">Comprehensive Passenger Transit Cover</td>
-              <td style="padding: 10px 16px; text-align: right; color: #16a34a; font-weight: 600;">Included (✓)</td>
-            </tr>
-            <tr style="background: #F8FAFC;">
-              <td style="padding: 12px 16px; font-weight: bold; font-size: 15px; color: #0A3041;">Total Investment</td>
-              <td style="padding: 12px 16px; text-align: right; font-weight: 800; font-size: 16px; color: #C40000;">${estimate}</td>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 14px; border-top: 1px solid #e2e8f0;">
+            <tr>
+              <td style="padding-top: 10px; font-weight: bold; font-size: 14px; color: #0A3041;">Total Investment:</td>
+              <td style="padding-top: 10px; text-align: right; font-weight: 800; font-size: 17px; color: #C40000;">${estimate}</td>
             </tr>
           </table>
         </div>
@@ -238,16 +190,7 @@ class EmailService {
       booking.retentionDays || 
       0
     )
-    const retentionRate = Number(
-      booking.estimatedInvestment?.retentionRate || 
-      booking.retentionRate || 
-      0
-    )
     const vehicleMobility = booking.journeyInformation?.vehicleMobility || booking.vehicleMobility || 'parked'
-
-    const baseCharterNum = booking.estimatedInvestment?.baseFleetCharter || (amountNum > retentionFee ? amountNum - retentionFee : amountNum)
-    const fmtBaseCharter = baseCharterNum ? `NGN ${Math.round(baseCharterNum).toLocaleString('en-NG')}` : fmtAmount
-    const fmtRetention = retentionFee ? `NGN ${Math.round(retentionFee).toLocaleString('en-NG')}` : 'NGN 0'
 
     if (!customerEmail || customerEmail === 'N/A') {
       console.warn('[EMAIL SERVICE] Customer email missing for booking confirmation.')
@@ -285,9 +228,8 @@ class EmailService {
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Destination:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${destination}</td></tr>
             ${distanceKm > 0 ? `<tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Route Distance:</td><td style="padding: 6px 0; color: #0A3041; font-weight: 600; border-bottom: 1px solid #e2e8f0;">${Math.round(distanceKm)} km</td></tr>` : ''}
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Travel Date:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${travelDateFormatted}</td></tr>
-            ${retentionFee > 0 ? `
-            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Base Fleet Charter:</td><td style="padding: 6px 0; color: #0A3041; border-bottom: 1px solid #e2e8f0;">${fmtBaseCharter}</td></tr>
-            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Vehicle Retention:</td><td style="padding: 6px 0; color: #b45309; font-weight: 600; border-bottom: 1px solid #e2e8f0;">${fmtRetention} (${retentionDays > 0 ? `${retentionDays} days` : 'Multi-day'} @ ${retentionRate > 0 ? `NGN ${Math.round(retentionRate).toLocaleString('en-NG')}/day` : vehicleMobility})</td></tr>
+            ${retentionDays > 0 ? `
+            <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Vehicle Retention:</td><td style="padding: 6px 0; color: #0A3041; font-weight: 600; border-bottom: 1px solid #e2e8f0;">${retentionDays} day(s) (${vehicleMobility})</td></tr>
             ` : ''}
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569; border-bottom: 1px solid #e2e8f0;">Total Settlement:</td><td style="padding: 6px 0; font-weight: bold; color: #16a34a; font-size: 15px; border-bottom: 1px solid #e2e8f0;">${fmtAmount}</td></tr>
             <tr><td style="padding: 6px 0; font-weight: bold; color: #475569;">Payment Status:</td><td style="padding: 6px 0; font-weight: bold; color: #16a34a;">${paymentStatus}</td></tr>
